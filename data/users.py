@@ -15,6 +15,7 @@ class User(SqlAlchemyBase, UserMixin, SerializerMixin):
     patronymic = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     email = sqlalchemy.Column(sqlalchemy.String, unique=True, nullable=True)
     status = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('user_statuses.id'))
+    photo_url = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     hashed_password = sqlalchemy.Column(sqlalchemy.String)
 
     def check_password(self, password):

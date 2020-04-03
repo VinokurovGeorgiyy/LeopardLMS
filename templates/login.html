@@ -1,8 +1,41 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <h1>Вход в LMS</h1>
-    <form action="" method="post">
+    <style>
+        body {
+          background: url("/static/img/leopard_login_bg.jpg");
+          margin-left: auto;
+          margin-right: auto;
+          width: 100%
+        }
+
+        input#submit {
+          margin-left: auto;
+          margin-right: auto;
+          width: 100%;
+        }
+
+        .h1, h1 {
+          font-size: 2.5rem;
+          text-align: center;
+        }
+
+        .login_block {
+          margin-top: 50px;
+          margin-left: auto;
+          margin-right: auto;
+          padding-left: 30px;
+          padding-right: 30px;
+          padding-top: 30px;
+          padding-bottom: 30px;
+          width: 50%;
+          border-radius: 4px;
+          background-color: white
+        }
+    </style>
+    <div class="login_block">
+      <h1>Вход в LMS</h1>
+      <form action="" method="post">
         {{ form.hidden_tag() }}
         <p>
             {{ form.email.label }}<br>
@@ -23,7 +56,8 @@
             {% endfor %}
         </p>
         <p>{{ form.remember_me() }} {{ form.remember_me.label }}</p>
-        <p>{{ form.submit(type="submit", class="btn btn-primary") }}</p>
+        <p>{{ form.submit(type="submit", class="btn btn-success") }}</p>
         <div>{{ message }}</div>
-    </form>
+      </form>
+    </div>
 {% endblock %}

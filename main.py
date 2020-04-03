@@ -25,20 +25,10 @@ class LoginForm(FlaskForm):
     submit = SubmitField('Вход')
 
 
-@app.route('/')
-@app.route('/index')
+@app.route('/', methods=['GET', 'POST'])
 def index():
-    return render_template('index.html', title='Leopard LMS')
-
-
-@login_manager.user_loader
-def load_user(user_id):
-    session = db_session.create_session()
-    return session.query(User).get(user_id)
-
-
-@app.route('/login', methods=['GET', 'POST'])
-def login():
+    if current_user.is_authenticated:
+        return render_template('base.html', title='Leopard LMS', current_user=current_user)
     form = LoginForm()
     if form.validate_on_submit():
         session = db_session.create_session()
@@ -50,17 +40,30 @@ def login():
     return render_template('login.html', title='Авторизация', form=form)
 
 
+@login_manager.user_loader
+def load_user(user_id):
+    session = db_session.create_session()
+    return session.query(User).get(user_id)
+
+
 @app.route('/logout')
 def logout():
     logout_user()
     return redirect('/')
 
 
+@app.route('/admins', methods=['GET', 'POST'])
+def get_admins():
+    session = db_session.create_session()
+    admins = session.query(User).filter(User.status == 2).all()
+    return render_template('admins.html', title='Администраторы', admins=admins, form=form)
+
+
 def main():
     db_session.global_init("db/leopard_lms.sqlite")
     statuses = ['system-manager', 'admin', 'director', 'teacher', 'student']
     users = [{'first_name': 'Manager', 'last_name': 'System',
-              'email': 'leopard.hq@yandex.ru',
+              'email': 'leopard.hq@yandex.ru', 'status': 1,
               'hashed_password': '874800ba296315ee2f8e69033aaedbdbb9603b62b26'
                                  '3f1496b9b6a731ebbf18e650fcfaf720daea9425133'
                                  '959197b1bf769a9c3e568c8127208f7f0989f0d745'}

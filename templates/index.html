@@ -1,4 +1,75 @@
 {% extends "base.html" %}
 
 {% block content %}
+  <style>
+    body {
+      background-color: rgb(232, 234, 246);
+      margin-left: auto;
+      margin-right: auto;
+      width: 100%
+    }
+
+    .content_block {
+      margin-left: auto;
+      margin-right: auto;
+      width: 1140px;
+    }
+
+    .page_top {
+      float: left;
+      width: 100%;
+    }
+
+    .profile_info_block {
+      float: left;
+      width: 100%;
+      background-color: white;
+      border-radius: 4px;
+      margin-top: 24px;
+      padding-left: 15px;
+      padding-right: 15px;
+      padding-top: 15px;
+      padding-bottom: 15px
+    }
+
+    .profile_photo {
+      float: left;
+      border-radius: 4px;
+      width: 225px;
+      height: 225px;
+    }
+
+    .profile_info {
+      float: left;
+      margin-left: 30px
+    }
+
+    .navigation {
+      float: left;
+      width: 22%;
+      background-color: white;
+      border-radius: 4px;
+      margin-top: 24px;
+      padding-left: 15px;
+      padding-right: 15px;
+      padding-top: 15px;
+      padding-bottom: 15px
+    }
+  </style>
+    <div class="content_block">
+      <div class="page_top">
+        <div class="profile_info_block">
+          {% if current_user.photo_url %}
+            <img class="profile_photo" src="{{ current_user.photo_url }}">
+          {% else %}
+            <img class="profile_photo" src="http://photos1.blogger.com/blogger/3178/1831/320/eit195_512.png">
+          {% endif %}
+          <div class="profile_info">
+            <h2>{{ current_user.last_name }} {{ current_user.first_name }}</h2>
+            <h5>ID: {{ current_user.id }}</h5>
+            <h5>Email: {{ current_user.email }}</h5>
+          </div>
+        </div>
+      </div>
+    </div>
 {% endblock %}
