@@ -1,0 +1,21 @@
+{% extends "workspace.html" %}
+
+{% block container %}
+  <style>
+        .page_block {
+          margin-left: auto;
+          margin-right: auto;
+          margin-top: 50px;
+          background-color: white;
+          border-radius: 4px;
+          width: 100%;
+          padding: 15px;
+        }
+  </style>
+  <div class="page_block">
+      <div class="alert alert-success" role="alert">
+          {% block message%}{% endblock %}
+      </div>
+      <a class="btn btn-secondary" href="/">На главную</a>
+  </div>
+{% endblock %}
