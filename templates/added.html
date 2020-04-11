@@ -16,6 +16,9 @@
       <div class="alert alert-success" role="alert">
           {% block message%}{% endblock %}
       </div>
-      <a class="btn btn-secondary" href="/">На главную</a>
+      <a class="btn btn-secondary" href="/" id="{{link_id}}">{{ link_text }}</a>
   </div>
+  <script>
+    document.getElementById('{{ link_id }}').href = '{{ link }}';
+  </script>
 {% endblock %}

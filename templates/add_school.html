@@ -16,6 +16,7 @@
           margin-left: auto;
           margin-right: auto;
           margin-top: 50px;
+          margin-bottom: 50px;
           background-color: white;
           border-radius: 4px;
           width: 75%;
@@ -39,8 +40,32 @@
                 {% endfor %}
             </div>
             <div class="form-group">
-                {{ form.address(class="form-control", placeholder="Почтовый адрес") }}<br>
-                {% for error in form.address.errors %}
+                {{ form.index(class="form-control", placeholder="Почтовый индекс") }}<br>
+                {% for error in form.index.errors %}
+                    <div class="alert alert-danger" role="alert">{{ error }}</div>
+                {% endfor %}
+            </div>
+            <div class="form-group">
+                {{ form.region(class="form-control", placeholder="Регион") }}<br>
+                {% for error in form.region.errors %}
+                    <div class="alert alert-danger" role="alert">{{ error }}</div>
+                {% endfor %}
+            </div>
+            <div class="form-group">
+                {{ form.city(class="form-control", placeholder="Город/район") }}<br>
+                {% for error in form.city.errors %}
+                    <div class="alert alert-danger" role="alert">{{ error }}</div>
+                {% endfor %}
+            </div>
+            <div class="form-group">
+                {{ form.street(class="form-control", placeholder="Улица/проспект и пр.") }}<br>
+                {% for error in form.street.errors %}
+                    <div class="alert alert-danger" role="alert">{{ error }}</div>
+                {% endfor %}
+            </div>
+            <div class="form-group">
+                {{ form.house(class="form-control", placeholder="Дом") }}<br>
+                {% for error in form.house.errors %}
                     <div class="alert alert-danger" role="alert">{{ error }}</div>
                 {% endfor %}
             </div>

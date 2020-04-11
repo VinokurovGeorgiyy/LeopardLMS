@@ -1,0 +1,61 @@
+{% extends "workspace.html" %}
+
+{% block container %}
+  <style>
+      .top-content {
+        margin-left: auto;
+        margin-right: auto;
+        margin-top: 30px;
+        margin-bottom: 30px;
+        background-color: white;
+        border-radius: 4px;
+        width: 100%;
+        padding: 20px;
+      }
+
+      .title {
+        text-align: center;
+      }
+
+      .classes-content {
+        display: flex;
+        justify-content: left;
+        width: 100%;
+      }
+
+      .classes-list {
+        width: 65%
+      }
+
+      .class-data {
+        background-color: white;
+        border-radius: 4px;
+        padding: 20px;
+        margin-top: 15px;
+      }
+  </style>
+  <div class="top-content">
+     <h3 class="title">{{ school.title }}</h3>
+  </div>
+  <div class="classes-content">
+    <div class="classes-list">
+      {% for item, leader in groups %}
+        <div class="class-data">
+            <h5><a href="/class" id="class-{{item.id}}" style="color: #000">Класс: {{ item.title }}</a></h5>
+            <h5 style="color: grey">Классный руководитель:
+                <a href="/id" id="class-leader-{{item.id}}" style="text-decoration: none; color: #1c542d">
+                    {{ leader.last_name }}
+                    {{ leader.first_name }}
+                    {% if leader.patronymic != None %}{{ leader.patronymic }}{% endif %}
+                </a>
+            </h5>
+        </div>
+        <script>
+            document.getElementById('class-leader-{{item.id}}').href = '/id{{ leader.id }}';
+            document.getElementById('class-{{item.id}}').href = '/class{{ item.id }}';
+        </script>
+      {% endfor %}
+    </div>
+  </div>
+  <div style="margin: 50px"></div>
+{% endblock %}

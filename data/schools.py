@@ -9,8 +9,18 @@ class School(SqlAlchemyBase, SerializerMixin):
 
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, autoincrement=True)
     title = sqlalchemy.Column(sqlalchemy.String, unique=True, nullable=True)
+
     director = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('users.id'))
-    address = sqlalchemy.Column(sqlalchemy.String, nullable=True)
+    groups = sqlalchemy.Column(sqlalchemy.String, nullable=True)
+    teachers = sqlalchemy.Column(sqlalchemy.String, nullable=True)
+    students = sqlalchemy.Column(sqlalchemy.String, nullable=True)
+
+    index = sqlalchemy.Column(sqlalchemy.Integer, nullable=True)
+    region = sqlalchemy.Column(sqlalchemy.String, nullable=True)
+    city = sqlalchemy.Column(sqlalchemy.String, nullable=True)
+    street = sqlalchemy.Column(sqlalchemy.String, nullable=True)
+    house = sqlalchemy.Column(sqlalchemy.String, nullable=True)
+
     email = sqlalchemy.Column(sqlalchemy.String, unique=True, nullable=True)
     phone = sqlalchemy.Column(sqlalchemy.String, nullable=True)
 
