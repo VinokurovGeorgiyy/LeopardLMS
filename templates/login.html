@@ -26,8 +26,9 @@
           padding: 30px;
         }
     </style>
-    <div class="login_block">
+    <div class="login_block border">
         <h1>Вход в LMS</h1>
+        {% if message %}<div class="alert alert-danger">{{ message }}</div>{% endif %}
         <form action="" method="post">
         {{ form.hidden_tag() }}
         <div class="form-group">
@@ -50,7 +51,6 @@
         </div>
         <div>{{ form.remember_me() }} {{ form.remember_me.label }}</div>
         <div>{{ form.submit(type="submit", class="btn btn-secondary") }}</div>
-        <div style="font-color: red">{{ message }}</div>
     </form>
     </div>
 {% endblock %}

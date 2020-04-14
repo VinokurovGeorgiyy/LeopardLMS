@@ -22,8 +22,9 @@
           padding: 30px;
         }
   </style>
-  <div class="sign_up_block">
+  <div class="sign_up_block border">
       <h1>Регистрация пользователя «{{ status }}»</h1>
+      {% if message %}<div class="alert alert-danger">{{ message }}</div>{% endif %}
         <form action="" method="post">
         {{ form.hidden_tag() }}
         <div class="form-row">
@@ -69,7 +70,6 @@
             </div>
         </div>
         <div>{{ form.submit(type="submit", class="btn btn-secondary") }}</div>
-        <div style="font-color: red">{{ message }}</div>
       </form>
     </div>
 {% endblock %}
