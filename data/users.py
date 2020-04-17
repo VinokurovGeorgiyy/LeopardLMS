@@ -14,8 +14,12 @@ class User(SqlAlchemyBase, UserMixin, SerializerMixin):
     first_name = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     patronymic = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     email = sqlalchemy.Column(sqlalchemy.String, unique=True, nullable=True)
-    status = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('user_statuses.id'))
+    status = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('user_statuses.id'), nullable=True)
+    school = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('schools.id'), nullable=True)
+    group = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('groups.id'), nullable=True)
     hashed_password = sqlalchemy.Column(sqlalchemy.String)
+
+    photo_url = sqlalchemy.Column(sqlalchemy.String, nullable=True)
 
     def check_password(self, password):
         return str(hashlib.blake2b(str(password).encode()).hexdigest()) == self.hashed_password

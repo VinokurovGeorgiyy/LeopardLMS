@@ -23,6 +23,7 @@ class UserRegistrationForm(FlaskForm):
 
 class SchoolRegistrationForm(FlaskForm):
     title = StringField('Полное наименование организации', validators=[DataRequired()])
+    short_title = StringField('Краткое наименование', validators=[DataRequired()])
     director = IntegerField('ID директора', validators=[DataRequired()])
     index = IntegerField('Почтовый индекс', validators=[DataRequired()])
     region = StringField('Регион', validators=[DataRequired()])

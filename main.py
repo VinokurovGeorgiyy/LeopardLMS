@@ -8,6 +8,7 @@ from data import db_session
 from data.users import User
 from data.user_statuses import UserStatus
 from data.schools import School
+from data.groups import Group
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'We`ll always stay together, You and I...'
@@ -52,11 +53,58 @@ def logout():
 def user_profile(user_id):
     if not current_user.is_authenticated:
         return redirect('/')
-    user = db_session.create_session().query(User).get(user_id)
+    session = db_session.create_session()
+    user = session.query(User).get(user_id)
     if not user:
         abort(404)
-    params = {'title': f'{user.last_name} {user.first_name}', 'user': user}
+    rus_statuses = {'system-manager': 'Системный администратор',
+                    'admin': 'Администратор', 'director': 'Директор',
+                    'teacher': 'Учитель', 'student': 'Ученик'}
+    school = session.query(School).get(user.school) if user.school else None
+    school = school.short_title if school is not None else None
+    group = session.query(Group).get(user.group) if user.group else None
+    group = group.title if group is not None else None
+    params = {'title': f'{user.last_name} {user.first_name}', 'user': user,
+              'status': rus_statuses[USERS_STATUSES[user.status - 1]],
+              'school': school, 'group': group, 'current_user': current_user}
     return render_template('user.html', **params)
+
+
+@app.route('/my-school')
+def my_school():
+    if current_user.school is not None:
+        return redirect(f'/school{current_user.school}')
+    abort(404)
+
+
+@app.route('/my-group')
+def my_group():
+    if current_user.group is not None:
+        return redirect(f'/group{current_user.group}')
+    abort(404)
+
+
+@app.route('/school<int:school_id>')
+def school_profile(school_id):
+    if not current_user.is_authenticated:
+        return redirect('/')
+    session = db_session.create_session()
+    school = session.query(School).get(school_id)
+    if not school:
+        abort(404)
+    director = session.query(User).get(school.director)
+    params = {'title': f'{school.short_title}', 'school': school,
+              'current_user': current_user, 'director': director}
+    return render_template('school.html', **params)
+
+
+@app.route('/schools')
+def get_all_schools():
+    if not current_user.is_authenticated:
+        return redirect('/')
+    session = db_session.create_session()
+    schools = session.query(School).all()
+    return render_template('all_schools.html', title='Школы', schools=schools)
 
 
 @app.route('/add_<string:status>', methods=['GET', 'POST'])
@@ -112,9 +160,13 @@ def add_school():
             text = f'Пользователя с ID {form.director.data} не существует!'
             params = {'title': 'Регистрация', 'form': form, 'message': text}
             return render_template('add_school.html', **params)
-
+        if exist.school is not None:
+            text = f'Пользователь - директор другой школы: ID {exist.school}'
+            params = {'title': 'Регистрация', 'form': form, 'message': text}
+            return render_template('add_school.html', **params)
         school.email = form.email.data
         school.title = form.title.data
+        school.short_title = form.short_title.data
         school.director = form.director.data
         school.teachers, school.groups, school.students = '', '', ''
         school.index = form.index.data
@@ -124,6 +176,9 @@ def add_school():
         school.house = form.house.data
         school.phone = form.phone.data
         session.add(school), session.commit()
+        school = session.query(School).filter(School.title == title).first()
+        exist.school = school.id
+        session.commit()
         return redirect('/')
     return render_template('add_school.html', title='Регистрация', form=form)
 

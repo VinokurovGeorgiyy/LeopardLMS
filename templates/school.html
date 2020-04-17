@@ -1,0 +1,67 @@
+{% extends "workspace.html" %}
+
+{% block container %}
+    <style>
+        .page {
+          margin-top: 24px;
+          display: flex;
+          justify-content: center;
+        }
+
+        .school-photo {
+          border-radius: 4px;
+        }
+
+        .under-school-photo {
+          margin-top: 20px;
+          margin-left: auto;
+          margin-right: auto;
+          width: 100%;
+          font-weight: bold;
+        }
+
+        .right {
+          margin-left: 24px;
+          width: 100%;
+        }
+    </style>
+    <div class="page">
+        <div class="left">
+            <div class="page-block">
+                <div>
+                    {% if school.photo_url != None %}
+                      <img src="{{school.photo_url}}" width="200" height="200" class="school-photo">
+                    {% else %}
+                      <img src="/static/img/school-photo.png" width="200" height="200" class="school-photo">
+                    {% endif %}
+                </div>
+                <div>
+                    {% if current_user.id == school.director %}
+                      <a class="btn btn-info under-school-photo" href="/">Редактировать</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="right">
+            <div class="page-block school-info">
+                <h4 style="text-align: center">{{ school.title }}</h4>
+                {% if director != None %}
+                  <h5>Директор:
+                      <a href="/" id="director" style="text-decoration: none; color: gray">
+                          {{ director.last_name }} {{ director.first_name }}
+                      </a>
+                  </h5>
+                {% endif %}
+                <h5>E-mail: {{ school.email }}</h5>
+                <h5>Тел.: {{ school.phone }}</h5>
+                <h5>Адрес: {{ school.index }}, {{ school.region }}, {{ school.city }},
+                    {{ school.street }}, {{ school.house }}</h5>
+                <hr>
+                <h5>ID {{ school.id }}</h5>
+                <script>
+                    document.getElementById('director').href = '/id{{director.id}}';
+                </script>
+            </div>
+        </div>
+    </div>
+{% endblock %}

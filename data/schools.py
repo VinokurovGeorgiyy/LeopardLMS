@@ -9,6 +9,7 @@ class School(SqlAlchemyBase, SerializerMixin):
 
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, autoincrement=True)
     title = sqlalchemy.Column(sqlalchemy.String, unique=True, nullable=True)
+    short_title = sqlalchemy.Column(sqlalchemy.String, nullable=True)
 
     director = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('users.id'))
     groups = sqlalchemy.Column(sqlalchemy.String, nullable=True)
@@ -23,4 +24,5 @@ class School(SqlAlchemyBase, SerializerMixin):
 
     email = sqlalchemy.Column(sqlalchemy.String, unique=True, nullable=True)
     phone = sqlalchemy.Column(sqlalchemy.String, nullable=True)
+    photo_url = sqlalchemy.Column(sqlalchemy.String, nullable=True)
 

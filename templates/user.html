@@ -2,6 +2,99 @@
 
 {% block container %}
     <style>
+        .page {
+          margin-top: 24px;
+          display: flex;
+          justify-content: center;
+        }
 
+        .user-photo {
+          border-radius: 4px;
+        }
+
+        .under-user-photo {
+          margin-top: 20px;
+          margin-left: auto;
+          margin-right: auto;
+          width: 100%;
+          font-size: 18px;
+        }
+
+        .right {
+          margin-left: 24px;
+          width: 100%;
+        }
+
+        .dropdown-item {
+          font-size: 18px;
+        }
     </style>
+    <div class="page">
+        <div class="left">
+            <div class="page-block">
+                <div>
+                    {% if user.photo_url != None %}
+                      <img src="{{user.photo_url}}" width="200" height="200" class="user-photo">
+                    {% else %}
+                      <img src="/static/img/user-photo.png" width="200" height="200" class="user-photo">
+                    {% endif %}
+                </div>
+                <div>
+                    {% if current_user.id == user.id %}
+                      <a class="btn btn-info under-user-photo" href="/">Настройки</a>
+                    {% else %}
+                      <a class="btn btn-info under-user-photo" href="/">Сообщение</a>
+                    {% endif %}
+                </div>
+            </div>
+            {% if current_user.id == user.id %}
+              <div class="page-block">
+                  <div class="left-menu">
+                      <a class="dropdown-item" href="/messages">Сообщения</a>
+                      {% if user.status == 1 %}
+                        <a class="dropdown-item" href="/schools">Школы</a>
+                        <a class="dropdown-item" href="/users">Пользователи</a>
+                        <a class="dropdown-item" href="/groups">Группы</a>
+                      {% endif %}
+                      {% if user.status == 2 %}
+                        <a class="dropdown-item" href="/schools">Школы</a>
+                      {% endif %}
+                      {% if user.status == 4 %}
+                        <a class="dropdown-item" href="/tasks">Задания</a>
+                      {% endif %}
+                      {% if school != None %}<hr><a class="dropdown-item" href="/my-school">Моя школа</a>{% endif %}
+                      {% if group != None %}<a class="dropdown-item" href="/my-group">Мой класс</a>{% endif %}
+                  </div>
+              </div>
+            {% endif %}
+        </div>
+        <div class="right">
+            <div class="page-block">
+                <h3>{{ user.last_name }} {{ user.first_name }}</h3>
+                <hr>
+                <h5>Статус: «{{ status }}»</h5>
+                <h5>E-mail: {{ user.email }}</h5>
+                <h5>{% if school != None %}Школа:
+                      <a href="/" style="text-decoration: none; color: gray" id="user-school">
+                          {{ school }}
+                      </a>
+                      <script>
+                          document.getElementById('user-school').href = '/school{{user.school}}';
+                      </script>
+                    {% endif %}
+                </h5>
+                <h5>{% if group != None %}Класс:
+                      <a href="/"  style="text-decoration: none; color: gray" id="user-group">
+                          {{ group }}
+                      </a>
+                      <script>
+                          document.getElementById('user-group').href = '/group{{user.group}}';
+                      </script>
+                    {% endif %}
+                </h5>
+                <hr>
+                <h5>ID {{ user.id }}</h5>
+            </div>
+        </div>
+    </div>
 {% endblock %}
