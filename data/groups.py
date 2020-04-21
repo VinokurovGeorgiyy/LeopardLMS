@@ -11,4 +11,4 @@ class Group(SqlAlchemyBase, SerializerMixin):
     school_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('schools.id'))
     title = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     leader = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('users.id'))
-    students = sqlalchemy.Column(sqlalchemy.String, nullable=True)
+    photo_url = sqlalchemy.Column(sqlalchemy.String, nullable=True)

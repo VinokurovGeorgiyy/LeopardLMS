@@ -1,0 +1,109 @@
+{% extends "workspace.html" %}
+
+{% block container %}
+    <style>
+        .page {
+          margin-top: 24px;
+          display: flex;
+          justify-content: center;
+        }
+
+        .group-photo {
+          border-radius: 4px;
+        }
+
+        .right {
+          margin-left: 24px;
+          width: 100%;
+        }
+
+        .btn-slate {
+          background-color: #6c92af;
+          border: 1px solid;
+          border-color: #6c92af;
+        }
+
+        .students {
+          flex-wrap: wrap;
+        }
+
+        .student {
+          margin: 10px;
+          width: 190px;
+        }
+
+        .user-photo {
+          border-radius: 4px;
+        }
+
+        .add-student {
+          font-size: 20px;
+          margin-left: auto;
+        }
+    </style>
+    <div class="page">
+        <div class="left">
+            <div class="page-block">
+                <div>
+                    {% if group.photo_url != None %}
+                      <img src="{{group.photo_url}}" width="200" height="200" class="group-photo">
+                    {% else %}
+                      <img src="/static/img/group-photo.png" width="200" height="200" class="group-photo">
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        <div class="right">
+            <div class="page-block school-info">
+                <h3>«{{ group.title }}»</h3>
+                <hr>
+                <h5>Школа:
+                    <a style="text-decoration: none; color: #00695c; font-weight: bold" href="/school-{{school.id}}">
+                        {{ school.short_title }}
+                    </a>
+                </h5>
+                <h5>Классный руководитель:
+                    <a style="text-decoration: none; color: #00695c; font-weight: bold" href="/id-{{leader.id}}">
+                        {{ leader.last_name }} {{ leader.first_name }}
+                        {% if leader.patronymic != None %}{{ leader.patronymic }}{% endif %}
+                    </a>
+                </h5>
+                <hr>
+                <div style="display: flex; justify-content: center">
+                    <h5 style="align-self: center">ID {{ group.id }}</h5>
+                    <div style="margin-left: auto">
+                        {% if current_user.id == school.director or current_user.status < 3 %}
+                          <a class="btn btn-dark btn-slate" href="/edit-group">Редактировать профиль</a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="page-block" style="display: flex; justify-content: center; width: 100%; padding: 10px">
+          <h2>Состав класса</h2>
+          {% if current_user.id == school.director or current_user.status < 3 %}
+            <a class="btn btn-success add-student" href="/group-{{group.id}}-add-student" id="add-student">
+                Добавить ученика +
+            </a>
+          {% endif %}
+      </div>
+    <div class="page students">
+        {% for i in students %}
+          <div class="page-block student">
+              <div style="margin-bottom: 10px">
+                   {% if i.photo_url != None %}
+                     <img src="{{i.photo_url}}" width="150" height="150" class="user-photo">
+                   {% else %}
+                     <img src="/static/img/user-photo.png" width="150" height="150" class="user-photo">
+                   {% endif %}
+              </div>
+              <div style="text-align: center; font-size: 19px">
+                  <a href="/id-{{i.id}}" id="id{{i.id}}" style="color: #1a237e">
+                      {{ i.last_name }} {{ i.first_name }}
+                  </a>
+              </div>
+          </div>
+        {% endfor %}
+    </div>
+{% endblock %}

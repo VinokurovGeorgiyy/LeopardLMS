@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, BooleanField, SubmitField
-from wtforms import IntegerField
+from wtforms import IntegerField, TextAreaField
 from wtforms.validators import DataRequired, EqualTo, Email
 
 
@@ -34,3 +34,13 @@ class SchoolRegistrationForm(FlaskForm):
     phone = StringField('Тел.', validators=[DataRequired()])
     submit = SubmitField('Добавить школу')
 
+
+class GroupRegistrationForm(FlaskForm):
+    title = StringField('Название, литера', validators=[DataRequired()])
+    leader = IntegerField('ID руководителя', validators=[DataRequired()])
+    submit = SubmitField('Добавить класс')
+
+
+class ChatForm(FlaskForm):
+    message = StringField('Сообщение', validators=[DataRequired()])
+    submit = SubmitField('Отправить')

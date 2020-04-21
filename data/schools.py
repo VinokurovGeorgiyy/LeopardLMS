@@ -12,9 +12,6 @@ class School(SqlAlchemyBase, SerializerMixin):
     short_title = sqlalchemy.Column(sqlalchemy.String, nullable=True)
 
     director = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('users.id'))
-    groups = sqlalchemy.Column(sqlalchemy.String, nullable=True)
-    teachers = sqlalchemy.Column(sqlalchemy.String, nullable=True)
-    students = sqlalchemy.Column(sqlalchemy.String, nullable=True)
 
     index = sqlalchemy.Column(sqlalchemy.Integer, nullable=True)
     region = sqlalchemy.Column(sqlalchemy.String, nullable=True)

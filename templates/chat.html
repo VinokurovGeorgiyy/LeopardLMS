@@ -1,0 +1,97 @@
+{% extends "workspace.html" %}
+
+{% block container %}
+    <style>
+        .chat-area {
+          height: 540px;
+          overflow-y: scroll;
+          border-radius: 0px;
+        }
+
+        .page {
+          margin-top: 24px;
+          display: flex;
+          justify-content: center;
+        }
+
+        .left {
+          width: 360px;
+          align-self: flex-start;
+        }
+
+        .right {
+          width: 100%;
+        }
+
+        .message {
+          margin: 10px;
+          display: flex;
+          justify-content: left;
+          margin-bottom: 20px;
+        }
+
+        .chat_name {
+          background-color: white;
+          text-align: center;
+          border-bottom: 1px solid;
+          border-top-left-radius: 5px;
+          border-top-right-radius: 5px;
+          padding-bottom: 15px;
+        }
+    </style>
+    <div class="page">
+        <div class="page-block left" style="border-radius: 0px">
+
+        </div>
+        <div class="right">
+            <div class="page-block chat-area">
+                <div data-spy="scroll" data-offset="0">
+                    <div id="chat_area">
+
+                    </div>
+                </div>
+            </div>
+            <div class="page-block" style="border-radius: 0px; padding: 10px">
+                <form action="" method="post" class="form-inline" id="name-form">
+                    {{ form.hidden_tag() }}
+                    <div>
+                        {{ form.message(class="form-control") }}
+                        {% for error in form.message.errors %}
+                        <div class="alert alert-danger" role="alert">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    <div>{{ form.submit(type="submit", class="btn btn-outline-success my-2 my-sm-0", onclick="send()") }}</div>
+                </form>
+                <script>
+                    var x = new XMLHttpRequest();
+                    x.open("GET", "/get-all-messages-chat-{{chat_id}}-starts-with-0", true);
+                    x.onload = function (){
+                    document.getElementById('chat_area').innerHTML = x.responseText;
+                    }
+                    x.send(null);
+                    document.querySelector('#name-form').addEventListener('submit', function (e) {e.preventDefault();
+                    })
+                </script>
+                <script>
+
+                    function send() {
+                    var xhr = new XMLHttpRequest();
+                    var data = {message: document.getElementById("message").value, chat: {{chat_id}}};
+                    xhr.open('POST', '/chat-form', true);
+                    xhr.setRequestHeader("Content-Type", "application/json");
+                    xhr.send(JSON.stringify(data));
+                    var x = new XMLHttpRequest();
+                    x.open("GET", "/get-all-messages-chat-{{chat_id}}-starts-with-last", true);
+                    x.onload = function (){
+                    var chat_area = document.getElementById("chat_area");
+                    var div = document.createElement("div");
+                    div.innerHTML = x.responseText;
+                    chat_area.appendChild(div);
+                    }
+                    x.send(null);
+                    }
+                </script>
+            </div>
+        </div>
+    </div>
+{% endblock %}

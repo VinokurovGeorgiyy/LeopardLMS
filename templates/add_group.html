@@ -1,0 +1,42 @@
+{% extends "workspace.html" %}
+
+{% block container %}
+  <style>
+      input#submit{
+          margin-left: auto;
+          margin-right: auto;
+          width: 50%
+        }
+
+        .h1, h1 {
+          text-align: center;
+        }
+
+        .sign_up_block {
+          margin-left: auto;
+          margin-right: auto;
+          margin-top: 50px;
+          width: 75%;
+        }
+  </style>
+  <div class="page-block sign_up_block border">
+      <h1>Добавление класса</h1>
+      {% if message %}<div class="alert alert-danger">{{ message }}</div>{% endif %}
+        <form action="" method="post">
+        {{ form.hidden_tag() }}
+            <div class="form-group">
+                {{ form.title(class="form-control", placeholder="Название, литера") }}<br>
+                {% for error in form.title.errors %}
+                    <div class="alert alert-danger" role="alert">{{ error }}</div>
+                {% endfor %}
+            </div>
+            <div class="form-group">
+                {{ form.leader(class="form-control", placeholder="ID руководителя") }}<br>
+                {% for error in form.leader.errors %}
+                    <div class="alert alert-danger" role="alert">{{ error }}</div>
+                {% endfor %}
+            </div>
+            <div>{{ form.submit(type="submit", class="btn btn-secondary") }}</div>
+      </form>
+    </div>
+{% endblock %}

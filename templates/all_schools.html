@@ -1,0 +1,68 @@
+{% extends "workspace.html" %}
+
+{% block container %}
+  <style>
+      .page {
+        margin-top: 24px;
+        display: flex;
+        justify-content: left;
+      }
+
+      .info-block {
+        display: flex;
+        justify-content: left;
+        margin-bottom: 16px;
+      }
+
+      .left {
+        width: 100%;
+      }
+
+      .right {
+        width: 240px;
+        margin-left: 30px;
+      }
+
+      .add-school {
+        font-size: 20px;
+        margin-left: auto;
+      }
+  </style>
+  <div class="page-block" style="margin-bottom: 36px">
+      <div style="display: flex; justify-content: center">
+          <h2>Школы</h2>
+          {% if current_user.status < 3 %}
+            <a class="btn btn-success add-school" href="/add-school" id="add-school">Добавить школу +</a>
+          {% endif %}
+      </div>
+  </div>
+  <div class="page">
+      <div class="left">
+          {% for item in schools %}
+            <div class="page-block info-block" style="padding: 12px">
+                {% if item[0].photo_url != None %}
+                  <img src="{{item[0].photo_url}}" width="80" height="80">
+                {% else %}
+                  <img src="/static/img/school-photo.png" width="80" height="80">
+                {% endif %}
+                <div style="margin-left: 20px">
+                    <h3>
+                        <a href="/school-{{item[0].id}}" id="sch{{item[0].id}}" style="text-decoration: none; color: #1a237e">
+                            {{ item[0].short_title }}
+                        </a>
+                    </h3>
+                    <h4>Директор:
+                        <a href="/id-{{item[0].director}}" id="id{{item[0].director}}" style="text-decoration: none; color: #1a237e">
+                            {{ item[1].last_name }} {{ item[1].first_name }}
+                            {% if item[1].patronymic != None %}{{ item[1].patronymic }}{% endif %}
+                        </a>
+                    </h4>
+                </div>
+            </div>
+          {% endfor %}
+      </div>
+      <div class="right">
+
+      </div>
+  </div>
+{% endblock %}

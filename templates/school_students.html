@@ -1,0 +1,82 @@
+{% extends "workspace.html" %}
+
+{% block container %}
+  <style>
+      .page {
+        margin-top: 24px;
+        display: flex;
+        justify-content: left;
+      }
+
+      .info-block {
+        display: flex;
+        justify-content: left;
+        margin-bottom: 16px;
+      }
+
+      .left {
+        width: 100%;
+      }
+
+      .right {
+        width: 240px;
+        margin-left: 30px;
+      }
+
+      .add-student {
+        font-size: 20px;
+        margin-left: auto;
+      }
+  </style>
+  <div class="page-block" style="margin-bottom: 36px">
+      <h3><a style="text-decoration: none; color: #000" href="/school-{{sch.id}}">{{ sch.short_title }}</a></h3>
+      <hr>
+      <div>
+          <h2>Учащиеся</h2>
+      </div>
+  </div>
+  <div class="page">
+      <div class="left">
+          <nav aria-label="Page navigation example">
+              <ul class="pagination justify-content-center">
+                  <li class="page-item"><a class="page-link" href="#"><span aria-hidden="true">&laquo;</span></a></li>
+                  <li class="page-item"><a class="page-link" href="#">1</a></li>
+                  <li class="page-item"><a class="page-link" href="#">2</a></li>
+                  <li class="page-item"><a class="page-link" href="#">3</a></li>
+                  <li class="page-item"><a class="page-link" href="#"><span aria-hidden="true">&raquo;</span></a></li>
+              </ul>
+          </nav>
+
+          {% for item in data %}
+            <div class="page-block info-block" style="padding: 12px">
+                {% if item[0].photo_url != None %}
+                  <img src="{{item[0].photo_url}}" width="64" height="64">
+                {% else %}
+                  <img src="/static/img/school-photo.png" width="64" height="64">
+                {% endif %}
+                <div style="margin-left: 20px">
+                    <h4>
+                        <a href="/id-{{item[0].id}}" id="id{{item[0].id}}" style="text-decoration: none; color: #1a237e">
+                            {{ item[0].last_name }} {{ item[0].first_name }}
+                        </a>
+                    </h4>
+                    <h5>Класс: {{ item[1].title }}</h5>
+                </div>
+            </div>
+          {% endfor %}
+
+          <nav aria-label="Page navigation example">
+              <ul class="pagination justify-content-center">
+                  <li class="page-item"><a class="page-link" href="#"><span aria-hidden="true">&laquo;</span></a></li>
+                  <li class="page-item"><a class="page-link" href="#">1</a></li>
+                  <li class="page-item"><a class="page-link" href="#">2</a></li>
+                  <li class="page-item"><a class="page-link" href="#">3</a></li>
+                  <li class="page-item"><a class="page-link" href="#"><span aria-hidden="true">&raquo;</span></a></li>
+              </ul>
+          </nav>
+      </div>
+      <div class="right">
+
+      </div>
+  </div>
+{% endblock %}
