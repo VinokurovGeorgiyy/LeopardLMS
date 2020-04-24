@@ -43,7 +43,7 @@
                     <h5 style="align-self: center">ID {{ school.id }}</h5>
                     <div style="margin-left: auto">
                         {% if current_user.id == school.director or current_user.status < 3 %}
-                          <a class="btn btn-dark btn-slate" href="/edit-school">Редактировать профиль</a>
+                          <a class="btn btn-dark btn-slate" href="/edit-school-{{school.id}}">Редактировать профиль</a>
                         {% endif %}
                     </div>
                 </div>
@@ -79,4 +79,10 @@
             <h5><a href="/school-{{school.id}}-students" id="students">Перейти >>>></a></h5>
         </div>
     </div>
+    {% if current_user.id == director.id or current_user.status < 3 %}
+        <div class="page-block" style="width: 100%">
+            <h2>Образовательные курсы</h2>
+            <h5><a href="/school-{{school.id}}-courses" id="courses">Перейти >>>></a></h5>
+        </div>
+    {% endif %}
 {% endblock %}

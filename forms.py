@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, BooleanField, SubmitField
-from wtforms import IntegerField, TextAreaField
+from wtforms import IntegerField, TextAreaField, FileField
 from wtforms.validators import DataRequired, EqualTo, Email
 
 
@@ -42,5 +42,48 @@ class GroupRegistrationForm(FlaskForm):
 
 
 class ChatForm(FlaskForm):
-    message = StringField('Сообщение', validators=[DataRequired()])
+    message = StringField('Сообщение', validators=[])
     submit = SubmitField('Отправить')
+
+
+class CourseRegistrationForm(FlaskForm):
+    title = StringField('Название курса', validators=[DataRequired()])
+    teacher = IntegerField('ID преподавателя курса', validators=[DataRequired()])
+    group = IntegerField('ID группы/класса', validators=[DataRequired()])
+    submit = SubmitField('Добавить курс')
+
+
+class UserProfileEditForm(FlaskForm):
+    last_name = StringField('Фамилия', validators=[DataRequired()])
+    first_name = StringField('Имя', validators=[DataRequired()])
+    patronymic = StringField('Отчество', validators=[])
+    photo = FileField('Загрузить фото', validators=[])
+    url = StringField('Ссылка на фото', validators=[])
+    submit = SubmitField('Сохранить')
+
+
+class ChangePasswordForm(FlaskForm):
+    old = PasswordField('Старый пароль', validators=[DataRequired()])
+    password = PasswordField('Новый пароль', validators=[DataRequired(), EqualTo('repeat')])
+    repeat = PasswordField('Повторите пароль', validators=[DataRequired()])
+    submit = SubmitField('Изменить пароль')
+
+
+class SchoolProfileEditForm(FlaskForm):
+    short_title = StringField('Краткое наименование', validators=[DataRequired()])
+    director = IntegerField('ID директора', validators=[DataRequired()])
+    index = IntegerField('Почтовый индекс', validators=[DataRequired()])
+    region = StringField('Регион', validators=[DataRequired()])
+    city = StringField('Город/район', validators=[DataRequired()])
+    street = StringField('Улица/проспект и пр.', validators=[DataRequired()])
+    house = StringField('Дом', validators=[DataRequired()])
+    email = StringField('E-mail', validators=[DataRequired(), Email()])
+    phone = StringField('Тел.', validators=[DataRequired()])
+    photo = FileField('Загрузить фото', validators=[])
+    submit = SubmitField('Сохранить')
+
+
+class LessonRegistrationForm(FlaskForm):
+    lesson_number = StringField('Номер урока', validators=[DataRequired()])
+    title = StringField('Тема урока', validators=[DataRequired()])
+    submit = SubmitField('Добавить урок в курс')

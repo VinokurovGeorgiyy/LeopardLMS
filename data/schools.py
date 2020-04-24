@@ -19,7 +19,7 @@ class School(SqlAlchemyBase, SerializerMixin):
     street = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     house = sqlalchemy.Column(sqlalchemy.String, nullable=True)
 
-    email = sqlalchemy.Column(sqlalchemy.String, unique=True, nullable=True)
+    email = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     phone = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     photo_url = sqlalchemy.Column(sqlalchemy.String, nullable=True)
 

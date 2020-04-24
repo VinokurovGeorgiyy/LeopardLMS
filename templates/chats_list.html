@@ -1,0 +1,49 @@
+{% extends "workspace.html" %}
+
+{% block container %}
+    <style>
+        .page {
+          margin-top: 24px;
+          display: flex;
+          justify-content: center;
+        }
+
+        .right {
+          width: 75%;
+        }
+
+        .chats-list {
+          min-height: 320px;
+        }
+
+        .info-block {
+          display: flex;
+          justify-content: left;
+          margin-bottom: 5px;
+          padding: 0px;
+          border-radius: 4px;
+      }
+    </style>
+    <div class="page">
+        <div class="right">
+            <div class="page-block"><h4 style="text-align: center">Чаты</h4></div>
+            <div>
+                {% for chat in chats %}
+                <a style="text-decoration: none; color: #000" href="/chat-{{chat[0].id}}">
+                    <div class="page-block info-block border" style="padding: 12px">
+                        {% if chat[3] != None %}
+                          <img src="{{chat[3]}}" width="80" height="80">
+                        {% else %}
+                          <img src="/static/img/chat-photo.png" width="80" height="80">
+                        {% endif %}
+                      <div style="margin-left: 20px">
+                          <h4>{{ chat[1] }}</h4>
+                          <p>{{ chat[2] }}</p>
+                      </div>
+                    </div>
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+{% endblock %}

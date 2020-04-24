@@ -20,6 +20,7 @@ class User(SqlAlchemyBase, UserMixin, SerializerMixin):
     hashed_password = sqlalchemy.Column(sqlalchemy.String)
 
     photo_url = sqlalchemy.Column(sqlalchemy.String, nullable=True)
+    chats = sqlalchemy.Column(sqlalchemy.String, nullable=True)
 
     def check_password(self, password):
         return str(hashlib.blake2b(str(password).encode()).hexdigest()) == self.hashed_password

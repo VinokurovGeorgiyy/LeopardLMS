@@ -1,0 +1,35 @@
+{% extends "workspace.html" %}
+
+{% block container %}
+  <style>
+      .page {
+        margin-top: 24px;
+        display: flex;
+        justify-content: left;
+      }
+
+      .courses {
+        flex-wrap: wrap;
+      }
+  </style>
+  <div class="page-block" style="margin-bottom: 36px">
+      <div style="display: flex; justify-content: center">
+          <h2>Мои предметы</h2>
+      </div>
+  </div>
+  <div class="page courses">
+      {% for i in data %}
+        <a href="/course-{{i[0].id}}" style="text-decoration: none; color: #000; min-width: 45%">
+            <div class="page-block" style="margin: 8px">
+                <h3>{{ i[0].title }}</h3>
+                {% if user.status == 5 %}
+                <div>Учитель: {{ i[1].last_name }} {{ i[1].first_name }}
+                    {% if i[1].patronymic != None %}{{ i[1].patronymic }}{% endif %}</div>
+                {% elif user.status < 5 %}
+                <div>Класс: {{ i[1].title }}</div>
+                {% endif %}
+            </div>
+        </a>
+      {% endfor %}
+    </div>
+{% endblock %}

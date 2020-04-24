@@ -38,28 +38,61 @@
   </div>
   <div class="page">
       <div class="left">
+          <nav aria-label="Page navigation">
+            {% set n = [0, 1, 2, 3, 4] %}
+            <ul class="pagination justify-content-center">
+                {% if current_page - 1 > 0 %}
+                    <li class="page-item"><a class="page-link" href="/schools-page-{{current_page-1}}"><span aria-hidden="true">&laquo;</span></a></li>
+                {% endif %}
+                {% for i in n %}
+                {% if current_page + i <= n_pages %}
+                    <li class="page-item"><a class="page-link" href="/schools-page-{{current_page+i}}">{{current_page+i}}</a></li>
+                {% endif %}
+                {% endfor %}
+                {% if current_page + 1 <= n_pages %}
+                    <li class="page-item"><a class="page-link" href="/schools-page-{{current_page+1}}"><span aria-hidden="true">&raquo;</span></a></li>
+                {% endif %}
+            </ul>
+          </nav>
           {% for item in schools %}
             <div class="page-block info-block" style="padding: 12px">
                 {% if item[0].photo_url != None %}
-                  <img src="{{item[0].photo_url}}" width="80" height="80">
+                  <img src="{{item[0].photo_url}}" width="64" height="64">
                 {% else %}
-                  <img src="/static/img/school-photo.png" width="80" height="80">
+                  <img src="/static/img/school-photo.png" width="64" height="64">
                 {% endif %}
                 <div style="margin-left: 20px">
-                    <h3>
+                    <h4>
                         <a href="/school-{{item[0].id}}" id="sch{{item[0].id}}" style="text-decoration: none; color: #1a237e">
                             {{ item[0].short_title }}
                         </a>
-                    </h3>
-                    <h4>Директор:
+                    </h4>
+                    <h5>Директор:
                         <a href="/id-{{item[0].director}}" id="id{{item[0].director}}" style="text-decoration: none; color: #1a237e">
                             {{ item[1].last_name }} {{ item[1].first_name }}
                             {% if item[1].patronymic != None %}{{ item[1].patronymic }}{% endif %}
                         </a>
-                    </h4>
+                    </h5>
                 </div>
             </div>
           {% endfor %}
+
+          <nav aria-label="Page navigation">
+            {% set n = [0, 1, 2, 3, 4] %}
+            <ul class="pagination justify-content-center">
+                {% if current_page - 1 > 0 %}
+                    <li class="page-item"><a class="page-link" href="/schools-page-{{current_page-1}}"><span aria-hidden="true">&laquo;</span></a></li>
+                {% endif %}
+                {% for i in n %}
+                {% if current_page + i <= n_pages %}
+                    <li class="page-item"><a class="page-link" href="/schools-page-{{current_page+i}}">{{current_page+i}}</a></li>
+                {% endif %}
+                {% endfor %}
+                {% if current_page + 1 <= n_pages %}
+                    <li class="page-item"><a class="page-link" href="/schools-page-{{current_page+1}}"><span aria-hidden="true">&raquo;</span></a></li>
+                {% endif %}
+            </ul>
+          </nav>
       </div>
       <div class="right">
 

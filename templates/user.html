@@ -47,7 +47,7 @@
                 </div>
                 <div>
                     {% if current_user.id == user.id %}
-                      <a class="btn btn-dark btn-slate under-user-photo" href="/">Настройки</a>
+                      <a class="btn btn-dark btn-slate under-user-photo" href="/edit-my-profile">Настройки</a>
                     {% else %}
                       <a class="btn btn-dark btn-slate under-user-photo" href="/write-message-{{user.id}}">Сообщение</a>
                     {% endif %}
@@ -57,17 +57,13 @@
               <div class="page-block">
                   <div class="left-menu">
                       <a class="dropdown-item" href="/chats">Сообщения</a>
-                        <a class="dropdown-item" href="/schools">Школы</a>
-                        <a class="dropdown-item" href="/users">Пользователи</a>
-                        <a class="dropdown-item" href="/groups">Группы</a>
-                      {% if user.status == 2 %}
-                        <a class="dropdown-item" href="/schools">Школы</a>
-                      {% endif %}
-                      {% if user.status == 5 %}
-                        <a class="dropdown-item" href="/tasks">Задания</a>
-                      {% endif %}
+                      <a class="dropdown-item" href="/schools">Школы</a>
+                      <a class="dropdown-item" href="/users">Пользователи</a>
                       {% if school != None %}<hr><a class="dropdown-item" href="/my-school">Моя школа</a>{% endif %}
                       {% if group != None %}<a class="dropdown-item" href="/my-group">Мой класс</a>{% endif %}
+                      {% if user.status <= 5 %}
+                        <a class="dropdown-item" href="/my-courses">Мои предметы</a>
+                      {% endif %}
                   </div>
               </div>
             {% endif %}

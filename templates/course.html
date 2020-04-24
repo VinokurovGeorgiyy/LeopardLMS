@@ -1,0 +1,57 @@
+{% extends "workspace.html" %}
+
+{% block container %}
+    <style>
+      .page {
+        margin-top: 24px;
+        display: flex;
+        justify-content: left;
+      }
+
+      .info-block {
+        display: flex;
+        justify-content: left;
+        margin-bottom: 16px;
+      }
+
+      .left {
+        width: 100%;
+      }
+
+      .right {
+        margin-left: 30px;
+        min-width: 240px;
+      }
+    </style>
+    <div class="page-block" style="margin-bottom: 40px">
+        <h2 style="text-align: center">{{course.title}}</h2>
+    </div>
+    <div class="page">
+        <div class="left">
+        {% for i in lessons %}
+            {% if not i.opened %}
+              <div class="page-block" style="display: flex; justify-content: center; margin-bottom: 16px">
+                  <h3>Урок {{ i.lesson_number }}. {{ i.title }}</h3>
+                  <a class="btn btn-info" href="/course-{{course.id}}-open-lesson-{{i.id}}"
+                    style="margin-left: auto; margin-right: 20px">
+                        Открыть урок +
+                  </a>
+              </div>
+            {% else %}
+              <div class="page-block" style="margin-bottom: 16px">
+                  <h3>Урок {{ i.lesson_number }}. {{ i.title }}</h3>
+              </div>
+            {% endif %}
+        {% endfor %}
+        </div>
+        {% if rights %}
+        <div class="right page-block" style="padding-bottom: 10px; align-self: flex-start">
+            <a class="btn btn-success" href="/course-{{course.id}}-add-lesson"
+               style="font-size: 20px; margin-left: auto; margin-bottom: 10px; width: 100%">
+                Добавить урок +
+            </a>
+        </div>
+        {% endif %}
+    </div>
+
+{% endblock %}

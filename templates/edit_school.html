@@ -1,0 +1,137 @@
+{% extends "workspace.html" %}
+
+{% block container %}
+  <style>
+        .submit-block {
+          margin-left: auto;
+          margin-right: auto;
+          margin-top: 5px;
+          width: 100%;
+          text-align: center;
+        }
+
+        input#submit {
+          width: 50%;
+        }
+
+        .h1, h1 {
+          text-align: center;
+        }
+
+        .sign_up_block {
+          margin-left: auto;
+          margin-right: auto;
+          margin-top: 50px;
+          width: 75%;
+        }
+
+        .photo-data {
+          display: flex;
+          justify-content: center;
+        }
+  </style>
+  <div class="page-block sign_up_block">
+      <h1>Настройки школы</h1>
+      {% if message %}<div class="alert alert-danger">{{ message }}</div>{% endif %}
+        <form action="" method="post" enctype="multipart/form-data" novalidate>
+        {{ form.hidden_tag() }}
+                <div class="other-fields">
+                    <div class="form-row">
+                        <div class="form-group col-md-6">
+                            {{ form.short_title(class="form-control", placeholder="Краткое наименование", value=school.short_title) }}<br>
+                            {% for error in form.short_title.errors %}
+                                <div class="alert alert-danger" role="alert">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="form-group col-md-6">
+                            {{ form.email(class="form-control", type="email", placeholder="E-mail", value=school.email) }}<br>
+                            {% for error in form.email.errors %}
+                                <div class="alert alert-danger" role="alert">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        {{ form.director(class="form-control", placeholder="ID директора", value=school.director) }}<br>
+                        {% for error in form.director.errors %}
+                            <div class="alert alert-danger" role="alert">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-4">
+                            {{ form.index(class="form-control", placeholder="Почтовый индекс", value=school.index) }}<br>
+                            {% for error in form.index.errors %}
+                                <div class="alert alert-danger" role="alert">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="form-group col-md-4">
+                            {{ form.region(class="form-control", placeholder="Регион", value=school.region) }}<br>
+                            {% for error in form.region.errors %}
+                                <div class="alert alert-danger" role="alert">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="form-group col-md-4">
+                            {{ form.city(class="form-control", placeholder="Город/район", value=school.city) }}<br>
+                            {% for error in form.city.errors %}
+                                <div class="alert alert-danger" role="alert">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-md-4">
+                            {{ form.street(class="form-control", placeholder="Улица/проспект и пр.", value=school.street) }}<br>
+                            {% for error in form.street.errors %}
+                                <div class="alert alert-danger" role="alert">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="form-group col-md-4">
+                            {{ form.house(class="form-control", placeholder="Дом", value=school.house) }}<br>
+                            {% for error in form.house.errors %}
+                                <div class="alert alert-danger" role="alert">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div class="form-group col-md-4">
+                            {{ form.phone(class="form-control", type="tel", value=school.phone) }}<br>
+                            {% for error in form.phone.errors %}
+                                <div class="alert alert-danger" role="alert">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                <hr>
+                <div class="photo-data">
+                    {% if school.photo_url != None %}
+                      <img src="{{school.photo_url}}" width="200" height="200" class="school-photo" id="school-photo">
+                    {% else %}
+                      <img src="/static/img/school-photo.png" width="200" height="200" class="user-photo" id="school-photo">
+                    {% endif %}
+                    <div class="photo-fields" style="width: 100%; margin-left: 30px;">
+                        <div>
+                          {{ form.photo.label }}<br>
+                          {{ form.photo(type="file", onchange="f()") }}<br>
+                          <small id="passwordHelpBlock" class="form-text text-muted">
+                              Выбирайте изображение в форматах JPG, PNG, BMP. Рекомендуемое соотношение сторон: 1:1
+                          </small>
+                          {% for error in form.photo.errors %}
+                              <div class="alert alert-danger" role="alert">{{ error }}</div>
+                          {% endfor %}
+                        </div>
+                    </div>
+                </div><hr>
+            <div class="submit-block">{{ form.submit(type="submit", class="btn btn-success") }}</div>
+            <script>
+                function f() {
+                     var field = document.getElementById('photo');
+                     Array.prototype.forEach.call(field.files, function(file) {
+                       var reader = new FileReader();
+                       reader.addEventListener("load", function() {
+                         var dataUri = event.target.result;
+                         document.getElementById('school-photo').src = dataUri;
+                       });
+                       reader.readAsDataURL(file);
+
+                     });
+                }
+            </script>
+      </form>
+    </div>
+{% endblock %}
