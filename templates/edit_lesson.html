@@ -43,6 +43,18 @@
                             <a class="btn btn-success" onclick="add_link()" style="color: white">Добавить</a>
                         </div>
                     </div>
+                    <div style="display: flex; justify-content: center; margin-bottom: 16px">
+                        <div style="width: 100%; margin-right: 10px">
+                            {{ form.img_url.label }}
+                            {{ form.img_url(class="form-control") }}
+                            {% for error in form.img_url.errors %}
+                                <div class="alert alert-danger" role="alert">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div style="align-self: center">
+                            <a class="btn btn-success" onclick="add_img_from_url()" style="color: white">Добавить</a>
+                        </div>
+                    </div>
                     <div>
                         <div>
                             <h3>Код</h3>
@@ -64,13 +76,24 @@
       </div>
   </div>
   <script>
+      var x = new XMLHttpRequest();
+      x.open("GET", "/lesson-{{lesson.id}}-get-{{data}}", true);
+      x.onload = function() {
+      var result = document.getElementById("result");
+      result.innerHTML = x.responseText;
+      document.getElementById('code').value = x.responseText;};
+      x.send(null);
+  </script>
+  <script>
       function add_text() {
         var result = document.getElementById("result");
+        var p = document.createElement("p");
         var text = document.createTextNode(document.getElementById("text").value);
-        result.appendChild(text);
+        p.appendChild(text);
+        result.appendChild(p);
         document.getElementById("text").value = '';
         document.getElementById("code").value = '';
-        document.getElementById("code").value = result.textContent;
+        document.getElementById("code").value = result.innerHTML;
       }
 
       function add_link() {
@@ -81,12 +104,23 @@
         result.appendChild(link);
         document.getElementById("link").value = '';
         document.getElementById("code").value = '';
-        document.getElementById("code").value = result.textContent;
+        document.getElementById("code").value = result.innerHTML;
+      }
+
+      function add_img_from_url() {
+        var result = document.getElementById("result");
+        var img = document.createElement("img");
+        img.src = document.getElementById("img_url").value;
+        img.style.width = '100%';
+        result.appendChild(img);
+        document.getElementById("img_url").value = '';
+        document.getElementById("code").value = '';
+        document.getElementById("code").value = result.innerHTML;
       }
 
       function change_result() {
         var result = document.getElementById("result");
-        result.textContent = document.getElementById("code").value;
+        result.innerHTML = document.getElementById("code").value;
       }
   </script>
 {% endblock %}

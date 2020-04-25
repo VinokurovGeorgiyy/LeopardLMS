@@ -6,3 +6,4 @@ from . import chats
 from . import messages
 from . import courses
 from . import lessons
+from . import solutions

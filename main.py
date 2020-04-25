@@ -14,6 +14,7 @@ from data.chats import Chat
 from data.messages import Message
 from data.courses import Course
 from data.lessons import Lesson
+from data.solutions import Solution
 
 import json
 import datetime
@@ -705,16 +706,17 @@ def lesson_profile(lesson_id):
     if not (current_user.id in [course.teacher, sch.director] or
             current_user.group == course.group and current_user.status == 5):
         abort(403)
-    return render_template('lesson.html', lesson=lesson)
+    right = current_user.id in [course.teacher, sch.director]
+    return render_template('lesson.html', lesson=lesson, right_of_edit=right)
 
 
-@app.route('/lesson-<int:lesson_id>-add-theory', methods=['GET', 'POST'])
-def add_theory_to_lesson(lesson_id):
+@app.route('/lesson-<int:lesson_id>-add-<material>', methods=['GET', 'POST'])
+def add_theory_to_lesson(lesson_id, material):
     if not current_user.is_authenticated:
         return redirect('/')
     sess = db_session.create_session()
     lesson = sess.query(Lesson).get(lesson_id)
-    if not lesson:
+    if not lesson or material not in ['theory', 'task']:
         abort(404)
     course = sess.query(Course).get(lesson.course)
     if not course:
@@ -726,10 +728,36 @@ def add_theory_to_lesson(lesson_id):
         abort(403)
     form = EditLessonForm()
     if form.validate_on_submit():
-        lesson.theory = form.code.data
+        if material == 'theory':
+            lesson.theory = form.code.data
+        else:
+            lesson.tasks = form.code.data
         sess.commit()
         return redirect(f'/lesson-{lesson_id}')
-    return render_template('edit_lesson.html', title='Теория', form=form)
+    return render_template('edit_lesson.html', title='Редактор', form=form,
+                           data=material, lesson=lesson)
+
+
+@app.route('/lesson-<int:lesson_id>-get-<material>')
+def get_theory_of_lesson(lesson_id, material):
+    if not current_user.is_authenticated:
+        return redirect('/')
+    sess = db_session.create_session()
+    lesson = sess.query(Lesson).get(lesson_id)
+    if not lesson or material not in ['theory', 'task']:
+        abort(404)
+    course = sess.query(Course).get(lesson.course)
+    if not course:
+        abort(404)
+    sch = sess.query(School).get(course.school)
+    if not sch:
+        abort(404)
+    if not (current_user.id in [course.teacher, sch.director] or
+            current_user.group == course.group and current_user.status == 5):
+        abort(403)
+    if material == 'theory':
+        return lesson.theory if lesson.theory else "Теория отсутствует"
+    return lesson.tasks if lesson.tasks else "Задание отсутствует"
 
 
 @app.route('/my-courses')

@@ -92,5 +92,6 @@ class LessonRegistrationForm(FlaskForm):
 class EditLessonForm(FlaskForm):
     text = TextAreaField('Абзац', validators=[])
     link = StringField('Ссылка', validators=[])
+    img_url = StringField('Изображние (ссылка)', validators=[])
     code = TextAreaField('Код', validators=[])
     submit = SubmitField('Сохранить')
