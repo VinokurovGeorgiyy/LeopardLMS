@@ -87,3 +87,10 @@ class LessonRegistrationForm(FlaskForm):
     lesson_number = StringField('Номер урока', validators=[DataRequired()])
     title = StringField('Тема урока', validators=[DataRequired()])
     submit = SubmitField('Добавить урок в курс')
+
+
+class EditLessonForm(FlaskForm):
+    text = TextAreaField('Абзац', validators=[])
+    link = StringField('Ссылка', validators=[])
+    code = TextAreaField('Код', validators=[])
+    submit = SubmitField('Сохранить')

@@ -641,7 +641,8 @@ def course_profile(course_id):
     lessons = sess.query(Lesson).filter(Lesson.course == course.id)
     if current_user.status == 5:
         lessons = lessons.filter(Lesson.opened)
-    lessons = sorted(lessons.all(), key=lambda x: x.lesson_number, reverse=True)
+    lessons = sorted(lessons.all(), key=lambda x: x.lesson_number,
+                     reverse=current_user.status == 5)
     rights = current_user.id in [course.teacher, sch.director]
     params = {'course': course, 'lessons': lessons, 'rights': rights}
     return render_template('course.html', **params)
@@ -668,23 +669,67 @@ def add_lesson_to_course(course_id):
     return render_template('add_lesson.html', form=form)
 
 
-@app.route('/course-<int:course_id>-open-lesson-<int:lesson_id>')
-def open_lesson(course_id, lesson_id):
+@app.route('/lesson-<int:lesson_id>-open')
+def open_lesson(lesson_id):
     if not current_user.is_authenticated:
         return redirect('/')
     sess = db_session.create_session()
-    course = sess.query(Course).get(course_id)
+    lesson = sess.query(Lesson).get(lesson_id)
+    if not lesson:
+        abort(404)
+    course = sess.query(Course).get(lesson.course)
     if not course:
         abort(404)
     sch = sess.query(School).get(course.school)
     if current_user.id not in [course.teacher, sch.director]:
         abort(403)
+    lesson.opened = True
+    sess.commit()
+    return redirect(f'/course-{lesson.course}')
+
+
+@app.route('/lesson-<int:lesson_id>')
+def lesson_profile(lesson_id):
+    if not current_user.is_authenticated:
+        return redirect('/')
+    sess = db_session.create_session()
     lesson = sess.query(Lesson).get(lesson_id)
     if not lesson:
         abort(404)
-    lesson.opened = True
-    sess.commit()
-    return redirect(f'/course-{course_id}')
+    course = sess.query(Course).get(lesson.course)
+    if not course:
+        abort(404)
+    sch = sess.query(School).get(course.school)
+    if not sch:
+        abort(404)
+    if not (current_user.id in [course.teacher, sch.director] or
+            current_user.group == course.group and current_user.status == 5):
+        abort(403)
+    return render_template('lesson.html', lesson=lesson)
+
+
+@app.route('/lesson-<int:lesson_id>-add-theory', methods=['GET', 'POST'])
+def add_theory_to_lesson(lesson_id):
+    if not current_user.is_authenticated:
+        return redirect('/')
+    sess = db_session.create_session()
+    lesson = sess.query(Lesson).get(lesson_id)
+    if not lesson:
+        abort(404)
+    course = sess.query(Course).get(lesson.course)
+    if not course:
+        abort(404)
+    sch = sess.query(School).get(course.school)
+    if not sch:
+        abort(404)
+    if current_user.id not in [course.teacher, sch.director]:
+        abort(403)
+    form = EditLessonForm()
+    if form.validate_on_submit():
+        lesson.theory = form.code.data
+        sess.commit()
+        return redirect(f'/lesson-{lesson_id}')
+    return render_template('edit_lesson.html', title='Теория', form=form)
 
 
 @app.route('/my-courses')

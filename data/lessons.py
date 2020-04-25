@@ -14,3 +14,4 @@ class Lesson(SqlAlchemyBase, SerializerMixin):
     theory = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     tasks = sqlalchemy.Column(sqlalchemy.String, nullable=True)
     opened = sqlalchemy.Column(sqlalchemy.Boolean, nullable=True)
+    solutions = sqlalchemy.Column(sqlalchemy.String, nullable=True)

@@ -1,0 +1,37 @@
+{% extends "workspace.html" %}
+
+{% block container %}
+    <style>
+      .page {
+        margin-top: 24px;
+        display: flex;
+        justify-content: left;
+      }
+
+      .info-block {
+        display: flex;
+        justify-content: left;
+        margin-bottom: 16px;
+      }
+
+      .left {
+        width: 100%;
+      }
+
+      .right {
+        margin-left: 30px;
+        min-width: 240px;
+      }
+    </style>
+    <div class="page-block" style="margin-bottom: 40px">
+        <h2>Урок {{lesson.lesson_number}}. {{lesson.title}}</h2>
+    </div>
+    <div class="page">
+        <div class="left">
+            <div class="page-block" id="theory">
+                {{lesson.theory}}
+            </div>
+        </div>
+    </div>
+
+{% endblock %}

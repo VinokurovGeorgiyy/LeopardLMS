@@ -31,15 +31,23 @@
         {% for i in lessons %}
             {% if not i.opened %}
               <div class="page-block" style="display: flex; justify-content: center; margin-bottom: 16px">
-                  <h3>Урок {{ i.lesson_number }}. {{ i.title }}</h3>
-                  <a class="btn btn-info" href="/course-{{course.id}}-open-lesson-{{i.id}}"
-                    style="margin-left: auto; margin-right: 20px">
+                  <h3>
+                      <a href="/lesson-{{i.id}}" style="text-decoration: none; color: #000">
+                          Урок {{ i.lesson_number }}. {{ i.title }}
+                      </a>
+                  </h3>
+                  <a class="btn btn-info" href="/lesson-{{i.id}}-open"
+                    style="margin-left: auto; margin-right: 20px; align-self: center; min-width: 160px">
                         Открыть урок +
                   </a>
               </div>
             {% else %}
               <div class="page-block" style="margin-bottom: 16px">
-                  <h3>Урок {{ i.lesson_number }}. {{ i.title }}</h3>
+                  <h3>
+                      <a href="/lesson-{{i.id}}" style="text-decoration: none; color: #000">
+                          Урок {{ i.lesson_number }}. {{ i.title }}
+                      </a>
+                  </h3>
               </div>
             {% endif %}
         {% endfor %}

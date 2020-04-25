@@ -1,0 +1,92 @@
+{% extends "workspace.html" %}
+
+{% block container %}
+  <style>
+       .page {
+          margin-top: 24px;
+          display: flex;
+          justify-content: center;
+        }
+
+        .right {
+          margin-left: 30px;
+        }
+  </style>
+  <div class="page">
+      <div class="left" style="min-width: 45%">
+          <div class="page-block"><h3>Редактор</h3></div>
+          <div class="page-block">
+              {% if message %}<div class="alert alert-danger">{{ message }}</div>{% endif %}
+                <form action="" method="post" enctype="multipart/form-data" novalidate>
+                    {{ form.hidden_tag() }}
+                    <div style="display: flex; justify-content: center; margin-bottom: 16px">
+                        <div style="width: 100%; margin-right: 10px">
+                            {{ form.text.label }}
+                            {{ form.text(class="form-control") }}
+                            {% for error in form.text.errors %}
+                                <div class="alert alert-danger" role="alert">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div style="align-self: center">
+                            <a class="btn btn-success" onclick="add_text()" style="color: white">Добавить</a>
+                        </div>
+                    </div>
+                    <div style="display: flex; justify-content: center; margin-bottom: 16px">
+                        <div style="width: 100%; margin-right: 10px">
+                            {{ form.link.label }}
+                            {{ form.link(class="form-control") }}
+                            {% for error in form.link.errors %}
+                                <div class="alert alert-danger" role="alert">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div style="align-self: center">
+                            <a class="btn btn-success" onclick="add_link()" style="color: white">Добавить</a>
+                        </div>
+                    </div>
+                    <div>
+                        <div>
+                            <h3>Код</h3>
+                            {{ form.code(class="form-control", style="margin-bottom: 5px", onkeydown="change_result()") }}<br>
+                            {% for error in form.code.errors %}
+                                <div class="alert alert-danger" role="alert">{{ error }}</div>
+                            {% endfor %}
+                        </div>
+                        <div>{{ form.submit(type="submit", class="btn btn-secondary") }}</div>
+                    </div>
+                </form>
+          </div>
+      </div>
+      <div class="right" style="min-width: 45%">
+          <div class="page-block"><h3>Результат</h3></div>
+          <div class="page-block" id="result">
+
+          </div>
+      </div>
+  </div>
+  <script>
+      function add_text() {
+        var result = document.getElementById("result");
+        var text = document.createTextNode(document.getElementById("text").value);
+        result.appendChild(text);
+        document.getElementById("text").value = '';
+        document.getElementById("code").value = '';
+        document.getElementById("code").value = result.textContent;
+      }
+
+      function add_link() {
+        var result = document.getElementById("result");
+        var link = document.createElement("a");
+        link.innerHTML = document.getElementById("link").value;
+        link.href = document.getElementById("link").value;
+        result.appendChild(link);
+        document.getElementById("link").value = '';
+        document.getElementById("code").value = '';
+        document.getElementById("code").value = result.textContent;
+      }
+
+      function change_result() {
+        var result = document.getElementById("result");
+        result.textContent = document.getElementById("code").value;
+      }
+  </script>
+{% endblock %}

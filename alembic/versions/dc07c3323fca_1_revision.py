@@ -1,8 +1,8 @@
-"""photo chats
+"""1 revision
 
-Revision ID: 4b9c96b4717f
-Revises: 1f9aa7f7c1d7
-Create Date: 2020-04-22 21:06:22.509593
+Revision ID: dc07c3323fca
+Revises: 
+Create Date: 2020-04-24 22:11:45.442615
 
 """
 from alembic import op
@@ -10,8 +10,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = '4b9c96b4717f'
-down_revision = '1f9aa7f7c1d7'
+revision = 'dc07c3323fca'
+down_revision = None
 branch_labels = None
 depends_on = None
 
