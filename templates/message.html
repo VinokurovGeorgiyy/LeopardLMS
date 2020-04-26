@@ -1,0 +1,23 @@
+{% if current_user.id == message.writer %}
+  <a data-toggle="collapse" href="#collapse{{message.id}}" style="text-decoration: none; color: #000">
+{% endif %}
+      <div class="message" id="message-{{message.id}}">
+          <img src="{{photo}}" width="40" height="40" style="border-radius: 20px">
+          <div style="margin-left: 15px">
+              <h6 style="margin-bottom: 0px">
+                  <b>{{author}}</b>
+                  <spin style="color: #aaa">{{date}} {{hour}}:{{minute}}</spin>
+              </h6>
+              <p>{{text}}</p>
+          </div>
+      </div>
+{% if current_user.id == message.writer %}
+  </a>
+  <div class="collapse" id="collapse{{message.id}}" style="margin-top: 5px">
+      <div class="button-remove">
+          <a class="btn btn-danger" onclick="delete_message({{message.id}})" style="color: white; margin-left: 10px">
+              <b>Удалить сообщение</b>
+          </a>
+      </div>
+  </div>
+{% endif %}

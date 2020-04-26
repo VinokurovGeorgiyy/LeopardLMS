@@ -38,39 +38,39 @@
                 <div class="other-fields">
                     <div class="form-row">
                         <div class="form-group col-md-6">
-                            {{ form.short_title(class="form-control", placeholder="Краткое наименование", value=school.short_title) }}<br>
+                            {{ form.short_title(class="form-control", placeholder="Краткое наименование", value=sch.short_title, readonly=True, onfocus="this.removeAttribute('readonly')") }}<br>
                             {% for error in form.short_title.errors %}
                                 <div class="alert alert-danger" role="alert">{{ error }}</div>
                             {% endfor %}
                         </div>
                         <div class="form-group col-md-6">
-                            {{ form.email(class="form-control", type="email", placeholder="E-mail", value=school.email) }}<br>
+                            {{ form.email(class="form-control", type="email", placeholder="E-mail", value=sch.email, readonly=True, onfocus="this.removeAttribute('readonly')") }}<br>
                             {% for error in form.email.errors %}
                                 <div class="alert alert-danger" role="alert">{{ error }}</div>
                             {% endfor %}
                         </div>
                     </div>
                     <div class="form-group">
-                        {{ form.director(class="form-control", placeholder="ID директора", value=school.director) }}<br>
+                        {{ form.director(class="form-control", placeholder="ID директора", value=sch.director, readonly=True, onfocus="this.removeAttribute('readonly')") }}<br>
                         {% for error in form.director.errors %}
                             <div class="alert alert-danger" role="alert">{{ error }}</div>
                         {% endfor %}
                     </div>
                     <div class="form-row">
                         <div class="form-group col-md-4">
-                            {{ form.index(class="form-control", placeholder="Почтовый индекс", value=school.index) }}<br>
+                            {{ form.index(class="form-control", placeholder="Почтовый индекс", value=sch.index, readonly=True, onfocus="this.removeAttribute('readonly')") }}<br>
                             {% for error in form.index.errors %}
                                 <div class="alert alert-danger" role="alert">{{ error }}</div>
                             {% endfor %}
                         </div>
                         <div class="form-group col-md-4">
-                            {{ form.region(class="form-control", placeholder="Регион", value=school.region) }}<br>
+                            {{ form.region(class="form-control", placeholder="Регион", value=sch.region, readonly=True, onfocus="this.removeAttribute('readonly')") }}<br>
                             {% for error in form.region.errors %}
                                 <div class="alert alert-danger" role="alert">{{ error }}</div>
                             {% endfor %}
                         </div>
                         <div class="form-group col-md-4">
-                            {{ form.city(class="form-control", placeholder="Город/район", value=school.city) }}<br>
+                            {{ form.city(class="form-control", placeholder="Город/район", value=sch.city, readonly=True, onfocus="this.removeAttribute('readonly')") }}<br>
                             {% for error in form.city.errors %}
                                 <div class="alert alert-danger" role="alert">{{ error }}</div>
                             {% endfor %}
@@ -78,19 +78,19 @@
                     </div>
                     <div class="form-row">
                         <div class="form-group col-md-4">
-                            {{ form.street(class="form-control", placeholder="Улица/проспект и пр.", value=school.street) }}<br>
+                            {{ form.street(class="form-control", placeholder="Улица/проспект и пр.", value=sch.street, readonly=True, onfocus="this.removeAttribute('readonly')") }}<br>
                             {% for error in form.street.errors %}
                                 <div class="alert alert-danger" role="alert">{{ error }}</div>
                             {% endfor %}
                         </div>
                         <div class="form-group col-md-4">
-                            {{ form.house(class="form-control", placeholder="Дом", value=school.house) }}<br>
+                            {{ form.house(class="form-control", placeholder="Дом", value=sch.house, readonly=True, onfocus="this.removeAttribute('readonly')") }}<br>
                             {% for error in form.house.errors %}
                                 <div class="alert alert-danger" role="alert">{{ error }}</div>
                             {% endfor %}
                         </div>
                         <div class="form-group col-md-4">
-                            {{ form.phone(class="form-control", type="tel", value=school.phone) }}<br>
+                            {{ form.phone(class="form-control", type="tel", value=sch.phone, readonly=True, onfocus="this.removeAttribute('readonly')") }}<br>
                             {% for error in form.phone.errors %}
                                 <div class="alert alert-danger" role="alert">{{ error }}</div>
                             {% endfor %}
@@ -99,8 +99,8 @@
                 </div>
                 <hr>
                 <div class="photo-data">
-                    {% if school.photo_url != None %}
-                      <img src="{{school.photo_url}}" width="200" height="200" class="school-photo" id="school-photo">
+                    {% if sch.photo_url != None %}
+                      <img src="{{sch.photo_url}}" width="200" height="200" class="school-photo" id="school-photo">
                     {% else %}
                       <img src="/static/img/school-photo.png" width="200" height="200" class="user-photo" id="school-photo">
                     {% endif %}

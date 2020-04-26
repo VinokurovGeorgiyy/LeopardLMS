@@ -25,13 +25,13 @@
         <form action="" method="post">
         {{ form.hidden_tag() }}
             <div class="form-group">
-                {{ form.title(class="form-control", placeholder="Название, литера") }}<br>
+                {{ form.title(class="form-control", placeholder="Название, литера", readonly=True, onfocus="this.removeAttribute('readonly')") }}<br>
                 {% for error in form.title.errors %}
                     <div class="alert alert-danger" role="alert">{{ error }}</div>
                 {% endfor %}
             </div>
             <div class="form-group">
-                {{ form.leader(class="form-control", placeholder="ID руководителя") }}<br>
+                {{ form.leader(class="form-control", placeholder="ID руководителя", readonly=True, onfocus="this.removeAttribute('readonly')") }}<br>
                 {% for error in form.leader.errors %}
                     <div class="alert alert-danger" role="alert">{{ error }}</div>
                 {% endfor %}

@@ -25,19 +25,19 @@
         <form action="" method="post">
         {{ form.hidden_tag() }}
             <div class="form-group">
-                {{ form.title(class="form-control", placeholder="Название курса") }}<br>
+                {{ form.title(class="form-control", placeholder="Название курса", readonly=True, onfocus="this.removeAttribute('readonly')") }}<br>
                 {% for error in form.title.errors %}
                     <div class="alert alert-danger" role="alert">{{ error }}</div>
                 {% endfor %}
             </div>
             <div class="form-group">
-                {{ form.teacher(class="form-control", placeholder="ID преподавателя курса") }}<br>
+                {{ form.teacher(class="form-control", placeholder="ID преподавателя курса", readonly=True, onfocus="this.removeAttribute('readonly')") }}<br>
                 {% for error in form.teacher.errors %}
                     <div class="alert alert-danger" role="alert">{{ error }}</div>
                 {% endfor %}
             </div>
             <div class="form-group">
-                {{ form.group(class="form-control", placeholder="ID группы/класса") }}<br>
+                {{ form.group(class="form-control", placeholder="ID группы/класса", readonly=True, onfocus="this.removeAttribute('readonly')") }}<br>
                 {% for error in form.group.errors %}
                     <div class="alert alert-danger" role="alert">{{ error }}</div>
                 {% endfor %}

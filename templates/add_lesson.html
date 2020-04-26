@@ -26,14 +26,14 @@
         {{ form.hidden_tag() }}
         <div class="form-group">
             {{ form.lesson_number.label }}<br>
-            {{ form.lesson_number(class="form-control") }}<br>
+            {{ form.lesson_number(class="form-control", readonly=True, onfocus="this.removeAttribute('readonly')") }}<br>
             {% for error in form.lesson_number.errors %}
                 <div class="alert alert-danger" role="alert">{{ error }}</div>
             {% endfor %}
         </div>
         <div class="form-group">
             {{ form.title.label }}<br>
-            {{ form.title(class="form-control") }}<br>
+            {{ form.title(class="form-control", readonly=True, onfocus="this.removeAttribute('readonly')") }}<br>
             {% for error in form.title.errors %}
                 <div class="alert alert-danger" role="alert">{{ error }}</div>
             {% endfor %}

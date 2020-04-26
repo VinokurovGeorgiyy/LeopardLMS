@@ -3,7 +3,6 @@ from flask_login import LoginManager, login_user, current_user, logout_user
 from werkzeug.utils import secure_filename
 
 from forms import *
-from functions import *
 
 from data import db_session
 from data.users import User
@@ -19,6 +18,8 @@ from data.solutions import Solution
 import json
 import datetime
 import os
+import hashlib
+from random import choice
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'We`ll always stay together, You and I...'
@@ -29,6 +30,114 @@ login_manager.init_app(app)
 USERS_STATUSES = ['system-manager', 'admin', 'director', 'teacher', 'student']
 
 
+def get_current_user_courses(sess):
+    if current_user.status == 5:
+        data = sess.query(Course).filter(Course.group == current_user.group)
+        data = [(x, sess.query(User).get(x.teacher)) for x in data.all()]
+    elif current_user.status < 5:
+        data = sess.query(Course).filter(Course.teacher == current_user.id)
+        data = [(x, sess.query(Group).get(x.group)) for x in data.all()]
+    else:
+        data = []
+    return data
+
+
+def user_exists(sess, user_id):
+    user = sess.query(User).get(user_id)
+    if not user:
+        abort(404)
+    return user
+
+
+def group_exists(sess, group_id):
+    group = sess.query(Group).get(group_id)
+    if not group:
+        abort(404)
+    return group
+
+
+def school_exists(sess, school_id):
+    school = sess.query(School).get(school_id)
+    if not school:
+        abort(404)
+    return school
+
+
+def course_exists(sess, course_id):
+    course = sess.query(Course).get(course_id)
+    if not course:
+        abort(404)
+    return course
+
+
+def lesson_exists(sess, lesson_id):
+    lesson = sess.query(Lesson).get(lesson_id)
+    if not lesson:
+        abort(404)
+    return lesson
+
+
+def make_hashed_password(string):
+    return str(hashlib.blake2b(string.encode()).hexdigest())
+
+
+def safe_slice(data, start, end):
+    try:
+        data = data[start:end]
+    except Exception:
+        data = []
+    finally:
+        return data
+
+
+def add_user(session, status):
+    form = UserRegistrationForm()
+    if form.validate_on_submit():
+        session, email = session, form.email.data
+        exist = session.query(User).filter(User.email == email).first()
+        if exist:
+            message = 'Пользователь с таким логином уже существует'
+            return 'ERROR', {'form': form, 'message': message}
+        user = User()
+        user.email, user.last_name = form.email.data, form.last_name.data
+        user.first_name = form.first_name.data
+        user.patronymic = form.patronymic.data
+        user.hashed_password = make_hashed_password(str(form.password.data))
+        user.status = USERS_STATUSES.index(status) + 1
+        session.add(user), session.commit()
+        user = session.query(User).filter(User.email == email).first()
+        return 'FINISHED', {'user_id': user.id}
+    return 'STARTED', {'form': form}
+
+
+def get_chat_name(session, chat, chat_members, current_user):
+    name = chat.title
+    if name is None:
+        name = [x for x in chat_members if x != current_user.id]
+        name = name[0] if name else None
+        name = session.query(User).get(name) if name is not None else None
+        name = f'{name.first_name} {name.last_name}' if name else None
+    return name
+
+
+def random_string(length):
+    obj = 'abcdefghijklmnopqrstuvwxyz'
+    obj += obj.upper() + '0123456789'
+    return ''.join(choice(obj) for _ in range(length))
+
+
+def upload_file(file, start, formats, secure_length):
+    filename = secure_filename(file.filename)
+    file_type = str(filename)[str(filename).rfind('.') + 1:]
+    if file_type not in formats.split('|'):
+        return {'error': 'Формат файла не поддерживается'}
+    number = random_string(secure_length)
+    filename = f'{start}-{number}.{file_type}'
+    path_to_file = app.config['UPLOAD_FOLDER'] + '/' + filename
+    file.save(path_to_file)
+    return {'ok': path_to_file}
+
+
 # --------------------------------------------------
 # PAGES
 # --------------------------------------------------
@@ -37,15 +146,16 @@ def homepage():
     if current_user.is_authenticated:
         return redirect(f'/id-{current_user.id}')
     form = LoginForm()
+    params = {'title': 'Авторизация', 'form': form, 'message': ''}
     if form.validate_on_submit():
         session, email = db_session.create_session(), form.email.data
         user = session.query(User).filter(User.email == email).first()
         if user and user.check_password(form.password.data):
-            login_user(user, remember=form.remember_me.data)
+            login_user(user, remember=True)
             return redirect(f'/id-{current_user.id}')
-        message = "Неправильный логин или пароль"
-        return render_template('login.html', message=message, form=form)
-    return render_template('login.html', title='Авторизация', form=form)
+        params['message'] = "Неправильный логин или пароль"
+        return render_template('login.html', **params)
+    return render_template('login.html', **params)
 
 
 @login_manager.user_loader
@@ -65,19 +175,16 @@ def user_profile(user_id):
     if not current_user.is_authenticated:
         return redirect('/')
     session = db_session.create_session()
-    user = session.query(User).get(user_id)
-    if not user:
-        abort(404)
+    user = user_exists(session, user_id)
     rus_statuses = {'system-manager': 'Системный администратор',
                     'admin': 'Администратор', 'director': 'Директор',
                     'teacher': 'Учитель', 'student': 'Ученик'}
     school = session.query(School).get(user.school) if user.school else None
-    school = school.short_title if school is not None else None
     group = session.query(Group).get(user.group) if user.group else None
-    group = group.title if group is not None else None
     params = {'title': f'{user.last_name} {user.first_name}', 'user': user,
               'status': rus_statuses[USERS_STATUSES[user.status - 1]],
-              'school': school, 'group': group, 'current_user': current_user}
+              'school': school, 'group': group, 'current_user': current_user,
+              'courses_exist': get_current_user_courses(session)}
     return render_template('user.html', **params)
 
 
@@ -95,14 +202,23 @@ def my_group():
     abort(404)
 
 
+@app.route('/my-courses')
+def my_courses():
+    if not current_user.is_authenticated:
+        return redirect('/')
+    data = get_current_user_courses(db_session.create_session())
+    if not data:
+        abort(404)
+    courses = sorted(data, key=lambda x: x[0].title)
+    return render_template('my_courses.html', data=courses, user=current_user)
+
+
 @app.route('/school-<int:school_id>')
 def school_profile(school_id):
     if not current_user.is_authenticated:
         return redirect('/')
     session = db_session.create_session()
-    school = session.query(School).get(school_id)
-    if not school:
-        abort(404)
+    school = school_exists(session, school_id)
     director = session.query(User).get(school.director)
     params = {'title': f'{school.short_title}', 'school': school,
               'current_user': current_user, 'director': director}
@@ -114,9 +230,7 @@ def group_profile(group_id):
     if not current_user.is_authenticated:
         return redirect('/')
     sess = db_session.create_session()
-    group = sess.query(Group).get(group_id)
-    if not group:
-        abort(404)
+    group = group_exists(sess, group_id)
     leader = sess.query(User).get(group.leader)
     school = sess.query(School).get(group.school_id)
     students = sess.query(User).filter(User.group == group_id)
@@ -132,17 +246,15 @@ def get_school_objects(sch_id, obj):
     return redirect(f'/school-{sch_id}-{obj}-page-1')
 
 
-@app.route('/school-<int:sch_id>-<obj>-page-<int:page_number>')
-def get_school_objects_with_page(sch_id, obj, page_number):
+@app.route('/school-<int:school_id>-<obj>-page-<int:page_number>')
+def get_school_objects_with_page(school_id, obj, page_number):
     if not current_user.is_authenticated:
         return redirect('/')
     sess = db_session.create_session()
     pg = 1 if page_number <= 0 else page_number
-    sch = sess.query(School).get(sch_id)
-    if not sch:
-        abort(404)
+    sch = school_exists(sess, school_id)
     if obj == 'groups':
-        data = sess.query(Group).filter(Group.school_id == sch_id)
+        data = sess.query(Group).filter(Group.school_id == sch.id)
         data = sorted(data.all(), key=lambda x: x.title)
         data = safe_slice(data, 20 * (pg - 1), 20 * pg)
         data = [(x, sess.query(User).get(int(x.leader))) for x in data]
@@ -150,7 +262,7 @@ def get_school_objects_with_page(sch_id, obj, page_number):
                   'current_user': current_user}
         return render_template('school_groups.html', **params)
     if obj == 'teachers':
-        data = sess.query(User).filter(User.school == sch_id)
+        data = sess.query(User).filter(User.school == sch.id)
         data = data.filter(User.status == 4).all()
         data = sorted(data, key=lambda x: f'{x.last_name} {x.first_name}')
         data = safe_slice(data, 20 * (pg - 1), 20 * pg)
@@ -158,7 +270,7 @@ def get_school_objects_with_page(sch_id, obj, page_number):
                   'current_user': current_user}
         return render_template('school_teachers.html', **params)
     if obj == 'students':
-        data = sess.query(User).filter(User.school == sch_id)
+        data = sess.query(User).filter(User.school == sch.id)
         n = data.filter(User.status == 5).count() // 20 + 1
         data = data.filter(User.status == 5).all()
         data = sorted(data, key=lambda x: f'{x.last_name} {x.first_name}')
@@ -190,28 +302,6 @@ def get_all_schools_with_page(page_number):
     return render_template('all_schools.html', **params)
 
 
-def add_user(session, status):
-    form = UserRegistrationForm()
-    if form.validate_on_submit():
-        session, email = session, form.email.data
-        exist = session.query(User).filter(User.email == email).first()
-        if exist:
-            message = 'Пользователь с таким логином уже существует'
-            return 'ERROR', {'form': form, 'message': message}
-        user = User()
-        user.email = form.email.data
-        user.last_name = form.last_name.data
-        user.first_name = form.first_name.data
-        if form.patronymic.data:
-            user.patronymic = form.patronymic.data
-        user.hashed_password = make_hashed_password(str(form.password.data))
-        user.status = USERS_STATUSES.index(status) + 1
-        session.add(user), session.commit()
-        user = session.query(User).filter(User.email == email).first()
-        return 'FINISHED', {'user_id': user.id}
-    return 'STARTED', {'form': form}
-
-
 @app.route('/add-school', methods=['GET', 'POST'])
 def add_school():
     if not current_user.is_authenticated:
@@ -219,103 +309,83 @@ def add_school():
     if current_user.status > 2:
         abort(403)
     form = SchoolRegistrationForm()
+    params = {'title': 'Регистрация', 'form': form, 'message': ''}
     if form.validate_on_submit():
         session, title = db_session.create_session(), form.title.data
         exist = session.query(School).filter(School.title == title).first()
         if exist:
-            text = 'Организация с таким наименованием уже существует'
-            params = {'title': 'Регистрация', 'form': form, 'message': text}
+            params['message'] = 'Организация с таким именем уже существует'
             return render_template('add_school.html', **params)
-        school, director = School(), form.director.data
+        sch, director = School(), form.director.data
         exist = session.query(User).filter(User.id == director).first()
         if not exist:
-            text = f'Пользователя с ID {form.director.data} не существует!'
-            params = {'title': 'Регистрация', 'form': form, 'message': text}
+            params['message'] = f'Пользователя с ID {director} не существует!'
             return render_template('add_school.html', **params)
         if exist.status > 3:
-            text = f'Статус пользователя ниже статуса "Директор"'
-            params = {'title': 'Регистрация', 'form': form, 'message': text}
+            params['message'] = 'Статус пользователя ниже статуса "Директор"'
             return render_template('add_school.html', **params)
         if exist.school is not None:
-            text = f'Пользователь - директор другой школы: ID {exist.school}'
-            params = {'title': 'Регистрация', 'form': form, 'message': text}
+            params['message'] = f'Пользователь из другой школы'
             return render_template('add_school.html', **params)
-        school.email = form.email.data
-        school.title = form.title.data
-        school.short_title = form.short_title.data
-        school.director = form.director.data
-        school.index = form.index.data
-        school.region = form.region.data
-        school.city = form.city.data
-        school.street = form.street.data
-        school.house = form.house.data
-        school.phone = form.phone.data
-        session.add(school), session.commit()
-        school = session.query(School).filter(School.title == title).first()
-        exist.school = school.id
+        sch.email, sch.title = form.email.data, form.title.data
+        sch.short_title, sch.director = form.short_title.data, director
+        sch.index, sch.region = form.index.data, form.region.data
+        sch.city, sch.street = form.city.data, form.street.data
+        sch.house, sch.phone = form.house.data, form.phone.data
+        session.add(sch), session.commit()
+        sch = session.query(School).filter(School.title == title).first()
+        exist.school = sch.id
         session.commit()
-        return redirect(f'/school-{school.id}')
-    return render_template('add_school.html', title='Регистрация', form=form)
+        return redirect(f'/school-{sch.id}')
+    return render_template('add_school.html', **params)
 
 
-@app.route('/school-<int:sch_id>-add-group', methods=['GET', 'POST'])
-def add_group_to_school(sch_id):
+@app.route('/school-<int:school_id>-add-group', methods=['GET', 'POST'])
+def add_group_to_school(school_id):
     if not current_user.is_authenticated:
         return redirect('/')
     if current_user.status > 3:
         abort(403)
     sess = db_session.create_session()
-    sch = sess.query(School).get(sch_id)
-    if not sch:
-        abort(404)
+    sch = school_exists(sess, school_id)
     if current_user.id != sch.director and current_user.status > 2:
         abort(403)
     form = GroupRegistrationForm()
+    params = {'form': form, 'title': 'Добавление класса', 'message': ''}
     if form.validate_on_submit():
-        exist = sess.query(Group).filter(Group.school_id == sch_id)
+        exist = sess.query(Group).filter(Group.school_id == sch.id)
         exist = exist.filter(Group.title == form.title.data).first()
         if exist:
-            text = 'Такой класс уже существует в данной школе'
-            params = {'message': text, 'form': form,
-                      'title': 'Добавление класса'}
+            params['message'] = 'Такой класс уже существует в данной школе'
             return render_template('add_group.html', **params)
         leader = sess.query(User).get(form.leader.data)
         if not leader:
-            text = f'Пользователя с ID {form.leader.data} не существует!'
-            params = {'message': text, 'form': form,
-                      'title': 'Добавление класса'}
+            params['message'] = f'Пользователя с ID {leader} не существует!'
             return render_template('add_group.html', **params)
         if leader.status > 4:
-            text = f'Статус пользователя ниже статуса "Преподаватель"'
-            params = {'message': text, 'form': form,
-                      'title': 'Добавление класса'}
+            params['message'] = 'Статус пользователя ниже статуса "Учитель"'
             return render_template('add_group.html', **params)
-        if leader.school != sch_id:
-            text = f'Пользователь не из данной школы'
-            params = {'message': text, 'form': form,
-                      'title': 'Добавление класса'}
+        if leader.school != sch.id:
+            params['message'] = 'Пользователь не из данной школы'
             return render_template('add_group.html', **params)
         group = Group()
         group.title, group.leader = form.title.data, form.leader.data
-        group.school_id = sch_id
+        group.school_id = sch.id
         sess.add(group), sess.commit()
-        group = sess.query(Group).filter(Group.school_id == sch_id)
+        group = sess.query(Group).filter(Group.school_id == sch.id)
         group = group.filter(Group.title == form.title.data).first()
         leader.group = group.id
         sess.commit()
-        return redirect(f'/school-{sch_id}-groups')
-    params = {'form': form, 'title': 'Добавление класса'}
+        return redirect(f'/school-{sch.id}-groups')
     return render_template('add_group.html', **params)
 
 
-@app.route('/school-<int:sch_id>-add-teacher', methods=['GET', 'POST'])
-def add_teacher_to_school(sch_id):
+@app.route('/school-<int:school_id>-add-teacher', methods=['GET', 'POST'])
+def add_teacher_to_school(school_id):
     if not current_user.is_authenticated:
         return redirect('/')
     sess = db_session.create_session()
-    school = sess.query(School).get(sch_id)
-    if not school:
-        abort(404)
+    school = school_exists(sess, school_id)
     if current_user.id != school.director or current_user.status > 3:
         abort(403)
     response = add_user(sess, 'teacher')
@@ -323,12 +393,12 @@ def add_teacher_to_school(sch_id):
         user = sess.query(User).get(response[1]['user_id'])
         user.school = school.id
         sess.commit()
-        return redirect(f'/school-{sch_id}-teachers')
+        return redirect(f'/school-{school.id}-teachers')
     if response[0] == 'ERROR':
         return render_template('add_user.html', title='Регистрация',
-                               status='Преподаватель', **response[1])
+                               status='Учитель', **response[1])
     return render_template('add_user.html', title='Регистрация',
-                           status='Преподаватель', **response[1])
+                           status='Учитель', **response[1])
 
 
 @app.route('/add-<status>', methods=['GET', 'POST'])
@@ -345,7 +415,8 @@ def add_not_school_user(status):
     if response[0] == 'FINISHED':
         user_id = sess.query(User).get(response[1]['user_id'])
         return redirect(f'/id-{user_id}')
-    return render_template('add_user.html', title='Регистрация', status=name, **response[1])
+    return render_template('add_user.html', title='Регистрация',
+                           status=name, **response[1])
 
 
 @app.route('/group-<int:group_id>-add-student', methods=['GET', 'POST'])
@@ -353,17 +424,13 @@ def add_student_to_group(group_id):
     if not current_user.is_authenticated:
         return redirect('/')
     sess = db_session.create_session()
-    group = sess.query(Group).get(group_id)
-    if not group:
-        abort(404)
-    school = sess.query(School).get(group.school_id)
-    if not school:
-        abort(500)
+    group = group_exists(sess, group_id)
+    school = school_exists(sess, group.school_id)
     if current_user.id != school.director or current_user.status > 3:
         abort(403)
     response = add_user(sess, 'student')
     if response[0] == 'FINISHED':
-        user = sess.query(User).get(response[1]['user_id'])
+        user = user_exists(sess, response[1]['user_id'])
         user.group, user.school = group.id, school.id
         sess.commit()
         return redirect(f'/group-{group.id}')
@@ -386,7 +453,7 @@ def get_chats(last_message_length):
     if not current_user.is_authenticated:
         return redirect('/')
     sess = db_session.create_session()
-    user = sess.query(User).get(current_user.id)
+    user = user_exists(sess, current_user.id)
     chats = user.chats.split() if user.chats else []
     chats = [sess.query(Chat).get(int(x)) for x in chats]
     chats = [x for x in chats if x is not None]
@@ -405,8 +472,8 @@ def get_chats(last_message_length):
         last_message = sess.query(Message).get(last) if last else ''
         last_message = last_message.text if last_message else ''
         last_message = last_message[:last_message_length]
-        chats[i] = chats[i], get_chat_name(sess, chats[i], members, current_user), \
-                   last_message, photo
+        chat_name = get_chat_name(sess, chats[i], members, current_user)
+        chats[i] = chats[i], chat_name, last_message, photo,
     return chats
 
 
@@ -422,7 +489,7 @@ def chat_messages_list(chat_id):
         [int(i) for i in chat.members.split()]
     if current_user.id not in members:
         abort(403)
-    user = sess.query(User).get(current_user.id)
+    user = user_exists(sess, current_user.id)
     chats = user.chats.split() if user.chats else []
     if str(chat.id) not in chats:
         chats.append(str(chat.id))
@@ -440,12 +507,10 @@ def write_message(addressee_id):
     if not current_user.is_authenticated:
         return redirect('/')
     sess = db_session.create_session()
-    addressee = sess.query(User).get(addressee_id)
-    user = sess.query(User).get(current_user.id)
-    if not addressee:
-        abort(404)
-    members = f'{min(current_user.id, addressee_id)}' \
-              f' {max(current_user.id, addressee_id)}'
+    addressee = user_exists(sess, addressee_id)
+    user = user_exists(sess, current_user.id)
+    first, second = min(user.id, addressee_id), max(user.id, addressee_id)
+    members = f'{first} {second}'
     chat = sess.query(Chat).filter(Chat.members == members).first()
     if not chat:
         chat = Chat()
@@ -523,24 +588,10 @@ def get_all_messages_in_chat(chat_id, mode):
         hour, minute = result.hour, result.minute
         date = f'{result.day}.{result.month}.{result.year}'
         photo = '/static/img/user-photo.png' if not photo else photo
-        if current_user.id == messages[i].writer:
-            answer += f'<a data-toggle="collapse" href="#collapse{messages[i].id}" ' \
-                      f'style="text-decoration: none; color: #000">'
-        answer += f'<div class="message" id="message-{messages[i].id}">' \
-                  f'<img src="{photo}" width="40" height="40" ' \
-                  f'style="border-radius: 20px">' \
-                  f'<div style="margin-left: 15px">' \
-                  f'<h6 style="margin-bottom: 0px">' \
-                  f'<b>{author}</b> <spin style="color: #aaa">{date} {hour}:{minute}</spin>' \
-                  f'</h6><p>{text}</p></div></div>'
-        if current_user.id == messages[i].writer:
-            answer += f'</a>' \
-                      f'<div class="collapse" id="collapse{messages[i].id}" ' \
-                      f'style="margin-top: 5px">' \
-                      f'<div class="button-remove"><a class="btn btn-danger" ' \
-                      f'onclick="delete_message({messages[i].id})" ' \
-                      f'style="color: white; margin-left: 10px">' \
-                      f'<b>Удалить сообщение</b></a></div></div>'
+        params = {'message': messages[i], 'current_user': current_user,
+                  'author': author, 'date': date, 'hour': hour, 'text': text,
+                  'photo': photo, 'minute': minute}
+        answer += render_template('message.html', **params)
     return answer
 
 
@@ -571,55 +622,44 @@ def delete_message(m_id):
     return """"""
 
 
-@app.route('/school-<int:sch_id>-add-course', methods=['GET', 'POST'])
-def add_course_to_school(sch_id):
+@app.route('/school-<int:school_id>-add-course', methods=['GET', 'POST'])
+def add_course_to_school(school_id):
     if not current_user.is_authenticated:
         return redirect('/')
     sess = db_session.create_session()
-    school = sess.query(School).get(sch_id)
-    if not school:
-        abort(404)
+    school = school_exists(sess, school_id)
     if current_user.id != school.director or current_user.status > 3:
         abort(403)
     form = CourseRegistrationForm()
+    params = {'form': form, 'title': 'Добавление курса', 'message': ''}
     if form.validate_on_submit():
         course = Course()
-        course.title = form.title.data
-        course.school = sch_id
+        course.title, course.school = form.title.data, school_id
         teacher = sess.query(User).get(form.teacher.data)
         if not teacher:
-            text = f'Пользователя с ID {form.teacher.data} не существует!'
-            params = {'message': text, 'form': form,
-                      'title': 'Добавление курса'}
+            params['message'] = f'Пользователя с ID {teacher} не существует!'
             return render_template('add_course.html', **params)
         if teacher.status > 4:
-            text = f'Статус пользователя ниже статуса "Преподаватель"'
-            params = {'message': text, 'form': form,
-                      'title': 'Добавление курса'}
+            params['message'] = 'Статус пользователя ниже статуса "Учитель"'
             return render_template('add_course.html', **params)
-        if teacher.school != sch_id:
-            text = f'Пользователь не из данной школы'
-            params = {'message': text, 'form': form,
-                      'title': 'Добавление курса'}
+        if teacher.school != school_id:
+            params['message'] = 'Пользователь не из данной школы'
             return render_template('add_course.html', **params)
-        course.teacher = form.teacher.data
-        course.group = form.group.data
+        course.teacher, course.group = teacher, form.group.data
         sess.add(course), sess.commit()
-        return redirect(f'/school-{sch_id}-courses')
-    return render_template('add_course.html', form=form, title='Добавление курса')
+        return redirect(f'/school-{school_id}-courses')
+    return render_template('add_course.html', **params)
 
 
-@app.route('/school-<int:sch_id>-courses')
-def get_school_courses(sch_id):
+@app.route('/school-<int:school_id>-courses')
+def get_school_courses(school_id):
     if not current_user.is_authenticated:
         return redirect('/')
     sess = db_session.create_session()
-    sch = sess.query(School).get(sch_id)
-    if not sch:
-        abort(404)
+    sch = school_exists(sess, school_id)
     if not (current_user.id == sch.director or current_user.status < 3):
         abort(403)
-    courses = sess.query(Course).filter(Course.school == sch_id).all()
+    courses = sess.query(Course).filter(Course.school == sch.id).all()
     data = [(x, sess.query(Group).get(x.group)) for x in courses]
     data = [(x, y, sess.query(User).get(x.teacher)) for x, y in data]
     return render_template('school_courses.html', data=data, sch=sch)
@@ -630,12 +670,8 @@ def course_profile(course_id):
     if not current_user.is_authenticated:
         return redirect('/')
     sess = db_session.create_session()
-    course = sess.query(Course).get(course_id)
-    if not course:
-        abort(404)
-    sch = sess.query(School).get(course.school)
-    if not sch:
-        abort(404)
+    course = course_exists(sess, course_id)
+    sch = school_exists(sess, course.school)
     if not (current_user.id in [course.teacher, sch.director] or
             current_user.group == course.group and current_user.status == 5):
         abort(403)
@@ -654,10 +690,8 @@ def add_lesson_to_course(course_id):
     if not current_user.is_authenticated:
         return redirect('/')
     sess = db_session.create_session()
-    course = sess.query(Course).get(course_id)
-    if not course:
-        abort(404)
-    sch = sess.query(School).get(course.school)
+    course = course_exists(sess, course_id)
+    sch = school_exists(sess, course.school)
     if current_user.id not in [course.teacher, sch.director]:
         abort(403)
     form = LessonRegistrationForm()
@@ -675,13 +709,9 @@ def open_lesson(lesson_id):
     if not current_user.is_authenticated:
         return redirect('/')
     sess = db_session.create_session()
-    lesson = sess.query(Lesson).get(lesson_id)
-    if not lesson:
-        abort(404)
-    course = sess.query(Course).get(lesson.course)
-    if not course:
-        abort(404)
-    sch = sess.query(School).get(course.school)
+    lesson = lesson_exists(sess, lesson_id)
+    course = course_exists(sess, lesson.course)
+    sch = school_exists(sess, course.school)
     if current_user.id not in [course.teacher, sch.director]:
         abort(403)
     lesson.opened = True
@@ -694,15 +724,9 @@ def lesson_profile(lesson_id):
     if not current_user.is_authenticated:
         return redirect('/')
     sess = db_session.create_session()
-    lesson = sess.query(Lesson).get(lesson_id)
-    if not lesson:
-        abort(404)
-    course = sess.query(Course).get(lesson.course)
-    if not course:
-        abort(404)
-    sch = sess.query(School).get(course.school)
-    if not sch:
-        abort(404)
+    lesson = lesson_exists(sess, lesson_id)
+    course = course_exists(sess, lesson.course)
+    sch = school_exists(sess, course.school)
     if not (current_user.id in [course.teacher, sch.director] or
             current_user.group == course.group and current_user.status == 5):
         abort(403)
@@ -715,15 +739,9 @@ def add_theory_to_lesson(lesson_id, material):
     if not current_user.is_authenticated:
         return redirect('/')
     sess = db_session.create_session()
-    lesson = sess.query(Lesson).get(lesson_id)
-    if not lesson or material not in ['theory', 'task']:
-        abort(404)
-    course = sess.query(Course).get(lesson.course)
-    if not course:
-        abort(404)
-    sch = sess.query(School).get(course.school)
-    if not sch:
-        abort(404)
+    lesson = lesson_exists(sess, lesson_id)
+    course = course_exists(sess, lesson.course)
+    sch = school_exists(sess, course.school)
     if current_user.id not in [course.teacher, sch.director]:
         abort(403)
     form = EditLessonForm()
@@ -746,12 +764,8 @@ def get_theory_of_lesson(lesson_id, material):
     lesson = sess.query(Lesson).get(lesson_id)
     if not lesson or material not in ['theory', 'task']:
         abort(404)
-    course = sess.query(Course).get(lesson.course)
-    if not course:
-        abort(404)
-    sch = sess.query(School).get(course.school)
-    if not sch:
-        abort(404)
+    course = course_exists(sess, lesson.course)
+    sch = school_exists(sess, course.school)
     if not (current_user.id in [course.teacher, sch.director] or
             current_user.group == course.group and current_user.status == 5):
         abort(403)
@@ -760,53 +774,29 @@ def get_theory_of_lesson(lesson_id, material):
     return lesson.tasks if lesson.tasks else "Задание отсутствует"
 
 
-@app.route('/my-courses')
-def my_courses():
-    if not current_user.is_authenticated:
-        return redirect('/')
-    sess = db_session.create_session()
-    if current_user.status == 5:
-        data = sess.query(Course).filter(Course.group == current_user.group)
-        data = [(x, sess.query(User).get(x.teacher)) for x in data.all()]
-    elif current_user.status < 5:
-        data = sess.query(Course).filter(Course.teacher == current_user.id)
-        data = [(x, sess.query(Group).get(x.group)) for x in data.all()]
-    else:
-        abort(404)
-    courses = sorted(data, key=lambda x: x[0].title)
-    return render_template('my_courses.html', data=courses, user=current_user)
-
-
 @app.route('/edit-my-profile', methods=['GET', 'POST'])
 def edit_profile():
     if not current_user.is_authenticated:
         return redirect('/')
-    sess = db_session.create_session()
-    user = sess.query(User).get(current_user.id)
-    form = UserProfileEditForm()
+    sess, form = db_session.create_session(), UserProfileEditForm()
+    user = user_exists(sess, current_user.id)
+    params = {'form': form, 'user': user, 'message': ''}
     if form.validate_on_submit():
         file, path_to_file = form.photo.data, user.photo_url
         if file:
-            filename = secure_filename(file.filename)
-            f_type = str(file.filename)[str(file.filename).rfind('.'):]
-            if f_type not in ['.jpg', '.png', '.bmp']:
-                p = {'form': form, 'user': user,
-                     'message': 'Формат файла не поддерживается'}
-                return render_template('edit_profile.html', **p)
-            number = random_string(15)
-            filename = f'IMG-{number}{f_type}'
-            path_to_file = app.config['UPLOAD_FOLDER'] + '/' + filename
-            file.save(path_to_file)
+            answer = upload_file(file, 'IMG', 'jpg|png|bmp', 15)
+            if 'error' in answer:
+                params['message'] = answer['error']
+                return render_template('edit_profile.html', **params)
         else:
             if form.url.data:
                 path_to_file = form.url.data
-        user.photo_url = path_to_file
-        user.last_name = form.last_name.data
+        user.photo_url, user.last_name = path_to_file, form.last_name.data
         user.first_name = form.first_name.data
         user.patronymic = form.patronymic.data
         sess.commit()
         return redirect('/')
-    return render_template('edit_profile.html', form=form, user=user)
+    return render_template('edit_profile.html', **params)
 
 
 @app.route('/change-password', methods=['GET', 'POST'])
@@ -814,7 +804,7 @@ def change_password():
     if not current_user.is_authenticated:
         return redirect('/')
     sess = db_session.create_session()
-    user = sess.query(User).get(current_user.id)
+    user = user_exists(sess, current_user.id)
     form = ChangePasswordForm()
     if form.validate_on_submit():
         if user.hashed_password != make_hashed_password(str(form.old.data)):
@@ -841,12 +831,10 @@ def get_all_users_with_page(page_number):
     pg = 1 if page_number <= 0 else page_number
     n = sess.query(User).count() // 20 + 1
     data = sess.query(User).all()
-    data = sorted(data, key=lambda x: f'{x.last_name} {x.first_name} '
-                                      f'{x.patronymic}')
+    data = sorted(data, key=lambda x: f'{x.last_name} {x.first_name}')
     data = safe_slice(data, 20 * (pg - 1), 20 * pg)
-    params = {'data': data, 'title': 'Пользователи',
-              'n_pages': n, 'current_page': pg}
-    return render_template('all_users.html', **params)
+    return render_template('all_users.html', data=data, title='Пользователи',
+                           n_pages=n, current_page=pg)
 
 
 @app.route('/edit-school-<int:sch_id>', methods=['GET', 'POST'])
@@ -854,55 +842,36 @@ def edit_school(sch_id):
     if not current_user.is_authenticated:
         return redirect('/')
     sess = db_session.create_session()
-    school = sess.query(School).get(sch_id)
-    if not school:
-        abort(404)
+    sch = school_exists(sess, sch_id)
     if current_user.status > 2:
         abort(403)
     form = SchoolProfileEditForm()
+    params = {'title': 'Настройки', 'form': form, 'sch': sch, 'message': ''}
     if form.validate_on_submit():
         file, path_to_file = form.photo.data, school.photo_url
         if file:
-            filename = secure_filename(file.filename)
-            f_type = str(file.filename)[str(file.filename).rfind('.'):]
-            if f_type not in ['.jpg', '.png', '.bmp']:
-                p = {'form': form, 'school': school,
-                     'message': 'Формат файла не поддерживается'}
-                return render_template('edit_school.html', **p)
-            number = random_string(15)
-            filename = f'IMG-{number}{f_type}'
-            path_to_file = app.config['UPLOAD_FOLDER'] + '/' + filename
-            file.save(path_to_file)
-        school.photo_url = path_to_file
-        school.short_title = form.short_title.data
-        school.index = form.index.data
-        school.region = form.region.data
-        school.city = form.city.data
-        school.street = form.street.data
-        school.house = form.house.data
-        school.phone = form.phone.data
+            answer = upload_file(file, 'IMG', 'jpg|png|bmp', 15)
+            if 'error' in answer:
+                params['message'] = answer['error']
+                return render_template('edit_school.html', **params)
+        sch.photo_url, sch.short_title = path_to_file, form.short_title.data
+        sch.index, sch.region = form.index.data, form.region.data
+        sch.city, sch.street = form.city.data, form.street.data
+        sch.house, sch.phone = form.house.data, form.phone.data
         director = form.director.data
         exist = sess.query(User).filter(User.id == director).first()
         if not exist:
-            text = f'Пользователя с ID {director} не существует!'
-            params = {'title': 'Настройки', 'form': form, 'message': text,
-                      'school': school}
+            params['message'] = f'Пользователя с ID {director} не существует!'
             return render_template('edit_school.html', **params)
         if exist.status > 3:
-            text = f'Статус пользователя ниже статуса "Директор"'
-            params = {'title': 'Настройки', 'form': form, 'message': text,
-                      'school': school}
+            params['message'] = f'Статус пользователя ниже статуса "Директор"'
             return render_template('edit_school.html', **params)
         if exist.school is not None and exist.school != sch_id:
-            text = f'Пользователь - директор другой школы: ID {exist.school}'
-            params = {'title': 'Настройки', 'form': form, 'message': text,
-                      'school': school}
+            params['message'] = f'Пользователь из другой школы'
             return render_template('edit_school.html', **params)
-        school.director = director
-        exist.school = sch_id
+        sch.director, exist.school = director, sch_id
         sess.commit()
         return redirect(f'/school-{sch_id}')
-    params = {'title': 'Настройки', 'form': form, 'school': school}
     return render_template('edit_school.html', **params)
 
 
@@ -923,13 +892,12 @@ def main():
             status = UserStatus()
             status.title = title
             session.add(status), session.commit()
-    for user_data in users:
+    for data in users:
         session = db_session.create_session()
-        exist = session.query(User).filter(User.email == user_data['email'])
-        exist = exist.all()
+        exist = session.query(User).filter(User.email == data['email']).all()
         if not exist:
             user = User()
-            for key, val in user_data.items():
+            for key, val in data.items():
                 user.__setattr__(key, val)
             session.add(user), session.commit()
     app.run(port=8080, host='127.0.0.1')
@@ -940,22 +908,22 @@ def main():
 # --------------------------------------------------
 @app.errorhandler(405)
 def method_not_allowed(error):
-    render_template('error.html', code=405)
+    return render_template('error.html', code=405, title='Ошибка')
 
 
 @app.errorhandler(404)
 def not_found(error):
-    return render_template('error.html', code=404)
+    return render_template('error.html', code=404, title='Ошибка')
 
 
 @app.errorhandler(403)
 def forbidden(error):
-    return render_template('error.html', code=403)
+    return render_template('error.html', code=403, title='Ошибка')
 
 
 @app.errorhandler(500)
 def server_error(error):
-    return render_template('error.html', code=500)
+    return render_template('error.html', code=500, title='Ошибка')
 
 
 if __name__ == '__main__':

@@ -25,62 +25,62 @@
         <form action="" method="post">
         {{ form.hidden_tag() }}
             <div class="form-group">
-                {{ form.title(class="form-control", placeholder="Полное наименование организации") }}<br>
+                {{ form.title(class="form-control", placeholder="Полное наименование организации", readonly=True, onfocus="this.removeAttribute('readonly')") }}<br>
                 {% for error in form.title.errors %}
                     <div class="alert alert-danger" role="alert">{{ error }}</div>
                 {% endfor %}
             </div>
             <div class="form-group">
-                {{ form.short_title(class="form-control", placeholder="Краткое наименование") }}<br>
+                {{ form.short_title(class="form-control", placeholder="Краткое наименование", readonly=True, onfocus="this.removeAttribute('readonly')") }}<br>
                 {% for error in form.short_title.errors %}
                     <div class="alert alert-danger" role="alert">{{ error }}</div>
                 {% endfor %}
             </div>
             <div class="form-group">
-                {{ form.director(class="form-control", placeholder="ID директора") }}<br>
+                {{ form.director(class="form-control", placeholder="ID директора", readonly=True, onfocus="this.removeAttribute('readonly')") }}<br>
                 {% for error in form.director.errors %}
                     <div class="alert alert-danger" role="alert">{{ error }}</div>
                 {% endfor %}
             </div>
             <div class="form-group">
-                {{ form.index(class="form-control", placeholder="Почтовый индекс") }}<br>
+                {{ form.index(class="form-control", placeholder="Почтовый индекс", readonly=True, onfocus="this.removeAttribute('readonly')") }}<br>
                 {% for error in form.index.errors %}
                     <div class="alert alert-danger" role="alert">{{ error }}</div>
                 {% endfor %}
             </div>
             <div class="form-group">
-                {{ form.region(class="form-control", placeholder="Регион") }}<br>
+                {{ form.region(class="form-control", placeholder="Регион", readonly=True, onfocus="this.removeAttribute('readonly')") }}<br>
                 {% for error in form.region.errors %}
                     <div class="alert alert-danger" role="alert">{{ error }}</div>
                 {% endfor %}
             </div>
             <div class="form-group">
-                {{ form.city(class="form-control", placeholder="Город/район") }}<br>
+                {{ form.city(class="form-control", placeholder="Город/район", readonly=True, onfocus="this.removeAttribute('readonly')") }}<br>
                 {% for error in form.city.errors %}
                     <div class="alert alert-danger" role="alert">{{ error }}</div>
                 {% endfor %}
             </div>
             <div class="form-group">
-                {{ form.street(class="form-control", placeholder="Улица/проспект и пр.") }}<br>
+                {{ form.street(class="form-control", placeholder="Улица/проспект и пр.", readonly=True, onfocus="this.removeAttribute('readonly')") }}<br>
                 {% for error in form.street.errors %}
                     <div class="alert alert-danger" role="alert">{{ error }}</div>
                 {% endfor %}
             </div>
             <div class="form-group">
-                {{ form.house(class="form-control", placeholder="Дом") }}<br>
+                {{ form.house(class="form-control", placeholder="Дом", readonly=True, onfocus="this.removeAttribute('readonly')") }}<br>
                 {% for error in form.house.errors %}
                     <div class="alert alert-danger" role="alert">{{ error }}</div>
                 {% endfor %}
             </div>
             <div class="form-group">
-                {{ form.email(class="form-control", type="email", placeholder="E-mail") }}<br>
+                {{ form.email(class="form-control", type="email", placeholder="E-mail", readonly=True, onfocus="this.removeAttribute('readonly')") }}<br>
                 {% for error in form.email.errors %}
                     <div class="alert alert-danger" role="alert">{{ error }}</div>
                 {% endfor %}
             </div>
             <div class="form-group">
                 <p>Тел.:</p>
-                {{ form.phone(class="form-control", type="tel") }}<br>
+                {{ form.phone(class="form-control", type="tel", readonly=True, onfocus="this.removeAttribute('readonly')") }}<br>
                 {% for error in form.phone.errors %}
                     <div class="alert alert-danger" role="alert">{{ error }}</div>
                 {% endfor %}
