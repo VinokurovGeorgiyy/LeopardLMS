@@ -902,7 +902,8 @@ def main():
             for key, val in data.items():
                 user.__setattr__(key, val)
             session.add(user), session.commit()
-    app.run(port=8080, host='127.0.0.1')
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
 
 
 # --------------------------------------------------
