@@ -637,7 +637,7 @@ def add_course_to_school(school_id):
         course.title, course.school = form.title.data, school_id
         teacher = sess.query(User).get(form.teacher.data)
         if not teacher:
-            params['message'] = f'Пользователя с ID {teacher} не существует!'
+            params['message'] = f'Пользователь с ID {teacher.id} не найден!'
             return render_template('add_course.html', **params)
         if teacher.status > 4:
             params['message'] = 'Статус пользователя ниже статуса "Учитель"'
@@ -645,7 +645,7 @@ def add_course_to_school(school_id):
         if teacher.school != school_id:
             params['message'] = 'Пользователь не из данной школы'
             return render_template('add_course.html', **params)
-        course.teacher, course.group = teacher, form.group.data
+        course.teacher, course.group = teacher.id, form.group.data
         sess.add(course), sess.commit()
         return redirect(f'/school-{school_id}-courses')
     return render_template('add_course.html', **params)
@@ -788,6 +788,7 @@ def edit_profile():
             if 'error' in answer:
                 params['message'] = answer['error']
                 return render_template('edit_profile.html', **params)
+            path_to_file = answer['ok']
         else:
             if form.url.data:
                 path_to_file = form.url.data
@@ -848,12 +849,13 @@ def edit_school(sch_id):
     form = SchoolProfileEditForm()
     params = {'title': 'Настройки', 'form': form, 'sch': sch, 'message': ''}
     if form.validate_on_submit():
-        file, path_to_file = form.photo.data, school.photo_url
+        file, path_to_file = form.photo.data, sch.photo_url
         if file:
             answer = upload_file(file, 'IMG', 'jpg|png|bmp', 15)
             if 'error' in answer:
                 params['message'] = answer['error']
                 return render_template('edit_school.html', **params)
+            path_to_file = answer['ok']
         sch.photo_url, sch.short_title = path_to_file, form.short_title.data
         sch.index, sch.region = form.index.data, form.region.data
         sch.city, sch.street = form.city.data, form.street.data
