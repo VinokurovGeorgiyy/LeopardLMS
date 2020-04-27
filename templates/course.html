@@ -32,7 +32,7 @@
             {% if not i.opened %}
               <div class="page-block" style="display: flex; justify-content: center; margin-bottom: 16px">
                   <h3>
-                      <a href="/lesson-{{i.id}}" style="text-decoration: none; color: #000">
+                      <a href="/lesson-{{i.id}}-theory" style="text-decoration: none; color: #000">
                           Урок {{ i.lesson_number }}. {{ i.title }}
                       </a>
                   </h3>
@@ -44,7 +44,7 @@
             {% else %}
               <div class="page-block" style="margin-bottom: 16px">
                   <h3>
-                      <a href="/lesson-{{i.id}}" style="text-decoration: none; color: #000">
+                      <a href="/lesson-{{i.id}}-theory" style="text-decoration: none; color: #000">
                           Урок {{ i.lesson_number }}. {{ i.title }}
                       </a>
                   </h3>

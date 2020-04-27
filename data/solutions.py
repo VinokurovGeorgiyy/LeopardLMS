@@ -1,14 +1,18 @@
-import sqlalchemy
+import sqlalchemy as sql
 from .db_session import SqlAlchemyBase
 import sqlalchemy.orm as orm
 from sqlalchemy_serializer import SerializerMixin
+import datetime
 
 
 class Solution(SqlAlchemyBase, SerializerMixin):
     __tablename__ = 'solutions'
 
-    id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, autoincrement=True)
-    author = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('users.id'))
-    lesson = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('lessons.id'))
-    url = sqlalchemy.Column(sqlalchemy.String, nullable=False)
+    id = sql.Column(sql.Integer, primary_key=True, autoincrement=True)
+    author = sql.Column(sql.Integer, sql.ForeignKey('users.id'))
+    lesson = sql.Column(sql.Integer, sql.ForeignKey('lessons.id'))
+    url = sql.Column(sql.String, nullable=True)
+    message = sql.Column(sql.TEXT, nullable=True)
+    date = sql.Column(sql.DateTime, default=datetime.datetime.utcnow)
+
 

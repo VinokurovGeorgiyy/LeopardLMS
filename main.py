@@ -129,10 +129,10 @@ def random_string(length):
 def upload_file(file, start, formats, secure_length):
     filename = secure_filename(file.filename)
     file_type = str(filename)[str(filename).rfind('.') + 1:]
-    if file_type not in formats.split('|'):
+    if file_type not in formats.split('|') and formats != '*':
         return {'error': 'Формат файла не поддерживается'}
     number = random_string(secure_length)
-    filename = f'{start}-{number}.{file_type}'
+    filename = f'{start}-{current_user.id}-{number}.{file_type}'
     path_to_file = app.config['UPLOAD_FOLDER'] + '/' + filename
     file.save(path_to_file)
     return {'ok': path_to_file}
@@ -719,8 +719,46 @@ def open_lesson(lesson_id):
     return redirect(f'/course-{lesson.course}')
 
 
-@app.route('/lesson-<int:lesson_id>')
-def lesson_profile(lesson_id):
+@app.route('/lesson-<int:lesson_id>-<mode>', methods=['GET', 'POST'])
+def lesson_profile(lesson_id, mode):
+    if not current_user.is_authenticated:
+        return redirect('/')
+    if mode not in ['theory', 'task']:
+        abort(404)
+    sess = db_session.create_session()
+    lesson = lesson_exists(sess, lesson_id)
+    course = course_exists(sess, lesson.course)
+    sch = school_exists(sess, course.school)
+    if not (current_user.id in [course.teacher, sch.director] or
+            current_user.group == course.group and current_user.status == 5):
+        abort(403)
+    right = current_user.id in [course.teacher, sch.director]
+    params = {'lesson': lesson, 'right_of_edit': right, 'course': course}
+    if mode == 'theory':
+        return render_template('lesson_theory.html', **params)
+    form = LoadSolution()
+    if form.validate_on_submit():
+        file, message = form.doc.data, form.message.data
+        path = upload_file(file, 'DOC', '*', 15).get('ok') if file else None
+        if path or message:
+            solution = Solution()
+            solution.author, solution.lesson = current_user.id, lesson_id
+            solution.message, solution.url = message, path
+            solution.date = date = datetime.datetime.utcnow()
+            sess.add(solution), sess.commit()
+            solution = sess.query(Solution).filter(Solution.date == date)
+            solution = solution.filter(Solution.author == current_user.id)
+            solution = solution.filter(Solution.lesson == lesson_id).first()
+            solutions = lesson.solutions.split() if lesson.solutions else []
+            solutions.append(str(solution.id))
+            lesson.solutions = ' '.join(solutions)
+            sess.commit()
+            return redirect(f'/lesson-{lesson_id}-task')
+    return render_template('lesson_task.html', **params, form=form)
+
+
+@app.route('/get-all-solutions-lesson-<int:lesson_id>-<int:mode>')
+def get_all_solutions_from_lesson(lesson_id, mode):
     if not current_user.is_authenticated:
         return redirect('/')
     sess = db_session.create_session()
@@ -730,8 +768,25 @@ def lesson_profile(lesson_id):
     if not (current_user.id in [course.teacher, sch.director] or
             current_user.group == course.group and current_user.status == 5):
         abort(403)
-    right = current_user.id in [course.teacher, sch.director]
-    return render_template('lesson.html', lesson=lesson, right_of_edit=right)
+    solutions = lesson.solutions.split() if lesson.solutions else []
+    solutions = [sess.query(Solution).get(int(i)) for i in solutions]
+    solutions, answer = [x for x in solutions if x is not None], ''
+    if not mode:
+        return f'{len(solutions)}'
+    for i in solutions:
+        author = sess.query(User).get(i.author) if i.author else None
+        if current_user.id != course.teacher:
+            if author.id != current_user.id and author.id != course.teacher:
+                continue
+        photo = author.photo_url if author is not None else ''
+        author = f'{author.first_name} {author.last_name}' if author else '?'
+        d = datetime.datetime.now(datetime.timezone.utc).astimezone()
+        utc_offset = d.utcoffset() // datetime.timedelta(seconds=3600)
+        result = i.date + datetime.timedelta(hours=utc_offset)
+        photo = '/static/img/user-photo.png' if not photo else photo
+        params = {'author': author, 'photo': photo, 'date': result, 'data': i}
+        answer += render_template('solution.html', **params)
+    return answer
 
 
 @app.route('/lesson-<int:lesson_id>-add-<material>', methods=['GET', 'POST'])
@@ -751,7 +806,7 @@ def add_theory_to_lesson(lesson_id, material):
         else:
             lesson.tasks = form.code.data
         sess.commit()
-        return redirect(f'/lesson-{lesson_id}')
+        return redirect(f'/lesson-{lesson_id}-{material}')
     return render_template('edit_lesson.html', title='Редактор', form=form,
                            data=material, lesson=lesson)
 

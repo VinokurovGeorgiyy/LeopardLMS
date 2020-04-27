@@ -1,4 +1,4 @@
-import sqlalchemy
+import sqlalchemy as sql
 from .db_session import SqlAlchemyBase
 import sqlalchemy.orm as orm
 from sqlalchemy_serializer import SerializerMixin
@@ -7,11 +7,11 @@ from sqlalchemy_serializer import SerializerMixin
 class Lesson(SqlAlchemyBase, SerializerMixin):
     __tablename__ = 'lessons'
 
-    id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, autoincrement=True)
-    course = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('courses.id'), nullable=True)
-    lesson_number = sqlalchemy.Column(sqlalchemy.String, nullable=True)
-    title = sqlalchemy.Column(sqlalchemy.String, nullable=True)
-    theory = sqlalchemy.Column(sqlalchemy.String, nullable=True)
-    tasks = sqlalchemy.Column(sqlalchemy.String, nullable=True)
-    opened = sqlalchemy.Column(sqlalchemy.Boolean, nullable=True)
-    solutions = sqlalchemy.Column(sqlalchemy.String, nullable=True)
+    id = sql.Column(sql.Integer, primary_key=True, autoincrement=True)
+    course = sql.Column(sql.Integer, sql.ForeignKey('courses.id'))
+    lesson_number = sql.Column(sql.String, nullable=True)
+    title = sql.Column(sql.String, nullable=True)
+    theory = sql.Column(sql.String, nullable=True)
+    tasks = sql.Column(sql.String, nullable=True)
+    opened = sql.Column(sql.Boolean, nullable=True)
+    solutions = sql.Column(sql.String, nullable=True)

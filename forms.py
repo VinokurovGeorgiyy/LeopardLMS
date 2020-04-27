@@ -15,14 +15,17 @@ class UserRegistrationForm(FlaskForm):
     first_name = StringField('Имя', validators=[DataRequired()])
     patronymic = StringField('Отчество', validators=[])
     email = StringField('Email', validators=[DataRequired(), Email()])
-    password = PasswordField('Пароль', validators=[DataRequired(), EqualTo('repeat')])
+    password = PasswordField('Пароль', validators=[DataRequired(),
+                                                   EqualTo('repeat')])
     repeat = PasswordField('Повторите пароль', validators=[DataRequired()])
     submit = SubmitField('Зарегистрировать')
 
 
 class SchoolRegistrationForm(FlaskForm):
-    title = StringField('Полное наименование организации', validators=[DataRequired()])
-    short_title = StringField('Краткое наименование', validators=[DataRequired()])
+    title = StringField('Полное наименование организации',
+                        validators=[DataRequired()])
+    short_title = StringField('Краткое наименование',
+                              validators=[DataRequired()])
     director = IntegerField('ID директора', validators=[DataRequired()])
     index = IntegerField('Почтовый индекс', validators=[DataRequired()])
     region = StringField('Регион', validators=[DataRequired()])
@@ -47,7 +50,8 @@ class ChatForm(FlaskForm):
 
 class CourseRegistrationForm(FlaskForm):
     title = StringField('Название курса', validators=[DataRequired()])
-    teacher = IntegerField('ID преподавателя курса', validators=[DataRequired()])
+    teacher = IntegerField('ID преподавателя курса',
+                           validators=[DataRequired()])
     group = IntegerField('ID группы/класса', validators=[DataRequired()])
     submit = SubmitField('Добавить курс')
 
@@ -63,13 +67,15 @@ class UserProfileEditForm(FlaskForm):
 
 class ChangePasswordForm(FlaskForm):
     old = PasswordField('Старый пароль', validators=[DataRequired()])
-    password = PasswordField('Новый пароль', validators=[DataRequired(), EqualTo('repeat')])
+    password = PasswordField('Новый пароль',
+                             validators=[DataRequired(), EqualTo('repeat')])
     repeat = PasswordField('Повторите пароль', validators=[DataRequired()])
     submit = SubmitField('Изменить пароль')
 
 
 class SchoolProfileEditForm(FlaskForm):
-    short_title = StringField('Краткое наименование', validators=[DataRequired()])
+    short_title = StringField('Краткое наименование',
+                              validators=[DataRequired()])
     director = IntegerField('ID директора', validators=[DataRequired()])
     index = IntegerField('Почтовый индекс', validators=[DataRequired()])
     region = StringField('Регион', validators=[DataRequired()])
@@ -94,3 +100,9 @@ class EditLessonForm(FlaskForm):
     img_url = StringField('Изображние (ссылка)', validators=[])
     code = TextAreaField('Код', validators=[])
     submit = SubmitField('Сохранить')
+
+
+class LoadSolution(FlaskForm):
+    doc = FileField('Загрузить документ', validators=[])
+    message = StringField('', validators=[])
+    submit = SubmitField('Добавить')

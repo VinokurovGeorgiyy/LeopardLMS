@@ -1,4 +1,4 @@
-import sqlalchemy
+import sqlalchemy as sql
 from .db_session import SqlAlchemyBase
 import sqlalchemy.orm as orm
 from sqlalchemy_serializer import SerializerMixin
@@ -7,19 +7,19 @@ from sqlalchemy_serializer import SerializerMixin
 class School(SqlAlchemyBase, SerializerMixin):
     __tablename__ = 'schools'
 
-    id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, autoincrement=True)
-    title = sqlalchemy.Column(sqlalchemy.String, unique=True, nullable=True)
-    short_title = sqlalchemy.Column(sqlalchemy.String, nullable=True)
+    id = sql.Column(sql.Integer, primary_key=True, autoincrement=True)
+    title = sql.Column(sql.String, unique=True, nullable=True)
+    short_title = sql.Column(sql.String, nullable=True)
 
-    director = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('users.id'))
+    director = sql.Column(sql.Integer, sql.ForeignKey('users.id'))
 
-    index = sqlalchemy.Column(sqlalchemy.Integer, nullable=True)
-    region = sqlalchemy.Column(sqlalchemy.String, nullable=True)
-    city = sqlalchemy.Column(sqlalchemy.String, nullable=True)
-    street = sqlalchemy.Column(sqlalchemy.String, nullable=True)
-    house = sqlalchemy.Column(sqlalchemy.String, nullable=True)
+    index = sql.Column(sql.Integer, nullable=True)
+    region = sql.Column(sql.String, nullable=True)
+    city = sql.Column(sql.String, nullable=True)
+    street = sql.Column(sql.String, nullable=True)
+    house = sql.Column(sql.String, nullable=True)
 
-    email = sqlalchemy.Column(sqlalchemy.String, nullable=True)
-    phone = sqlalchemy.Column(sqlalchemy.String, nullable=True)
-    photo_url = sqlalchemy.Column(sqlalchemy.String, nullable=True)
+    email = sql.Column(sql.String, nullable=True)
+    phone = sql.Column(sql.String, nullable=True)
+    photo_url = sql.Column(sql.String, nullable=True)
 
