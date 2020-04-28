@@ -1,40 +1,13 @@
-{% extends "workspace.html" %}
+{% extends "school_objects.html" %}
 
 {% block container %}
-  <style>
-      .page {
-        margin-top: 24px;
-        display: flex;
-        justify-content: left;
-      }
-
-      .info-block {
-        display: flex;
-        justify-content: left;
-        margin-bottom: 16px;
-      }
-
-      .left {
-        width: 100%;
-      }
-
-      .right {
-        width: 240px;
-        margin-left: 30px;
-      }
-
-      .add-group {
-        font-size: 20px;
-        margin-left: auto;
-      }
-  </style>
   <div class="page-block" style="margin-bottom: 36px">
       <h3><a style="text-decoration: none; color: #000" href="/school-{{sch.id}}">{{ sch.short_title }}</a></h3>
       <hr>
       <div style="display: flex; justify-content: center">
           <h2>Классы</h2>
           {% if current_user.id == sch.director or current_user.status < 3 %}
-            <a class="btn btn-success add-group" href="/school-{{sch.id}}-add-group" id="add-group">Добавить класс +</a>
+            <a class="btn btn-success add" href="/school-{{sch.id}}-add-group" id="add-group">Добавить класс +</a>
           {% endif %}
       </div>
   </div>

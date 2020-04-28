@@ -1,0 +1,32 @@
+{% extends "workspace.html" %}
+
+{% block container %}
+  <style>
+      .page {
+        margin-top: 24px;
+        display: flex;
+        justify-content: left;
+      }
+
+      .info-block {
+        display: flex;
+        justify-content: left;
+        margin-bottom: 16px;
+      }
+
+      .left {
+        width: 100%;
+      }
+
+      .right {
+        width: 240px;
+        margin-left: 30px;
+      }
+
+      .add {
+        font-size: 20px;
+        margin-left: auto;
+      }
+  </style>
+  {% block page %}{% endblock %}
+{% endblock %}

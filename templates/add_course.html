@@ -1,24 +1,6 @@
-{% extends "workspace.html" %}
+{% extends "add.html" %}
 
 {% block container %}
-  <style>
-      input#submit{
-          margin-left: auto;
-          margin-right: auto;
-          width: 50%
-        }
-
-        .h1, h1 {
-          text-align: center;
-        }
-
-        .sign_up_block {
-          margin-left: auto;
-          margin-right: auto;
-          margin-top: 50px;
-          width: 75%;
-        }
-  </style>
   <div class="page-block sign_up_block border">
       <h1>Добавление курса</h1>
       {% if message %}<div class="alert alert-danger">{{ message }}</div>{% endif %}

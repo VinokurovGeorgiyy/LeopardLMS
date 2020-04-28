@@ -31,6 +31,7 @@ USERS_STATUSES = ['system-manager', 'admin', 'director', 'teacher', 'student']
 
 
 def get_current_user_courses(sess):
+    """Возвращает все курсы (предметы), которые есть у пользователя"""
     if current_user.status == 5:
         data = sess.query(Course).filter(Course.group == current_user.group)
         data = [(x, sess.query(User).get(x.teacher)) for x in data.all()]
@@ -43,6 +44,7 @@ def get_current_user_courses(sess):
 
 
 def user_exists(sess, user_id):
+    """Проверяет, существует ли пользователь. Если нет - сообщает об ошибке"""
     user = sess.query(User).get(user_id)
     if not user:
         abort(404)
@@ -50,6 +52,7 @@ def user_exists(sess, user_id):
 
 
 def group_exists(sess, group_id):
+    """Проверяет, существует ли группа. Если нет - сообщает об ошибке"""
     group = sess.query(Group).get(group_id)
     if not group:
         abort(404)
@@ -57,6 +60,7 @@ def group_exists(sess, group_id):
 
 
 def school_exists(sess, school_id):
+    """Проверяет, существует ли школа. Если нет - сообщает об ошибке"""
     school = sess.query(School).get(school_id)
     if not school:
         abort(404)
@@ -64,6 +68,7 @@ def school_exists(sess, school_id):
 
 
 def course_exists(sess, course_id):
+    """Проверяет, существует ли курс. Если нет - сообщает об ошибке"""
     course = sess.query(Course).get(course_id)
     if not course:
         abort(404)
@@ -71,6 +76,7 @@ def course_exists(sess, course_id):
 
 
 def lesson_exists(sess, lesson_id):
+    """Проверяет, существует ли урок. Если нет - сообщает об ошибке"""
     lesson = sess.query(Lesson).get(lesson_id)
     if not lesson:
         abort(404)
@@ -78,10 +84,12 @@ def lesson_exists(sess, lesson_id):
 
 
 def make_hashed_password(string):
+    """Шифрует пароль"""
     return str(hashlib.blake2b(string.encode()).hexdigest())
 
 
 def safe_slice(data, start, end):
+    """Делает безопасный срез множества"""
     try:
         data = data[start:end]
     except Exception:
@@ -91,6 +99,7 @@ def safe_slice(data, start, end):
 
 
 def add_user(session, status):
+    """Добавляет пользователя в систему"""
     form = UserRegistrationForm()
     if form.validate_on_submit():
         session, email = session, form.email.data
@@ -111,6 +120,7 @@ def add_user(session, status):
 
 
 def get_chat_name(session, chat, chat_members, current_user):
+    """Возвращает имя чата"""
     name = chat.title
     if name is None:
         name = [x for x in chat_members if x != current_user.id]
@@ -120,13 +130,45 @@ def get_chat_name(session, chat, chat_members, current_user):
     return name
 
 
+def get_chats(last_message_length):
+    """Возвращает чаты пользователя в удобном формате"""
+    if not current_user.is_authenticated:
+        return redirect('/')
+    sess = db_session.create_session()
+    user = user_exists(sess, current_user.id)
+    chats = user.chats.split() if user.chats else []
+    chats = [sess.query(Chat).get(int(x)) for x in chats]
+    chats = [x for x in chats if x is not None]
+    for i in range(len(chats)):
+        members = [] if chats[i].members is None else \
+            [int(i) for i in chats[i].members.split()]
+        if len(members) < 3:
+            photo = [x for x in members if x != current_user.id]
+            photo = photo[0] if photo else None
+            photo = None if photo is None else sess.query(User).get(photo)
+            photo = photo.photo_url
+        else:
+            photo = chats[i].photo_url
+        messages = chats[i].messages.split() if chats[i].messages else []
+        last = int(messages[-1]) if messages else ''
+        last_message = sess.query(Message).get(last) if last else ''
+        last_message = last_message.text if last_message else ''
+        last_message = last_message[:last_message_length]
+        chat_name = get_chat_name(sess, chats[i], members, current_user)
+        chats[i] = chats[i], chat_name, last_message, photo,
+    return chats
+
+
 def random_string(length):
+    """Создаёт строку из слечайных символов.
+    В основном - для сохранения загруженных на сервер файлов"""
     obj = 'abcdefghijklmnopqrstuvwxyz'
     obj += obj.upper() + '0123456789'
     return ''.join(choice(obj) for _ in range(length))
 
 
 def upload_file(file, start, formats, secure_length):
+    """Сохраняет файл на сервер"""
     filename = secure_filename(file.filename)
     file_type = str(filename)[str(filename).rfind('.') + 1:]
     if file_type not in formats.split('|') and formats != '*':
@@ -143,6 +185,7 @@ def upload_file(file, start, formats, secure_length):
 # --------------------------------------------------
 @app.route('/', methods=['GET', 'POST'])
 def homepage():
+    """Главная страница + страница авторизации"""
     if current_user.is_authenticated:
         return redirect(f'/id-{current_user.id}')
     form = LoginForm()
@@ -172,6 +215,7 @@ def logout():
 
 @app.route('/id-<int:user_id>')
 def user_profile(user_id):
+    """Профиль пользователя"""
     if not current_user.is_authenticated:
         return redirect('/')
     session = db_session.create_session()
@@ -215,6 +259,7 @@ def my_courses():
 
 @app.route('/school-<int:school_id>')
 def school_profile(school_id):
+    """Профиль школы"""
     if not current_user.is_authenticated:
         return redirect('/')
     session = db_session.create_session()
@@ -227,6 +272,7 @@ def school_profile(school_id):
 
 @app.route('/group-<int:group_id>')
 def group_profile(group_id):
+    """Профиль группы (класса)"""
     if not current_user.is_authenticated:
         return redirect('/')
     sess = db_session.create_session()
@@ -248,6 +294,8 @@ def get_school_objects(sch_id, obj):
 
 @app.route('/school-<int:school_id>-<obj>-page-<int:page_number>')
 def get_school_objects_with_page(school_id, obj, page_number):
+    """Отображает список классов, учителей, учеников в школе,
+    загружая при этом данные в определённом диапазоне"""
     if not current_user.is_authenticated:
         return redirect('/')
     sess = db_session.create_session()
@@ -289,6 +337,7 @@ def get_all_schools():
 
 @app.route('/schools-page-<int:page_number>')
 def get_all_schools_with_page(page_number):
+    """Отображает список всех школы в системе"""
     if not current_user.is_authenticated:
         return redirect('/')
     session = db_session.create_session()
@@ -304,6 +353,7 @@ def get_all_schools_with_page(page_number):
 
 @app.route('/add-school', methods=['GET', 'POST'])
 def add_school():
+    """Позволяет добавить школу в систему"""
     if not current_user.is_authenticated:
         return redirect('/')
     if current_user.status > 2:
@@ -342,6 +392,7 @@ def add_school():
 
 @app.route('/school-<int:school_id>-add-group', methods=['GET', 'POST'])
 def add_group_to_school(school_id):
+    """Добавляет новую группу (класс) в школу"""
     if not current_user.is_authenticated:
         return redirect('/')
     if current_user.status > 3:
@@ -382,6 +433,7 @@ def add_group_to_school(school_id):
 
 @app.route('/school-<int:school_id>-add-teacher', methods=['GET', 'POST'])
 def add_teacher_to_school(school_id):
+    """Добавляет нового пользователя 'Учитель' в школу"""
     if not current_user.is_authenticated:
         return redirect('/')
     sess = db_session.create_session()
@@ -403,6 +455,7 @@ def add_teacher_to_school(school_id):
 
 @app.route('/add-<status>', methods=['GET', 'POST'])
 def add_not_school_user(status):
+    """Позволяет добавить 'Администратора' и 'Директора' в систему"""
     if not current_user.is_authenticated:
         return redirect('/')
     if status not in USERS_STATUSES[1:]:
@@ -421,6 +474,7 @@ def add_not_school_user(status):
 
 @app.route('/group-<int:group_id>-add-student', methods=['GET', 'POST'])
 def add_student_to_group(group_id):
+    """Позволяет добавить нового ученика в класс"""
     if not current_user.is_authenticated:
         return redirect('/')
     sess = db_session.create_session()
@@ -443,42 +497,16 @@ def add_student_to_group(group_id):
 
 @app.route('/chats')
 def chats_list():
+    """Отображает список чатов пользователя"""
     chats = get_chats(50)
     if isinstance(chats, list):
         return render_template('chats_list.html', chats=chats)
     abort(404)
 
 
-def get_chats(last_message_length):
-    if not current_user.is_authenticated:
-        return redirect('/')
-    sess = db_session.create_session()
-    user = user_exists(sess, current_user.id)
-    chats = user.chats.split() if user.chats else []
-    chats = [sess.query(Chat).get(int(x)) for x in chats]
-    chats = [x for x in chats if x is not None]
-    for i in range(len(chats)):
-        members = [] if chats[i].members is None else \
-            [int(i) for i in chats[i].members.split()]
-        if len(members) < 3:
-            photo = [x for x in members if x != current_user.id]
-            photo = photo[0] if photo else None
-            photo = None if photo is None else sess.query(User).get(photo)
-            photo = photo.photo_url
-        else:
-            photo = chats[i].photo_url
-        messages = chats[i].messages.split() if chats[i].messages else []
-        last = int(messages[-1]) if messages else ''
-        last_message = sess.query(Message).get(last) if last else ''
-        last_message = last_message.text if last_message else ''
-        last_message = last_message[:last_message_length]
-        chat_name = get_chat_name(sess, chats[i], members, current_user)
-        chats[i] = chats[i], chat_name, last_message, photo,
-    return chats
-
-
 @app.route('/chat-<int:chat_id>', methods=['GET', 'POST'])
 def chat_messages_list(chat_id):
+    """Реализует чат пользователя"""
     if not current_user.is_authenticated:
         return redirect('/')
     sess = db_session.create_session()
@@ -504,6 +532,7 @@ def chat_messages_list(chat_id):
 
 @app.route('/write-message-<int:addressee_id>')
 def write_message(addressee_id):
+    """Создаёт новый личный чат с другим пользователем"""
     if not current_user.is_authenticated:
         return redirect('/')
     sess = db_session.create_session()
@@ -529,6 +558,8 @@ def write_message(addressee_id):
 
 @app.route('/chat-form', methods=['POST'])
 def chat_form():
+    """Получает POST запрос от чата пользователя с сообщением и
+    сохраняет данное сообщение"""
     if not current_user.is_authenticated:
         return """"""
     data = request.json
@@ -562,6 +593,8 @@ def chat_form():
 
 @app.route('/get-all-messages-chat-<int:chat_id>-<int:mode>')
 def get_all_messages_in_chat(chat_id, mode):
+    """Получает GET запрос для отображения всех сообщений чата
+    и формирует ответ в формате HTML"""
     if not current_user.is_authenticated:
         return redirect('/')
     sess = db_session.create_session()
@@ -597,6 +630,7 @@ def get_all_messages_in_chat(chat_id, mode):
 
 @app.route('/del-message-<int:m_id>')
 def delete_message(m_id):
+    """Получает GET запрос на удаление сообщения и удаляет его из БД"""
     if not current_user.is_authenticated:
         return redirect('/')
     sess = db_session.create_session()
@@ -624,6 +658,9 @@ def delete_message(m_id):
 
 @app.route('/school-<int:school_id>-add-course', methods=['GET', 'POST'])
 def add_course_to_school(school_id):
+    """Позволяет добавить новый курс (предмет) в школу.
+    Каждый курс предназначен для определённой группы учеников. Например,
+    Курс Математика для 10 класса"""
     if not current_user.is_authenticated:
         return redirect('/')
     sess = db_session.create_session()
@@ -653,6 +690,7 @@ def add_course_to_school(school_id):
 
 @app.route('/school-<int:school_id>-courses')
 def get_school_courses(school_id):
+    """Отображает все курсы в школе"""
     if not current_user.is_authenticated:
         return redirect('/')
     sess = db_session.create_session()
@@ -667,6 +705,7 @@ def get_school_courses(school_id):
 
 @app.route('/course-<int:course_id>')
 def course_profile(course_id):
+    """Отображает информацию об определённом курсе"""
     if not current_user.is_authenticated:
         return redirect('/')
     sess = db_session.create_session()
@@ -687,6 +726,7 @@ def course_profile(course_id):
 
 @app.route('/course-<int:course_id>-add-lesson', methods=['GET', 'POST'])
 def add_lesson_to_course(course_id):
+    """Позволяет добавить в курс новый урок"""
     if not current_user.is_authenticated:
         return redirect('/')
     sess = db_session.create_session()
@@ -706,6 +746,7 @@ def add_lesson_to_course(course_id):
 
 @app.route('/lesson-<int:lesson_id>-open')
 def open_lesson(lesson_id):
+    """Делает урок доступным для просмотра учащимися группы курса"""
     if not current_user.is_authenticated:
         return redirect('/')
     sess = db_session.create_session()
@@ -721,6 +762,7 @@ def open_lesson(lesson_id):
 
 @app.route('/lesson-<int:lesson_id>-<mode>', methods=['GET', 'POST'])
 def lesson_profile(lesson_id, mode):
+    """Отображает информацию разделов урока"""
     if not current_user.is_authenticated:
         return redirect('/')
     if mode not in ['theory', 'task']:
@@ -759,6 +801,8 @@ def lesson_profile(lesson_id, mode):
 
 @app.route('/get-all-solutions-lesson-<int:lesson_id>-<int:mode>')
 def get_all_solutions_from_lesson(lesson_id, mode):
+    """Получает GET запрос для получения всех решений задания данного урока,
+    отправленных учениками, а также сообщений чата задания"""
     if not current_user.is_authenticated:
         return redirect('/')
     sess = db_session.create_session()
@@ -791,6 +835,7 @@ def get_all_solutions_from_lesson(lesson_id, mode):
 
 @app.route('/lesson-<int:lesson_id>-add-<material>', methods=['GET', 'POST'])
 def add_theory_to_lesson(lesson_id, material):
+    """Позволяет учителю создавать и редактировать материал урока"""
     if not current_user.is_authenticated:
         return redirect('/')
     sess = db_session.create_session()
@@ -813,6 +858,9 @@ def add_theory_to_lesson(lesson_id, material):
 
 @app.route('/lesson-<int:lesson_id>-get-<material>')
 def get_theory_of_lesson(lesson_id, material):
+    """Получает GET запрос на получения материала урока и возвращает ответ.
+    Это необходимо для отображения строковых данных в виде HTML блока
+    на странице урока"""
     if not current_user.is_authenticated:
         return redirect('/')
     sess = db_session.create_session()
@@ -831,6 +879,8 @@ def get_theory_of_lesson(lesson_id, material):
 
 @app.route('/edit-my-profile', methods=['GET', 'POST'])
 def edit_profile():
+    """Позволяет пользователю редактировать часть своей информации,
+    содержащейся в профиле: Фото, ФИО, пароль"""
     if not current_user.is_authenticated:
         return redirect('/')
     sess, form = db_session.create_session(), UserProfileEditForm()
@@ -857,6 +907,7 @@ def edit_profile():
 
 @app.route('/change-password', methods=['GET', 'POST'])
 def change_password():
+    """Позволяет пользователю отредактировать свой текущий пароль"""
     if not current_user.is_authenticated:
         return redirect('/')
     sess = db_session.create_session()
@@ -881,6 +932,7 @@ def get_all_users():
 
 @app.route('/users-page-<int:page_number>')
 def get_all_users_with_page(page_number):
+    """Отображает список всех пользователей в системе"""
     if not current_user.is_authenticated:
         return redirect('/')
     sess = db_session.create_session()
@@ -895,6 +947,7 @@ def get_all_users_with_page(page_number):
 
 @app.route('/edit-school-<int:sch_id>', methods=['GET', 'POST'])
 def edit_school(sch_id):
+    """Позволяет отредактировать информацию о школе"""
     if not current_user.is_authenticated:
         return redirect('/')
     sess = db_session.create_session()
