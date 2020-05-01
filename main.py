@@ -21,6 +21,7 @@ import datetime
 import os
 import hashlib
 from random import choice
+USERS_STATUSES = ['system-manager', 'admin', 'director', 'teacher', 'student']
 
 
 class Application(Flask):
@@ -59,8 +60,6 @@ app.config['SECRET_KEY'] = 'We`ll always stay together, You and I...'
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
 login_manager = LoginManager()
 login_manager.init_app(app)
-
-USERS_STATUSES = ['system-manager', 'admin', 'director', 'teacher', 'student']
 
 
 def get_current_user_courses(sess):
