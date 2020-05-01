@@ -1,3 +1,4 @@
+
 from flask import Flask, render_template, redirect, abort, jsonify, request
 from flask_login import LoginManager, login_user, current_user, logout_user
 from werkzeug.utils import secure_filename
@@ -21,7 +22,39 @@ import os
 import hashlib
 from random import choice
 
-app = Flask(__name__)
+
+class Application(Flask):
+    def __init__(self, import_name):
+        super().__init__(import_name)
+        db_session.global_init("db/leopard_lms.sqlite")
+        print('--------------------- INITIALISATION ---------------------')
+        statuses = USERS_STATUSES[:]
+        users = [{'first_name': 'Manager', 'last_name': 'System',
+                  'email': 'leopard.hq@yandex.ru', 'status': 1,
+                  'hashed_password': '874800ba296315ee2f8e69033aaedbdbb9603b6'
+                                     '2b263f1496b9b6a731ebbf18e650fcfaf720dae'
+                                     'a9425133959197b1bf769a9c3e568c8127208f7'
+                                     'f0989f0d745'}
+                 ]
+        for title in statuses:
+            session, t = db_session.create_session(), title
+            exist = session.query(UserStatus).filter(UserStatus.title == t)
+            exist = exist.all()
+            if not exist:
+                status = UserStatus()
+                status.title = title
+                session.add(status), session.commit()
+        for data in users:
+            session, email = db_session.create_session(), data['email']
+            exist = session.query(User).filter(User.email == email).all()
+            if not exist:
+                user = User()
+                for key, val in data.items():
+                    user.__setattr__(key, val)
+                session.add(user), session.commit()
+
+
+app = Application(__name__)
 app.config['SECRET_KEY'] = 'We`ll always stay together, You and I...'
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
 login_manager = LoginManager()
@@ -466,8 +499,8 @@ def add_not_school_user(status):
     response = add_user(sess, status)
     name = {'admin': 'Администратор', 'director': 'Директор'}[status]
     if response[0] == 'FINISHED':
-        user_id = sess.query(User).get(response[1]['user_id'])
-        return redirect(f'/id-{user_id}')
+        user = sess.query(User).get(response[1]['user_id'])
+        return redirect(f'/id-{user.id}')
     return render_template('add_user.html', title='Регистрация',
                            status=name, **response[1])
 
@@ -986,30 +1019,6 @@ def edit_school(sch_id):
 
 
 def main():
-    db_session.global_init("db/leopard_lms.sqlite")
-    statuses = USERS_STATUSES[:]
-    users = [{'first_name': 'Manager', 'last_name': 'System',
-              'email': 'leopard.hq@yandex.ru', 'status': 1,
-              'hashed_password': '874800ba296315ee2f8e69033aaedbdbb9603b62b26'
-                                 '3f1496b9b6a731ebbf18e650fcfaf720daea9425133'
-                                 '959197b1bf769a9c3e568c8127208f7f0989f0d745'}
-             ]
-    for title in statuses:
-        session = db_session.create_session()
-        exist = session.query(UserStatus).filter(UserStatus.title == title)
-        exist = exist.all()
-        if not exist:
-            status = UserStatus()
-            status.title = title
-            session.add(status), session.commit()
-    for data in users:
-        session = db_session.create_session()
-        exist = session.query(User).filter(User.email == data['email']).all()
-        if not exist:
-            user = User()
-            for key, val in data.items():
-                user.__setattr__(key, val)
-            session.add(user), session.commit()
     port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port)
 
