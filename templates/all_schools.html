@@ -28,7 +28,7 @@
         margin-left: auto;
       }
   </style>
-  <div class="page-block" style="margin-bottom: 36px">
+  <div class="page-block" style="margin-bottom: 36px; margin-top: 24px">
       <div style="display: flex; justify-content: center">
           <h2>Школы</h2>
           {% if current_user.status < 3 %}
@@ -38,6 +38,7 @@
   </div>
   <div class="page">
       <div class="left">
+          {% if n_pages > 1 %}
           <nav aria-label="Page navigation">
             {% set n = [0, 1, 2, 3, 4] %}
             <ul class="pagination justify-content-center">
@@ -54,6 +55,7 @@
                 {% endif %}
             </ul>
           </nav>
+          {% endif %}
           {% for item in schools %}
             <div class="page-block info-block" style="padding: 12px">
                 {% if item[0].photo_url != None %}
@@ -76,7 +78,7 @@
                 </div>
             </div>
           {% endfor %}
-
+          {% if n_pages > 1 %}
           <nav aria-label="Page navigation">
             {% set n = [0, 1, 2, 3, 4] %}
             <ul class="pagination justify-content-center">
@@ -93,6 +95,7 @@
                 {% endif %}
             </ul>
           </nav>
+          {% endif %}
       </div>
       <div class="right">
 

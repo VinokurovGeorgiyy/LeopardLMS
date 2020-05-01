@@ -14,7 +14,19 @@
         margin-bottom: 24px;
         box-shadow: 6px 6px 4px slategrey;
       }
+
+      .user-navbar {
+        width: 100%;
+        text-align: center;
+      }
   </style>
+  <div class="user-navbar">
+    <div class="btn-group" role="group" aria-label="User navbar">
+      {% for item in navbar %}
+      <a class="btn btn-light" href="{{item['href']}}">{{item["text"]}}</a>
+      {% endfor %}
+    </div>
+  </div>
   {% block container %}
   {% endblock %}
 {% endblock %}

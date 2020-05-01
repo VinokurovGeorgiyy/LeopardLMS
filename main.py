@@ -212,6 +212,21 @@ def upload_file(file, start, formats, secure_length):
     return {'ok': path_to_file}
 
 
+def get_user_navbar(sess):
+    school, group = current_user.school, current_user.group
+    status, courses = current_user.status, get_current_user_courses(sess)
+    navbar = [{'text': 'Сообщения', 'href': '/chats'},
+              {'text': 'Школы', 'href': '/schools'},
+              {'text': 'Пользователи', 'href': '/users'}]
+    if school:
+        navbar.append({'text': 'Моя школа', 'href': '/my-school'})
+    if group:
+        navbar.append({'text': 'Мой класс', 'href': '/my-group'})
+    if status <= 5 and courses:
+        navbar.append({'text': 'Мои предметы', 'href': '/my-courses'})
+    return navbar
+
+
 # --------------------------------------------------
 # PAGES
 # --------------------------------------------------
@@ -260,7 +275,7 @@ def user_profile(user_id):
     params = {'title': f'{user.last_name} {user.first_name}', 'user': user,
               'status': rus_statuses[USERS_STATUSES[user.status - 1]],
               'school': school, 'group': group, 'current_user': current_user,
-              'courses_exist': get_current_user_courses(session)}
+              'navbar': get_user_navbar(session)}
     return render_template('user.html', **params)
 
 
@@ -286,7 +301,9 @@ def my_courses():
     if not data:
         abort(404)
     courses = sorted(data, key=lambda x: x[0].title)
-    return render_template('my_courses.html', data=courses, user=current_user)
+    params = {'navbar': get_user_navbar(db_session.create_session()),
+              'data': courses, 'user': current_user, 'title': 'Мои предметы'}
+    return render_template('my_courses.html', **params)
 
 
 @app.route('/school-<int:school_id>')
@@ -294,11 +311,11 @@ def school_profile(school_id):
     """Профиль школы"""
     if not current_user.is_authenticated:
         return redirect('/')
-    session = db_session.create_session()
-    school = school_exists(session, school_id)
-    director = session.query(User).get(school.director)
-    params = {'title': f'{school.short_title}', 'school': school,
-              'current_user': current_user, 'director': director}
+    sess = db_session.create_session()
+    school = school_exists(sess, school_id)
+    director = sess.query(User).get(school.director)
+    params = {'navbar': get_user_navbar(sess), 'title': school.short_title,
+              'school': school, 'director': director, 'user': current_user}
     return render_template('school.html', **params)
 
 
@@ -315,7 +332,8 @@ def group_profile(group_id):
     students = students.filter(User.status == 5).all()
     students = sorted(students, key=lambda x: f'{x.last_name} {x.first_name}')
     params = {'title': group.title, 'students': students, 'school': school,
-              'current_user': current_user, 'leader': leader, 'group': group}
+              'current_user': current_user, 'leader': leader, 'group': group,
+              'navbar': get_user_navbar(sess)}
     return render_template('group.html', **params)
 
 
@@ -339,7 +357,7 @@ def get_school_objects_with_page(school_id, obj, page_number):
         data = safe_slice(data, 20 * (pg - 1), 20 * pg)
         data = [(x, sess.query(User).get(int(x.leader))) for x in data]
         params = {'data': data, 'sch': sch, 'title': sch.short_title,
-                  'current_user': current_user}
+                  'user': current_user, 'navbar': get_user_navbar(sess)}
         return render_template('school_groups.html', **params)
     if obj == 'teachers':
         data = sess.query(User).filter(User.school == sch.id)
@@ -347,7 +365,7 @@ def get_school_objects_with_page(school_id, obj, page_number):
         data = sorted(data, key=lambda x: f'{x.last_name} {x.first_name}')
         data = safe_slice(data, 20 * (pg - 1), 20 * pg)
         params = {'data': data, 'sch': sch, 'title': sch.short_title,
-                  'current_user': current_user}
+                  'user': current_user, 'navbar': get_user_navbar(sess)}
         return render_template('school_teachers.html', **params)
     if obj == 'students':
         data = sess.query(User).filter(User.school == sch.id)
@@ -356,8 +374,8 @@ def get_school_objects_with_page(school_id, obj, page_number):
         data = sorted(data, key=lambda x: f'{x.last_name} {x.first_name}')
         data = safe_slice(data, 20 * (pg - 1), 20 * pg)
         data = [(x, sess.query(Group).get(x.group)) for x in data]
-        params = {'data': data, 'sch': sch, 'title': sch.short_title,
-                  'n_pages': n, 'current_page': pg}
+        params = {'data': data, 'sch': sch, 'n_pages': n, 'current_page': pg,
+                  'title': sch.short_title, 'navbar': get_user_navbar(sess)}
         return render_template('school_students.html', **params)
     abort(404)
 
@@ -378,8 +396,8 @@ def get_all_schools_with_page(page_number):
     schools = safe_slice(schools, 20 * (pg - 1), 20 * pg)
     n = session.query(School).count() // 20 + 1
     schools = [(i, session.query(User).get(i.director)) for i in schools]
-    params = {'schools': schools, 'title': 'Школы',
-              'n_pages': n, 'current_page': pg}
+    params = {'schools': schools, 'title': 'Школы', 'n_pages': n,
+              'current_page': pg, 'navbar': get_user_navbar(session)}
     return render_template('all_schools.html', **params)
 
 
@@ -390,10 +408,11 @@ def add_school():
         return redirect('/')
     if current_user.status > 2:
         abort(403)
-    form = SchoolRegistrationForm()
-    params = {'title': 'Регистрация', 'form': form, 'message': ''}
+    form, session = SchoolRegistrationForm(), db_session.create_session()
+    params = {'title': 'Регистрация', 'form': form, 'message': '',
+              'navbar': get_user_navbar(session)}
     if form.validate_on_submit():
-        session, title = db_session.create_session(), form.title.data
+        title = form.title.data
         exist = session.query(School).filter(School.title == title).first()
         if exist:
             params['message'] = 'Организация с таким именем уже существует'
@@ -434,7 +453,8 @@ def add_group_to_school(school_id):
     if current_user.id != sch.director and current_user.status > 2:
         abort(403)
     form = GroupRegistrationForm()
-    params = {'form': form, 'title': 'Добавление класса', 'message': ''}
+    params = {'form': form, 'title': 'Добавление класса', 'message': '',
+              'navbar': get_user_navbar(sess)}
     if form.validate_on_submit():
         exist = sess.query(Group).filter(Group.school_id == sch.id)
         exist = exist.filter(Group.title == form.title.data).first()
@@ -469,7 +489,8 @@ def add_teacher_to_school(school_id):
     if not current_user.is_authenticated:
         return redirect('/')
     sess = db_session.create_session()
-    school = school_exists(sess, school_id)
+    school, navbar = school_exists(sess, school_id), get_user_navbar(sess)
+    params = {'title': 'Регистрация', 'status': 'Учитель', 'navbar': navbar}
     if current_user.id != school.director or current_user.status > 3:
         abort(403)
     response = add_user(sess, 'teacher')
@@ -479,10 +500,8 @@ def add_teacher_to_school(school_id):
         sess.commit()
         return redirect(f'/school-{school.id}-teachers')
     if response[0] == 'ERROR':
-        return render_template('add_user.html', title='Регистрация',
-                               status='Учитель', **response[1])
-    return render_template('add_user.html', title='Регистрация',
-                           status='Учитель', **response[1])
+        return render_template('add_user.html', **params, **response[1])
+    return render_template('add_user.html', **params, **response[1])
 
 
 @app.route('/add-<status>', methods=['GET', 'POST'])
@@ -495,13 +514,13 @@ def add_not_school_user(status):
     if current_user.status >= USERS_STATUSES.index(status) + 1:
         abort(403)
     sess = db_session.create_session()
-    response = add_user(sess, status)
+    response, navbar = add_user(sess, status), get_user_navbar(sess)
     name = {'admin': 'Администратор', 'director': 'Директор'}[status]
+    params = {'title': 'Регистрация', 'status': name, 'navbar': navbar}
     if response[0] == 'FINISHED':
         user = sess.query(User).get(response[1]['user_id'])
         return redirect(f'/id-{user.id}')
-    return render_template('add_user.html', title='Регистрация',
-                           status=name, **response[1])
+    return render_template('add_user.html', **params, **response[1])
 
 
 @app.route('/group-<int:group_id>-add-student', methods=['GET', 'POST'])
@@ -510,10 +529,11 @@ def add_student_to_group(group_id):
     if not current_user.is_authenticated:
         return redirect('/')
     sess = db_session.create_session()
-    group = group_exists(sess, group_id)
+    group, navbar = group_exists(sess, group_id), get_user_navbar(sess)
     school = school_exists(sess, group.school_id)
     if current_user.id != school.director or current_user.status > 3:
         abort(403)
+    params = {'title': 'Регистрация', 'status': 'Ученик', 'navbar': navbar}
     response = add_user(sess, 'student')
     if response[0] == 'FINISHED':
         user = user_exists(sess, response[1]['user_id'])
@@ -521,18 +541,17 @@ def add_student_to_group(group_id):
         sess.commit()
         return redirect(f'/group-{group.id}')
     if response[0] == 'ERROR':
-        return render_template('add_user.html', title='Регистрация',
-                               status='Ученик', **response[1])
-    return render_template('add_user.html', title='Регистрация',
-                           status='Ученик', **response[1])
+        return render_template('add_user.html', **params, **response[1])
+    return render_template('add_user.html', **params, **response[1])
 
 
 @app.route('/chats')
 def chats_list():
     """Отображает список чатов пользователя"""
-    chats = get_chats(50)
+    chats, nav = get_chats(50), get_user_navbar(db_session.create_session())
+    params = {'title': 'Сообщения', 'chats': chats, 'navbar': nav}
     if isinstance(chats, list):
-        return render_template('chats_list.html', chats=chats)
+        return render_template('chats_list.html', **params)
     abort(404)
 
 
@@ -558,7 +577,8 @@ def chat_messages_list(chat_id):
     form, chats = ChatForm(), get_chats(25)
     name = get_chat_name(sess, chat, members, current_user)
     params = {'form': form, 'chat_id': chat_id, 'chat_name': name,
-              'title': f'Сообщения - {name}', 'chats': chats}
+              'title': f'Сообщения - {name}', 'chats': chats,
+              'navbar': get_user_navbar(sess)}
     return render_template('chat.html', **params)
 
 
@@ -700,7 +720,8 @@ def add_course_to_school(school_id):
     if current_user.id != school.director or current_user.status > 3:
         abort(403)
     form = CourseRegistrationForm()
-    params = {'form': form, 'title': 'Добавление курса', 'message': ''}
+    params = {'form': form, 'title': 'Добавление курса', 'message': '',
+              'navbar': get_user_navbar(sess)}
     if form.validate_on_submit():
         course = Course()
         course.title, course.school = form.title.data, school_id
@@ -732,7 +753,9 @@ def get_school_courses(school_id):
     courses = sess.query(Course).filter(Course.school == sch.id).all()
     data = [(x, sess.query(Group).get(x.group)) for x in courses]
     data = [(x, y, sess.query(User).get(x.teacher)) for x, y in data]
-    return render_template('school_courses.html', data=data, sch=sch)
+    params = {'title': sch.short_title, 'data': data, 'sch': sch,
+              'navbar': get_user_navbar(sess)}
+    return render_template('school_courses.html', **params)
 
 
 @app.route('/course-<int:course_id>')
@@ -752,7 +775,8 @@ def course_profile(course_id):
     lessons = sorted(lessons.all(), key=lambda x: x.lesson_number,
                      reverse=current_user.status == 5)
     rights = current_user.id in [course.teacher, sch.director]
-    params = {'course': course, 'lessons': lessons, 'rights': rights}
+    params = {'course': course, 'lessons': lessons, 'rights': rights,
+              'title': course.title, 'navbar': get_user_navbar(sess)}
     return render_template('course.html', **params)
 
 
@@ -773,7 +797,8 @@ def add_lesson_to_course(course_id):
         lesson.lesson_number = form.lesson_number.data
         sess.add(lesson), sess.commit()
         return redirect(f'/course-{course_id}')
-    return render_template('add_lesson.html', form=form)
+    params = {'title': 'Добавление урока', 'navbar': get_user_navbar(sess)}
+    return render_template('add_lesson.html', **params, form=form)
 
 
 @app.route('/lesson-<int:lesson_id>-open')
@@ -807,7 +832,8 @@ def lesson_profile(lesson_id, mode):
             current_user.group == course.group and current_user.status == 5):
         abort(403)
     right = current_user.id in [course.teacher, sch.director]
-    params = {'lesson': lesson, 'right_of_edit': right, 'course': course}
+    params = {'lesson': lesson, 'right_of_edit': right, 'course': course,
+              'title': lesson.title, 'navbar': get_user_navbar(sess)}
     if mode == 'theory':
         return render_template('lesson_theory.html', **params)
     form = LoadSolution()
@@ -884,8 +910,9 @@ def add_theory_to_lesson(lesson_id, material):
             lesson.tasks = form.code.data
         sess.commit()
         return redirect(f'/lesson-{lesson_id}-{material}')
-    return render_template('edit_lesson.html', title='Редактор', form=form,
-                           data=material, lesson=lesson)
+    params = {'title': 'Редактор', 'form': form, 'data': material,
+              'lesson': lesson, 'navbar': get_user_navbar(sess)}
+    return render_template('edit_lesson.html', **params)
 
 
 @app.route('/lesson-<int:lesson_id>-get-<material>')
@@ -916,8 +943,8 @@ def edit_profile():
     if not current_user.is_authenticated:
         return redirect('/')
     sess, form = db_session.create_session(), UserProfileEditForm()
-    user = user_exists(sess, current_user.id)
-    params = {'form': form, 'user': user, 'message': ''}
+    user, navbar = user_exists(sess, current_user.id), get_user_navbar(sess)
+    params = {'form': form, 'user': user, 'message': '', 'navbar': navbar}
     if form.validate_on_submit():
         file, path_to_file = form.photo.data, user.photo_url
         if file:
@@ -945,15 +972,15 @@ def change_password():
     sess = db_session.create_session()
     user = user_exists(sess, current_user.id)
     form = ChangePasswordForm()
+    params = {'title': 'Изменение пароля', 'form': form, 'text': '',
+              'navbar': get_user_navbar(sess)}
     if form.validate_on_submit():
         if user.hashed_password != make_hashed_password(str(form.old.data)):
-            params = {'title': 'Изменение пароля', 'form': form,
-                      'text': 'Неправильный старый пароль'}
+            params['text'] = 'Неправильный старый пароль'
             return render_template('change_password.html', **params)
         user.hashed_password = make_hashed_password(str(form.password.data))
         sess.commit()
         return redirect('/')
-    params = {'title': 'Изменение пароля', 'form': form}
     return render_template('change_password.html', **params)
 
 
@@ -973,8 +1000,9 @@ def get_all_users_with_page(page_number):
     data = sess.query(User).all()
     data = sorted(data, key=lambda x: f'{x.last_name} {x.first_name}')
     data = safe_slice(data, 20 * (pg - 1), 20 * pg)
-    return render_template('all_users.html', data=data, title='Пользователи',
-                           n_pages=n, current_page=pg)
+    params = {'data': data, 'title': 'Пользователи', 'n_pages': n,
+              'current_page': pg, 'navbar': get_user_navbar(sess)}
+    return render_template('all_users.html', **params)
 
 
 @app.route('/edit-school-<int:sch_id>', methods=['GET', 'POST'])
@@ -987,7 +1015,8 @@ def edit_school(sch_id):
     if current_user.status > 2:
         abort(403)
     form = SchoolProfileEditForm()
-    params = {'title': 'Настройки', 'form': form, 'sch': sch, 'message': ''}
+    params = {'title': 'Настройки', 'form': form, 'sch': sch, 'message': '',
+              'navbar': get_user_navbar(sess)}
     if form.validate_on_submit():
         file, path_to_file = form.photo.data, sch.photo_url
         if file:
@@ -1027,22 +1056,26 @@ def main():
 # --------------------------------------------------
 @app.errorhandler(405)
 def method_not_allowed(error):
-    return render_template('error.html', code=405, title='Ошибка')
+    params = {'navbar': get_user_navbar(db_session.create_session())}
+    return render_template('error.html', code=405, title='Ошибка', **params)
 
 
 @app.errorhandler(404)
 def not_found(error):
-    return render_template('error.html', code=404, title='Ошибка')
+    params = {'navbar': get_user_navbar(db_session.create_session())}
+    return render_template('error.html', code=404, title='Ошибка', **params)
 
 
 @app.errorhandler(403)
 def forbidden(error):
-    return render_template('error.html', code=403, title='Ошибка')
+    params = {'navbar': get_user_navbar(db_session.create_session())}
+    return render_template('error.html', code=403, title='Ошибка', **params)
 
 
 @app.errorhandler(500)
 def server_error(error):
-    return render_template('error.html', code=500, title='Ошибка')
+    params = {'navbar': get_user_navbar(db_session.create_session())}
+    return render_template('error.html', code=500, title='Ошибка', **params)
 
 
 if __name__ == '__main__':
