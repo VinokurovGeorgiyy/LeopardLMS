@@ -215,7 +215,8 @@ def upload_file(file, start, formats, secure_length):
 def get_user_navbar(sess):
     school, group = current_user.school, current_user.group
     status, courses = current_user.status, get_current_user_courses(sess)
-    navbar = [{'text': 'Сообщения', 'href': '/chats'},
+    navbar = [{'text': 'Профиль', 'href': '/'},
+              {'text': 'Сообщения', 'href': '/chats'},
               {'text': 'Школы', 'href': '/schools'},
               {'text': 'Пользователи', 'href': '/users'}]
     if school:

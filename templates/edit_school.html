@@ -1,6 +1,6 @@
-{% extends "workspace.html" %}
+{% extends "add.html" %}
 
-{% block container %}
+{% block page %}
   <style>
         .submit-block {
           margin-left: auto;
@@ -10,28 +10,13 @@
           text-align: center;
         }
 
-        input#submit {
-          width: 50%;
-        }
-
-        .h1, h1 {
-          text-align: center;
-        }
-
-        .sign_up_block {
-          margin-left: auto;
-          margin-right: auto;
-          margin-top: 24px;
-          width: 75%;
-        }
-
         .photo-data {
           display: flex;
           justify-content: center;
         }
   </style>
-  <div class="page-block sign_up_block">
-      <h1>Настройки школы</h1>
+  <div class="page-block sign_up_block page-header">
+      <h1 class="h1">Настройки школы</h1>
       {% if message %}<div class="alert alert-danger">{{ message }}</div>{% endif %}
         <form action="" method="post" enctype="multipart/form-data" novalidate>
         {{ form.hidden_tag() }}
