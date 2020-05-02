@@ -17,7 +17,6 @@ from data.lessons import Lesson
 from data.solutions import Solution
 from data.notifications import Notification
 
-import json
 import datetime
 import os
 import hashlib
@@ -515,7 +514,7 @@ def add_teacher_to_school(school_id):
     sess = db_session.create_session()
     school, navbar = school_exists(sess, school_id), get_user_navbar(sess)
     params = {'title': 'Регистрация', 'status': 'Учитель', 'navbar': navbar}
-    if current_user.id != school.director or current_user.status > 3:
+    if not (current_user.id == school.director or current_user.status < 3):
         abort(403)
     response = add_user(sess, 'teacher')
     if response[0] == 'FINISHED':
@@ -981,7 +980,8 @@ def edit_profile():
         return redirect('/')
     sess, form = db_session.create_session(), UserProfileEditForm()
     user, navbar = user_exists(sess, current_user.id), get_user_navbar(sess)
-    params = {'form': form, 'user': user, 'message': '', 'navbar': navbar}
+    params = {'form': form, 'user': user, 'message': '', 'navbar': navbar,
+              'title': 'Настройки'}
     if form.validate_on_submit():
         file, path_to_file = form.photo.data, user.photo_url
         if file:
