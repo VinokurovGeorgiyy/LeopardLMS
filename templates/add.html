@@ -1,23 +1,25 @@
-{% extends "workspace.html" %}
+{% extends "workspace.html" %} {% block container %}
+<style>
+  input#submit {
+    margin-left: auto;
+    margin-right: auto;
+    width: 50%;
+  }
 
-{% block container %}
-  <style>
-      input#submit{
-          margin-left: auto;
-          margin-right: auto;
-          width: 50%
-        }
+  .submit-block {
+    text-align: center;
+    width: 100%;
+  }
 
-      .h1, h1 {
-        text-align: center;
-      }
+  .h1 {
+    text-align: center;
+  }
 
-      .sign_up_block {
-        margin-left: auto;
-        margin-right: auto;
-        margin-top: 24px;
-        width: 75%;
-        }
-  </style>
-  {% block page %}{% endblock %}
-{% endblock %}
+  .sign_up_block {
+    margin-left: auto;
+    margin-right: auto;
+    margin-top: 24px;
+    width: 75%;
+  }
+</style>
+{% block page %}{% endblock %} {% endblock %}

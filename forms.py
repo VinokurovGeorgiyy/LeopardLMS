@@ -106,3 +106,8 @@ class LoadSolution(FlaskForm):
     doc = FileField('Загрузить документ', validators=[])
     message = StringField('', validators=[])
     submit = SubmitField('Добавить')
+
+
+class DeleteForm(FlaskForm):
+    submit = SubmitField('Удалить')
+

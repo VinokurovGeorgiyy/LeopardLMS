@@ -1,35 +1,8 @@
 {% extends "school_objects.html" %}
 
-{% block container %}
-  <style>
-      .page {
-        margin-top: 24px;
-        display: flex;
-        justify-content: left;
-      }
-
-      .info-block {
-        display: flex;
-        justify-content: left;
-        margin-bottom: 16px;
-      }
-
-      .left {
-        width: 100%;
-      }
-
-      .right {
-        width: 240px;
-        margin-left: 30px;
-      }
-
-      .add-teacher {
-        font-size: 20px;
-        margin-left: auto;
-      }
-  </style>
-  <div class="page-block" style="margin-bottom: 36px; margin-top: 24px">
-      <h3><a style="text-decoration: none; color: #000" href="/school-{{sch.id}}">{{ sch.short_title }}</a></h3>
+{% block page %}
+  <div class="page-block page-header">
+      <h3><a href="/school-{{sch.id}}" style="text-decoration: none; color: #000;">{{ sch.short_title }}</a></h3>
       <hr>
       <div style="display: flex; justify-content: center">
           <h2>Преподаватели</h2>

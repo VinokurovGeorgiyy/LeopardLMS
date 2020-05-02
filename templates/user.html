@@ -25,10 +25,6 @@
           width: 100%;
         }
 
-        .dropdown-item {
-          font-size: 18px;
-        }
-
         .btn-slate {
           background-color: #6c92af;
           border: 1px solid;
@@ -75,8 +71,42 @@
                     {% endif %}
                 </h5>
                 <hr>
+                {% if right_to_delete %}
+                <div style="display: flex; justify-content: center">
+                    <h5>ID {{ user.id }}</h5>
+                    <a class="btn btn-danger" href="/del-user-{{user.id}}" style="margin-left: auto">
+                        Удалить пользователя
+                    </a>
+                </div>
+                {% else %}
                 <h5>ID {{ user.id }}</h5>
+                {% endif %}
             </div>
+            {% if current_user.id == user.id %}
+            <div class="page-block">
+                <h4>Уведомления</h4>
+                {% if notifications %}
+                  {% for item in notifications %}
+                  <div class="alert alert-{{item.theme}} alert-dismissible fade show" role="alert" id="notify{{item.id}}">
+                      {{item.text }}
+                      <button type="button" class="close" onclick="close_notify('{{item.id}}')">
+                          <span aria-hidden="true">&times;</span>
+                      </button>
+                  </div>
+                  {% endfor %}
+                {% else %}
+                <div style="text-align: center">Новых уведомлений нет</div>
+                {% endif %}
+            </div>
+            {% endif %}
         </div>
     </div>
+  <script>
+      function close_notify(notify) {
+        $('#notify' + notify).alert('close');
+        var delete_notify = new XMLHttpRequest();
+        delete_notify.open("DELETE", "/del-notify-" + notify, true);
+        delete_notify.send(null);
+      }
+  </script>
 {% endblock %}
