@@ -1,4 +1,4 @@
-
+# -*- coding: utf-8 -*-
 from flask import Flask, render_template, redirect, abort, jsonify, request
 from flask_login import LoginManager, login_user, current_user, logout_user
 from werkzeug.utils import secure_filename
@@ -15,6 +15,7 @@ from data.messages import Message
 from data.courses import Course
 from data.lessons import Lesson
 from data.solutions import Solution
+from data.notifications import Notification
 
 import json
 import datetime
@@ -143,6 +144,10 @@ def add_user(session, status):
         user.email, user.last_name = form.email.data, form.last_name.data
         user.first_name = form.first_name.data
         user.patronymic = form.patronymic.data
+        correct_password = check_correct_password(str(form.password.data))
+        if correct_password.get('error'):
+            message = correct_password['error']
+            return 'ERROR', {'form': form, 'message': message}
         user.hashed_password = make_hashed_password(str(form.password.data))
         user.status = USERS_STATUSES.index(status) + 1
         session.add(user), session.commit()
@@ -178,7 +183,8 @@ def get_chats(last_message_length):
             photo = [x for x in members if x != current_user.id]
             photo = photo[0] if photo else None
             photo = None if photo is None else sess.query(User).get(photo)
-            photo = photo.photo_url
+            photo = photo.photo_url if photo is not None else ''
+            photo = photo if photo else '/static/img/chat-photo.png'
         else:
             photo = chats[i].photo_url
         messages = chats[i].messages.split() if chats[i].messages else []
@@ -228,6 +234,16 @@ def get_user_navbar(sess):
     return navbar
 
 
+def check_correct_password(password):
+    if len(password) < 8:
+        return {'error': 'Пароль короче 8 символов'}
+    if password.lower() == password or password.upper() == password:
+        return {'error': 'Все символы в пароле одного регистра'}
+    if not any([x in password for x in '0123456789']):
+        return {'error': 'Пароль должен иметь хотя бы одну цифру'}
+    return {'ok': 'Success'}
+
+
 # --------------------------------------------------
 # PAGES
 # --------------------------------------------------
@@ -273,10 +289,17 @@ def user_profile(user_id):
                     'teacher': 'Учитель', 'student': 'Ученик'}
     school = session.query(School).get(user.school) if user.school else None
     group = session.query(Group).get(user.group) if user.group else None
+    data = user.notifications.split() if user.notifications else []
+    data = [session.query(Notification).get(int(i)) for i in data if i]
+    data = [x for x in data if x is not None]
+    right1 = current_user.status == 3 and current_user.school == user.school
+    right2 = current_user.status < 3
+    right_to_delete = (right1 or right2) and current_user.id != user.id
     params = {'title': f'{user.last_name} {user.first_name}', 'user': user,
               'status': rus_statuses[USERS_STATUSES[user.status - 1]],
               'school': school, 'group': group, 'current_user': current_user,
-              'navbar': get_user_navbar(session)}
+              'navbar': get_user_navbar(session), 'notifications': data,
+              'right_to_delete': right_to_delete}
     return render_template('user.html', **params)
 
 
@@ -681,9 +704,9 @@ def get_all_messages_in_chat(chat_id, mode):
     return answer
 
 
-@app.route('/del-message-<int:m_id>')
+@app.route('/del-message-<int:m_id>', methods=['DELETE'])
 def delete_message(m_id):
-    """Получает GET запрос на удаление сообщения и удаляет его из БД"""
+    """Получает DELETE запрос на удаление сообщения и удаляет его из БД"""
     if not current_user.is_authenticated:
         return redirect('/')
     sess = db_session.create_session()
@@ -776,8 +799,10 @@ def course_profile(course_id):
     lessons = sorted(lessons.all(), key=lambda x: x.lesson_number,
                      reverse=current_user.status == 5)
     rights = current_user.id in [course.teacher, sch.director]
+    right_delete = current_user.id == sch.director or current_user.status < 3
     params = {'course': course, 'lessons': lessons, 'rights': rights,
-              'title': course.title, 'navbar': get_user_navbar(sess)}
+              'title': course.title, 'navbar': get_user_navbar(sess),
+              'right_to_delete': right_delete}
     return render_template('course.html', **params)
 
 
@@ -814,6 +839,15 @@ def open_lesson(lesson_id):
     if current_user.id not in [course.teacher, sch.director]:
         abort(403)
     lesson.opened = True
+    text = f'Открыт новый урок: {course.title} - {lesson.title}'
+    notify = Notification()
+    notify.theme, notify.text = 'success', text
+    sess.add(notify), sess.commit()
+    notify = sess.query(Notification).filter(Notification.text == text).first()
+    users = sess.query(User).filter(User.group == course.group).all()
+    for user in users:
+        user.notifications = user.notifications if user.notifications else ''
+        user.notifications += f' {notify.id}' if notify is not None else ''
     sess.commit()
     return redirect(f'/course-{lesson.course}')
 
@@ -979,6 +1013,10 @@ def change_password():
         if user.hashed_password != make_hashed_password(str(form.old.data)):
             params['text'] = 'Неправильный старый пароль'
             return render_template('change_password.html', **params)
+        correct_password = check_correct_password(str(form.password.data))
+        if correct_password.get('error'):
+            params['text'] = correct_password['error']
+            return render_template('change_password.html', **params)
         user.hashed_password = make_hashed_password(str(form.password.data))
         sess.commit()
         return redirect('/')
@@ -1045,6 +1083,77 @@ def edit_school(sch_id):
         sess.commit()
         return redirect(f'/school-{sch_id}')
     return render_template('edit_school.html', **params)
+
+
+@app.route('/del-notify-<int:notify>', methods=['DELETE'])
+def delete_notify(notify):
+    """Получает DELETE запрос и удаляет уведомление у пользователя"""
+    sess = db_session.create_session()
+    user = sess.query(User).get(current_user.id)
+    data = user.notifications.split() if user.notifications else []
+    data = [x for x in data if str(notify) != x]
+    user.notifications = ' '.join(data)
+    sess.commit()
+    return """"""
+
+
+@app.route('/del-user-<int:user_id>', methods=['GET', 'POST'])
+def delete_user(user_id):
+    """Позволяет удалить пользователя"""
+    if not current_user.is_authenticated:
+        return redirect('/')
+    sess = db_session.create_session()
+    user = user_exists(sess, user_id)
+    right = current_user.status == 3 and current_user.school == user.school
+    if not (right or current_user.status < 3) or current_user.id == user.id:
+        abort(403)
+    form = DeleteForm()
+    if form.validate_on_submit():
+        sess.delete(user), sess.commit()
+        return redirect('/')
+    params = {'title': 'Удаление', 'form': form, 'obj': 'пользователя'}
+    name = f'{user.last_name} {user.first_name}'
+    return render_template('delete.html', **params, obj_name=name)
+
+
+@app.route('/del-course-<int:course_id>', methods=['GET', 'POST'])
+def delete_course(course_id):
+    """Позволяет удалить курс"""
+    if not current_user.is_authenticated:
+        return redirect('/')
+    sess = db_session.create_session()
+    course = course_exists(sess, course_id)
+    school = school_exists(sess, course.school)
+    if current_user.id != school.director or current_user.status > 3:
+        abort(403)
+    form = DeleteForm()
+    lessons = sess.query(Lesson).filter(Lesson.course == course.id).all()
+    if form.validate_on_submit():
+        for lesson in lessons:
+            sess.delete(lesson)
+        sess.delete(course), sess.commit()
+        return redirect(f'/school-{school.id}-courses')
+    params = {'title': 'Удаление', 'form': form, 'obj': 'курс'}
+    return render_template('delete.html', **params, obj_name=course.title)
+
+
+@app.route('/del-lesson-<int:lesson_id>', methods=['GET', 'POST'])
+def delete_lesson(lesson_id):
+    """Позволяет удалить урок"""
+    if not current_user.is_authenticated:
+        return redirect('/')
+    sess = db_session.create_session()
+    lesson = lesson_exists(sess, lesson_id)
+    course = course_exists(sess, lesson.course)
+    sch = school_exists(sess, course.school)
+    if current_user.id not in [course.teacher, sch.director]:
+        abort(403)
+    form = DeleteForm()
+    if form.validate_on_submit():
+        sess.delete(lesson), sess.commit()
+        return redirect(f'/course-{course.id}')
+    params = {'title': 'Удаление', 'form': form, 'obj': 'урок'}
+    return render_template('delete.html', **params, obj_name=lesson.title)
 
 
 def main():

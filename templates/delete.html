@@ -1,0 +1,16 @@
+{% extends "add.html" %}
+
+{% block page %}
+<div class="page-block sign_up_block">
+    <h4>Действие нельзя будет отменить! Удалить {{obj}} «{{obj_name}}»?</h4>
+    <form action="" method="post">
+        {{ form.hidden_tag() }}
+        <div style="display: flex; justify-content: center">
+            <a class="btn btn-success" href="/" style="margin-right: 20px; width: 100%">Отмена</a>
+            <div style="width: 100%">
+                {{ form.submit(type="submit", class="btn btn-danger", style="width: 100%") }}
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}

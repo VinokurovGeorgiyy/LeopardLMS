@@ -2,7 +2,7 @@
 
 {% block page %}
   <div class="page-block page-header">
-      <h3><a style="text-decoration: none; color: #000" href="/school-{{sch.id}}">{{ sch.short_title }}</a></h3>
+      <h3><a href="/school-{{sch.id}}" style="text-decoration: none; color: #000">{{ sch.short_title }}</a></h3>
       <hr>
       <div style="display: flex; justify-content: center">
           <h2>Образовательные курсы</h2>
@@ -13,7 +13,7 @@
   </div>
   <div class="page courses">
       {% for i in data %}
-        <a href="/course-{{i[0].id}}" style="text-decoration: none; color: #000; min-width: 45%">
+        <a href="/course-{{i[0].id}}" style="min-width: 45%; text-decoration: none; color: #000">
             <div class="page-block" style="margin: 8px">
                 <h3>{{ i[0].title }}</h3>
                 <div>Учитель: {{ i[2].last_name }} {{ i[2].first_name }}

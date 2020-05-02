@@ -1,37 +1,33 @@
-{% extends "base.html" %}
+{% extends "base.html" %} {% block content %}
+<style>
+  body {
+    background-color: #778899;
+  }
 
-{% block content %}
-  <style>
-      body {
-        background-color: #778899;
-      }
+  .page-block {
+    font-family: "Exo 2", sans-serif;
+    background-color: white;
+    border-radius: 5px;
+    padding: 20px;
+    margin-bottom: 24px;
+    box-shadow: 6px 6px 4px slategrey;
+  }
 
-      .page-block {
-        font-family: 'Exo 2', sans-serif;
-        background-color: white;
-        border-radius: 5px;
-        padding: 20px;
-        margin-bottom: 24px;
-        box-shadow: 6px 6px 4px slategrey;
-      }
+  .user-navbar {
+    width: 100%;
+    text-align: center;
+  }
 
-      .user-navbar {
-        width: 100%;
-        text-align: center;
-      }
-
-      .page-header {
-        margin-top: 24px;
-        margin-bottom: 30px;
-      }
-  </style>
-  <div class="user-navbar">
-    <div class="btn-group" role="group" aria-label="User navbar">
-      {% for item in navbar %}
-      <a class="btn btn-light" href="{{item['href']}}">{{item["text"]}}</a>
-      {% endfor %}
-    </div>
+  .page-header {
+    margin-top: 24px;
+    margin-bottom: 30px;
+  }
+</style>
+<div class="user-navbar">
+  <div class="btn-group" role="group" aria-label="User navbar">
+    {% for item in navbar %}
+    <a class="btn btn-light" href="{{item['href']}}">{{item["text"]}}</a>
+    {% endfor %}
   </div>
-  {% block container %}
-  {% endblock %}
-{% endblock %}
+</div>
+{% block container %} {% endblock %} {% endblock %}

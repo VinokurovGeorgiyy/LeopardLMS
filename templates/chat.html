@@ -136,7 +136,7 @@
 
                         function delete_message(m_id) {
                           var z = new XMLHttpRequest();
-                          z.open("GET", "/del-message-" + m_id, true);
+                          z.open("DELETE", "/del-message-" + m_id, true);
                           z.send(null);
                         }
 

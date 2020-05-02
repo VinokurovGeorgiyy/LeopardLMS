@@ -29,6 +29,14 @@
           padding: 10px;
       }
 
+      .solution-block {
+        padding: 5px;
+        border-radius: 5px;
+        background-color: rgba(119, 136, 153, 0.2);
+        width: 100%;
+        margin-bottom: 20px
+      }
+
       .solution {
           margin: 25px 10px 0px 10px;
           display: flex;
@@ -77,6 +85,13 @@
                             </div>
                             <div>{{ form.submit(type="submit", class="btn btn-dark") }}</div>
                         </div>
+                        <small id="passwordHelpBlock" class="form-text text-muted">
+                          {% if right_of_edit %}
+                            Ваши сообщения видны всем ученикам в группе
+                          {% else %}
+                            Ваши сообщения видит только преподаватель
+                          {% endif %}
+                        </small>
                         <div class="custom-file" style="margin-top: 5px">
                             {{ form.doc(type="file") }}<br>
                             {% for error in form.doc.errors %}
@@ -84,39 +99,6 @@
                             {% endfor %}
                         </div>
                     </form>
-                    <script>
-                        document.getElementById("message").value = '';
-                    </script>
-                    <script>
-                        function update() {
-                          var x = new XMLHttpRequest();
-                          var y = new XMLHttpRequest();
-                          y.open("GET", "/get-all-solutions-lesson-{{lesson.id}}-0", true);
-                          y.onload = function() {
-                          if (document.getElementById('n_messages').innerHTML != y.responseText)
-                          {x.open("GET", "/get-all-solutions-lesson-{{lesson.id}}-1", true);
-                           x.onload = function (){
-                           document.getElementById('chat_area').innerHTML = x.responseText;
-                           document.getElementById('n_messages').innerHTML = y.responseText;}
-                           x.send(null);
-                          }
-                          }
-                          y.send(null);
-                        }
-                        setInterval("update()", 1000);
-                    </script>
-                    <script>
-                        // функция узнает размер окна браузера, и задает её для блока div
-                        function fullHeight(){
-                            $('.chat-area').css({
-                                    height: $(window).height() * 0.5 + 'px'
-                                        });
-                            }
-                            // задаем высоту при первичной загрузке
-                            fullHeight();
-                            // высота при изменении размера окна браузера
-                            $(window).resize( fullHeight );
-                    </script>
                 </div>
             </div>
         </div>
@@ -141,5 +123,38 @@
         x.open("GET", "/lesson-{{lesson.id}}-get-task", true);
         x.onload = function() {document.getElementById('task').innerHTML = x.responseText;};
         x.send(null);
+    </script>
+    <script>
+       document.getElementById("message").value = '';
+    </script>
+    <script>
+        function update() {
+          var x = new XMLHttpRequest();
+          var y = new XMLHttpRequest();
+          y.open("GET", "/get-all-solutions-lesson-{{lesson.id}}-0", true);
+          y.onload = function() {
+          if (document.getElementById('n_messages').innerHTML != y.responseText)
+          {x.open("GET", "/get-all-solutions-lesson-{{lesson.id}}-1", true);
+          x.onload = function (){
+          document.getElementById('chat_area').innerHTML = x.responseText;
+          document.getElementById('n_messages').innerHTML = y.responseText;}
+          x.send(null);
+          }
+          }
+          y.send(null);
+          }
+          setInterval("update()", 1000);
+    </script>
+    <script>
+        // функция узнает размер окна браузера, и задает её для блока div
+        function fullHeight(){
+          $('.chat-area').css({
+          height: $(window).height() * 0.5 + 'px'
+          });
+          }
+          // задаем высоту при первичной загрузке
+          fullHeight();
+          // высота при изменении размера окна браузера
+          $(window).resize( fullHeight );
     </script>
 {% endblock %}
