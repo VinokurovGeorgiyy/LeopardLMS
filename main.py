@@ -906,7 +906,7 @@ def get_all_solutions_from_lesson(lesson_id, mode):
             current_user.group == course.group and current_user.status == 5):
         abort(403)
     solutions = lesson.solutions.split() if lesson.solutions else []
-    solutions = [sess.query(Solution).get(int(i)) for i in solutions]
+    solutions = [sess.query(Solution).get(int(i)) for i in solutions if i]
     solutions, answer = [x for x in solutions if x is not None], ''
     if not mode:
         return f'{len(solutions)}'
@@ -915,6 +915,8 @@ def get_all_solutions_from_lesson(lesson_id, mode):
         if current_user.id != course.teacher:
             if author.id != current_user.id and author.id != course.teacher:
                 continue
+        if author is None:
+            continue
         photo = author.photo_url if author is not None else ''
         author = f'{author.first_name} {author.last_name}' if author else '?'
         d = datetime.datetime.now(datetime.timezone.utc).astimezone()
