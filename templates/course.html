@@ -39,9 +39,11 @@
                           Открыть
                       </a>
                       {% endif %}
+                      {% if rights %}
                       <a class="btn btn-danger" href="/del-lesson-{{i.id}}">
                           Удалить
                       </a>
+                      {% endif %}
                   </div>
               </div>
         {% endfor %}

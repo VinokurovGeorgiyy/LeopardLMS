@@ -1,0 +1,16 @@
+{% extends "school_objects.html" %}
+
+{% block page %}
+  <div class="page-block page-header">
+      <h2>Мои классы</h2>
+  </div>
+  <div class="page courses">
+      {% for i in data %}
+        <a href="/group-{{i.id}}" style="min-width: 45%; text-decoration: none; color: #000">
+            <div class="page-block" style="margin: 8px; height: 160px">
+                <h3>{{ i.title }}</h3>
+            </div>
+        </a>
+      {% endfor %}
+  </div>
+{% endblock %}

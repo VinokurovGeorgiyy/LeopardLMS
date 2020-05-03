@@ -64,7 +64,7 @@
                       </a>
                     {% endif %}
                 </h5>
-                <h5>{% if group != None %}Класс:
+                <h5>{% if group != None and user.status == 5 %}Класс:
                       <a href="/group-{{user.group}}"  style="text-decoration: none; color: gray" id="user-group">
                           {{ group.title }}
                       </a>

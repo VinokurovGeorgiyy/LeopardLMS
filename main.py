@@ -173,11 +173,11 @@ def get_chats(last_message_length):
     sess = db_session.create_session()
     user = user_exists(sess, current_user.id)
     chats = user.chats.split() if user.chats else []
-    chats = [sess.query(Chat).get(int(x)) for x in chats]
+    chats = [sess.query(Chat).get(int(x)) for x in chats if x]
     chats = [x for x in chats if x is not None]
     for i in range(len(chats)):
         members = [] if chats[i].members is None else \
-            [int(i) for i in chats[i].members.split()]
+            [int(i) for i in chats[i].members.split() if i]
         if len(members) < 3:
             photo = [x for x in members if x != current_user.id]
             photo = photo[0] if photo else None
@@ -218,16 +218,22 @@ def upload_file(file, start, formats, secure_length):
 
 
 def get_user_navbar(sess):
-    school, group = current_user.school, current_user.group
+    school = current_user.school
     status, courses = current_user.status, get_current_user_courses(sess)
     navbar = [{'text': 'Профиль', 'href': '/'},
               {'text': 'Сообщения', 'href': '/chats'},
               {'text': 'Школы', 'href': '/schools'},
               {'text': 'Пользователи', 'href': '/users'}]
+    if current_user.status != 5:
+        data = sess.query(Group).filter(Group.leader == current_user.id).all()
+    else:
+        data = sess.query(Group).filter(Group.id == current_user.group).all()
     if school:
         navbar.append({'text': 'Моя школа', 'href': '/my-school'})
-    if group:
-        navbar.append({'text': 'Мой класс', 'href': '/my-group'})
+    if len(data) == 1:
+        navbar.append({'text': 'Мой класс', 'href': '/my-groups'})
+    if len(data) > 1:
+        navbar.append({'text': 'Мои классы', 'href': '/my-groups'})
     if status <= 5 and courses:
         navbar.append({'text': 'Мои предметы', 'href': '/my-courses'})
     return navbar
@@ -309,11 +315,17 @@ def my_school():
     abort(404)
 
 
-@app.route('/my-group')
+@app.route('/my-groups')
 def my_group():
-    if current_user.group is not None:
-        return redirect(f'/group-{current_user.group}')
-    abort(404)
+    if not current_user.is_authenticated:
+        return redirect('/')
+    sess = db_session.create_session()
+    if current_user.status != 5:
+        data = sess.query(Group).filter(Group.leader == current_user.id).all()
+    else:
+        data = sess.query(Group).filter(Group.id == current_user.group).all()
+    params = {'title': 'Мои классы', 'navbar': get_user_navbar(sess)}
+    return render_template('my_groups.html', **params,  data=data)
 
 
 @app.route('/my-courses')
@@ -498,10 +510,6 @@ def add_group_to_school(school_id):
         group.title, group.leader = form.title.data, form.leader.data
         group.school_id = sch.id
         sess.add(group), sess.commit()
-        group = sess.query(Group).filter(Group.school_id == sch.id)
-        group = group.filter(Group.title == form.title.data).first()
-        leader.group = group.id
-        sess.commit()
         return redirect(f'/school-{sch.id}-groups')
     return render_template('add_group.html', **params)
 
@@ -588,7 +596,7 @@ def chat_messages_list(chat_id):
     if not chat:
         abort(404)
     members = [] if chat.members is None else \
-        [int(i) for i in chat.members.split()]
+        [int(i) for i in chat.members.split() if i]
     if current_user.id not in members:
         abort(403)
     user = user_exists(sess, current_user.id)
@@ -647,7 +655,7 @@ def chat_form():
         if not chat:
             abort(404)
         members = [] if chat.members is None else \
-            [int(i) for i in chat.members.split()]
+            [int(i) for i in chat.members.split() if i]
         if current_user.id not in members and members:
             abort(403)
         full_message = Message()
@@ -659,7 +667,7 @@ def chat_form():
         message = message.filter(Message.writer == current_user.id)
         message = message.filter(Message.data == date).first()
         messages = [] if chat.messages is None else \
-            [int(i) for i in chat.messages.split()]
+            [int(i) for i in chat.messages.split() if i]
         messages.append(message.id)
         chat.messages = ' '.join(map(str, messages))
         sess.commit()
@@ -677,11 +685,11 @@ def get_all_messages_in_chat(chat_id, mode):
     if not chat:
         abort(404)
     members = [] if chat.members is None else \
-        [int(i) for i in chat.members.split()]
+        [int(i) for i in chat.members.split() if i]
     if current_user.id not in members:
         abort(403)
     messages = [] if chat.messages is None else \
-        [sess.query(Message).get(int(i)) for i in chat.messages.split()]
+        [sess.query(Message).get(int(i)) for i in chat.messages.split() if i]
     messages, answer = [i for i in messages if i is not None], ''
     if not mode:
         return f'{len(messages)}'
@@ -718,11 +726,11 @@ def delete_message(m_id):
     if message.writer != current_user.id:
         return """"""
     members = [] if chat.members is None else \
-        [int(i) for i in chat.members.split()]
+        [int(i) for i in chat.members.split() if i]
     if current_user.id not in members:
         return """"""
     messages = [] if chat.messages is None else \
-        [int(i) for i in chat.messages.split()]
+        [int(i) for i in chat.messages.split() if i]
     if message.id in messages:
         messages.remove(message.id)
         chat.messages = ' '.join(map(str, messages))
@@ -1093,8 +1101,12 @@ def delete_notify(notify):
     sess = db_session.create_session()
     user = sess.query(User).get(current_user.id)
     data = user.notifications.split() if user.notifications else []
-    data = [x for x in data if str(notify) != x]
-    user.notifications = ' '.join(data)
+    n1, data = len(data), [x for x in data if str(notify) != x]
+    user.notifications, n2 = ' '.join(data), len(data)
+    if n1 > n2:
+        notification = sess.query(Notification).get(notify)
+        if notification:
+            sess.delete(notification)
     sess.commit()
     return """"""
 
@@ -1111,6 +1123,28 @@ def delete_user(user_id):
         abort(403)
     form = DeleteForm()
     if form.validate_on_submit():
+        data = sess.query(Solution).filter(Solution.author == user.id).all()
+        for i in data:
+            i.author = 0
+        data = sess.query(School).filter(School.director == user.id).all()
+        for i in data:
+            i.director = 0
+        data = sess.query(Message).filter(Message.writer == user.id).all()
+        for i in data:
+            i.writer = 0
+        data = sess.query(Group).filter(Group.leader == user.id).all()
+        for i in data:
+            i.leader = 0
+        data = sess.query(Course).filter(Course.teacher == user.id).all()
+        for i in data:
+            i.teacher = 0
+        chats = user.chats.split() if user.chats else []
+        chats = [sess.query(Chat).get(int(x)) for x in chats if x]
+        chats = [x for x in chats if x is not None]
+        for i in chats:
+            members = i.members.split() if i.members is not None else []
+            members = [x if x != str(user.id) else '0' for x in members]
+            i.members = ' '.join(members)
         sess.delete(user), sess.commit()
         return redirect('/')
     params = {'title': 'Удаление', 'form': form, 'obj': 'пользователя'}
