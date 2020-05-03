@@ -111,3 +111,8 @@ class LoadSolution(FlaskForm):
 class DeleteForm(FlaskForm):
     submit = SubmitField('Удалить')
 
+
+class EditGroupForm(FlaskForm):
+    title = StringField('Название, литера', validators=[DataRequired()])
+    leader = IntegerField('ID руководителя', validators=[DataRequired()])
+    submit = SubmitField('Изменить')

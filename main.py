@@ -1192,6 +1192,46 @@ def delete_lesson(lesson_id):
     return render_template('delete.html', **params, obj_name=lesson.title)
 
 
+@app.route('/edit-group-<int:group_id>', methods=['GET', 'POST'])
+def edit_group(group_id):
+    """Позволяет редактировать класс (группу)"""
+    if not current_user.is_authenticated:
+        return redirect('/')
+    if current_user.status > 3:
+        abort(403)
+    sess = db_session.create_session()
+    group = group_exists(sess, group_id)
+    sch = school_exists(sess, group.school_id)
+    if current_user.id != sch.director and current_user.status > 2:
+        abort(403)
+    form = EditGroupForm()
+    params = {'title': 'Настройки', 'form': form, 'group': group,
+              'message': '', 'navbar': get_user_navbar(sess)}
+    if form.validate_on_submit():
+        if form.title.data != group.title:
+            exist = sess.query(Group).filter(Group.school_id == sch.id)
+            exist = exist.filter(Group.title == form.title.data).first()
+            if exist:
+                params['message'] = 'Такой класс уже существует в этой школе'
+                return render_template('add_group.html', **params)
+        if form.leader.data != group.leader:
+            leader = sess.query(User).get(form.leader.data)
+            if not leader and form.leader.data != 0:
+                params['message'] = f'Пользователь не существует!'
+                return render_template('add_group.html', **params)
+            if leader:
+                if leader.status > 4:
+                    params['message'] = 'Статус пользователя ниже "Учитель"'
+                    return render_template('add_group.html', **params)
+                if leader.school != sch.id:
+                    params['message'] = 'Пользователь не из данной школы'
+                    return render_template('add_group.html', **params)
+        group.leader, group.title = form.leader.data, form.title.data
+        sess.commit()
+        return redirect(f'/group-{group.id}')
+    return render_template('edit_group.html', **params)
+
+
 def main():
     port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port)
