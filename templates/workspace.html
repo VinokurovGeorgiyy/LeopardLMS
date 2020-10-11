@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+
+{% block authorisation_panel %}
+    <a href="/profile" class="navbar-brand white-nav-link" style="font-size: 20px">
+        {{ current_user.first_name }} {{ current_user.last_name }}
+    </a>
+    <img src="{{current_user.profile_photo}}" width="40" height="40" style="border-radius: 20px">
+{% endblock %}
+
+{% block content %}
+<div class="user-navbar">
+    <div class="btn-group user-navbar-buttons" role="group" aria-label="User navbar" id="user-navbar-buttons">
+        <a class="btn btn-light" href="/profile">Профиль</a>
+        <a class="btn btn-light" href="/messages">Сообщения</a>
+        <a class="btn btn-light" href="/friends">Друзья</a>
+        <a class="btn btn-light" href="/communities">Сообщества</a>
+        <a class="btn btn-light" href="/my-diary">Мой дневник</a>
+        <a class="btn btn-light" href="/my-school">Моя школа</a>
+        <a class="btn btn-light" href="/my-class">Мой класс</a>
+        <a class="btn btn-light" href="/my-courses">Мои курсы</a>
+    </div>
+</div>
+{% block page_content %}{% endblock %}
+{% endblock %}

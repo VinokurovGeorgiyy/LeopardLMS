@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta 
+        name="viewport" 
+        content="width=device-width, initial-scale=1, shrink-to-fit=no"
+    />
+    <link
+        rel="stylesheet"
+        href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+        integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh"
+        crossorigin="anonymous"
+    />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Exo+2&display=swap"
+        rel="stylesheet"
+    />
+    <script
+        src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
+        integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n"
+        crossorigin="anonymous"
+    ></script>
+    <script
+        src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+        integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+        crossorigin="anonymous"
+    ></script>
+    <script
+        src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
+        integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
+        crossorigin="anonymous"
+    ></script>
+    <title>{{ title }}</title>
+    <style>
+        body {
+            background: linear-gradient(45deg, #33e310, #1535bf) no-repeat;
+            background-attachment: fixed;
+            font-family: "Exo 2", sans-serif;
+            height: 100vh;
+            min-width: 960px;
+        }
+
+        .card {
+            background-color: white;
+            border-radius: 4px;
+            box-shadow: 1px 1px 2px;
+            padding: 15px;
+            margin-bottom: 10px;
+        }
+
+        .content {
+            margin-top: 15px;
+            width: 100%;
+        }
+
+        .full-width {
+            width: 100%;
+        }
+
+        .leopard-lms-nav {
+            background-color: rgba(0, 0, 0, 0.5)!important;
+            padding: 0rem 1rem;
+        }
+
+        .page-content {
+            margin-top: 15px;
+            margin-left: auto;
+            margin-right: auto;
+            width: 80%;
+            display: flex;
+        }
+
+        .right {
+            margin-left: 20px;
+        }
+
+        .sign-in-card {
+            margin-left: auto;
+            margin-right: auto;
+            width: 360px;
+        }
+
+        .sign-up-card {
+            margin-left: auto;
+            margin-right: auto;
+            width: 480px;
+        }
+
+        .user-navbar {
+            width: 100%;
+            text-align: center;
+        }
+
+        .user-navbar-buttons {
+            box-shadow: 1px 1px 2px;
+        }
+
+        .white-nav-link {
+            color: #ffffff;
+            font-size: 30px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <header class="navbar navbar-dark bg-dark leopard-lms-nav">
+        <a class="navbar-brand white-nav-link" href="/">
+            <img
+              src="static/img/step-white.svg"
+              width="40"
+              height="40"
+              class="d-inline-block align-top"
+              alt=""
+            />
+            Leopard
+        </a>
+        <div style="width: auto; float: right;">
+            {% block authorisation_panel %}{% endblock %}
+        </div>
+    </header>
+    <main role="main" class="content">
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

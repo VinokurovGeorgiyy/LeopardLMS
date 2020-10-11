@@ -1,0 +1,20 @@
+{% extends "workspace.html" %}
+
+{% block page_content %}
+    <div class="page-content" id="page-content">
+        <div class="left">
+            <div class="card"><img src="{{user.profile_photo}}" width="192" height="192"></div>
+            <div class="card">Друзья</div>
+            <div class="card">Сообщества</div>
+        </div>
+        <div class="right full-width">
+            <div class="card"><h4>{{ user.first_name }} {{ user.last_name }}</h4></div>
+        </div>
+    </div>
+    <script>
+        $(document).ready(function setPageContentMinWidth(){
+            // Изменяем ширину контента в зависимости от ширины группы кнопок
+            var w=$("#user-navbar-buttons").outerWidth();
+            $("#page-content").css({"min-width":w});});
+    </script>
+{% endblock %}
