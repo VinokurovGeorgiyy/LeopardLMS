@@ -1,13 +1,12 @@
-from flask import Flask, render_template, redirect, abort
+from flask import Flask, render_template, redirect, abort, url_for
 from flask_login import LoginManager, current_user, login_user, logout_user
 
 from forms import LoginForm, UserRegistrationForm
 
 from data import db_session
 from data.users import User
-from data.communities import Community
-from data.courses import Course
-from data.lessons import Lesson
+from data.chats import Chat
+from data.messages import Message
 
 
 class Application(Flask):
@@ -21,23 +20,12 @@ app = Application(__name__)
 app.config['SECRET_KEY'] = 'We`ll always stay together, You and I...'
 login_manager = LoginManager()
 login_manager.init_app(app)
+login_manager.login_view = 'sign_in'
 
 
 @app.route("/")
 def homepage():
-    return render_template("homepage.html", title="Leopard LMS")
-
-
-@app.route("/communities")
-def communities():
-    params = {'title': 'Сообщества', 'current_user': current_user}
-    return render_template("communities.html", **params)
-
-
-@app.route("/friends")
-def current_user_friends():
-    params = {'title': 'Друзья', 'current_user': current_user}
-    return render_template("friends.html", **params)
+    return render_template("homepage.html")
 
 
 @app.route('/id-<int:user_id>')
@@ -46,41 +34,34 @@ def user_profile(user_id):
     user = session.query(User).get(user_id)
     if not user:
         abort(404)
-    params = {"title": f'{user.first_name} {user.last_name}',
-              'user': user, 'current_user': current_user}
+    params = {'user': user, 'current_user': current_user}
     return render_template('profile.html', **params)
 
 
 @app.route('/logout')
 def logout():
     logout_user()
-    return redirect('/')
-
-
-@app.route("/messages")
-def messages():
-    params = {'title': 'Сообщения', 'current_user': current_user}
-    return render_template("messages.html", **params)
+    return redirect(url_for('homepage'))
 
 
 @app.route('/profile')
 def profile():
-    return redirect(f'/id-{current_user.id}')
+    return redirect(url_for('user_profile', user_id=current_user.id))
 
 
 @app.route("/sign-in", methods=['GET', 'POST'])
 def sign_in():
     if current_user.is_authenticated:
-        return redirect(f'/id-{current_user.id}')
+        return redirect(url_for('user_profile', user_id=current_user.id))
     form = LoginForm()
-    params = {'title': 'Авторизация', 'form': form, 'message': ''}
+    params = {'form': form, 'message': ''}
     if form.validate_on_submit():
         session = db_session.create_session()
         email = form.email.data
         user = session.query(User).filter(User.email == email).first()
         if user and user.check_password(form.password.data):
             login_user(user, remember=True)
-            return redirect(f'/id-{current_user.id}')
+            return redirect(url_for('user_profile', user_id=current_user.id))
         params['message'] = "Неправильный логин или пароль"
     return render_template('sign-in.html', **params)
 
@@ -88,7 +69,7 @@ def sign_in():
 @app.route("/sign-up", methods=['GET', 'POST'])
 def sign_up():
     form = UserRegistrationForm()
-    params = {'title': 'Регистрация', 'form': form, 'message': ''}
+    params = {'form': form, 'message': ''}
     if form.validate_on_submit():
         session = db_session.create_session()
         email = form.email.data
@@ -111,8 +92,7 @@ def sign_up():
         session.add(user)
         session.commit()
         login_user(user, remember=True)
-        user = session.query(User).filter(User.email == email).first()
-        return redirect(f'/id-{user.id}')
+        return redirect(url_for('user_profile', user_id=user.id))
     return render_template('sign-up.html', **params)
 
 

@@ -13,12 +13,18 @@
         <a class="btn btn-light" href="/profile">Профиль</a>
         <a class="btn btn-light" href="/messages">Сообщения</a>
         <a class="btn btn-light" href="/friends">Друзья</a>
-        <a class="btn btn-light" href="/communities">Сообщества</a>
-        <a class="btn btn-light" href="/my-diary">Мой дневник</a>
-        <a class="btn btn-light" href="/my-school">Моя школа</a>
-        <a class="btn btn-light" href="/my-class">Мой класс</a>
-        <a class="btn btn-light" href="/my-courses">Мои курсы</a>
+        <a class="btn btn-light" href="#">Сообщества</a>
+        <a class="btn btn-light" href="#">Мой дневник</a>
+        <a class="btn btn-light" href="#">Моя школа</a>
+        <a class="btn btn-light" href="#">Мой класс</a>
+        <a class="btn btn-light" href="#">Мои курсы</a>
     </div>
 </div>
 {% block page_content %}{% endblock %}
+    <script>
+        $(document).ready(function setPageContentMinWidth(){
+            // Изменяем ширину контента в зависимости от ширины группы кнопок
+            var w=$("#user-navbar-buttons").outerWidth();
+            $("#page-content").css({"min-width":w});});
+    </script>
 {% endblock %}

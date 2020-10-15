@@ -4,8 +4,9 @@ import sqlalchemy.orm as orm
 from sqlalchemy_serializer import SerializerMixin
 
 
-class Course(SqlAlchemyBase, SerializerMixin):
-    __tablename__ = 'courses'
+class Chat(SqlAlchemyBase, SerializerMixin):
+    __tablename__ = 'chats'
     id = sql.Column(sql.Integer, primary_key=True, autoincrement=True)
     title = sql.Column(sql.String, nullable=False)
+
 

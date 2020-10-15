@@ -5,17 +5,10 @@ from flask_login import UserMixin
 from sqlalchemy_serializer import SerializerMixin
 import hashlib
 
-
-users_communities = sql.Table(
-    'users_communities', SqlAlchemyBase.metadata,
+users_chats = sql.Table(
+    'users_chats', SqlAlchemyBase.metadata,
     sql.Column('user_id', sql.Integer, sql.ForeignKey('users.id')),
-    sql.Column('community_id', sql.Integer, sql.ForeignKey('communities.id'))
-)
-
-users_courses = sql.Table(
-    'users_courses', SqlAlchemyBase.metadata,
-    sql.Column('user_id', sql.Integer, sql.ForeignKey('users.id')),
-    sql.Column('course_id', sql.Integer, sql.ForeignKey('courses.id'))
+    sql.Column('chat_id', sql.Integer, sql.ForeignKey('chats.id'))
 )
 
 
@@ -29,8 +22,7 @@ class User(SqlAlchemyBase, UserMixin, SerializerMixin):
     email = sql.Column(sql.String, unique=True, nullable=False)
     hashed_password = sql.Column(sql.String, nullable=False)
     profile_photo = sql.Column(sql.Text, default='/static/img/profile-photo.jpg')
-    communities = orm.relationship('Community', secondary=users_communities, backref='users')
-    courses = orm.relationship('Course', secondary=users_courses, backref='users')
+    chats = orm.relationship('Chat', secondary=users_chats, backref='users')
 
     def check_correct_password(self, password):
         if len(password) < 8:
