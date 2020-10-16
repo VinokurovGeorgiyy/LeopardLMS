@@ -5,8 +5,8 @@
 {% endblock %}
 
 {% block authorisation_panel %}
-    <a href="/sign-in" class="btn btn-outline-light" style="color: grey">Войти в LMS</a>
-    <a href="/sign-up" class="btn btn-outline-light" style="color: grey">Регистрация</a>
+    <a href="{{url_for('sign_in')}}" class="btn btn-outline-light">Войти в LMS</a>
+    <a href="{{url_for('sign_up')}}" class="btn btn-outline-light">Регистрация</a>
 {% endblock %}
 
 {% block content %}

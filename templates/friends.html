@@ -1,0 +1,14 @@
+{% extends "workspace.html" %}
+
+{% block title %}Друзья{% endblock %}
+{% block page_content %}
+    <div class="page-content">
+        <div class="card" style="width: 100%">
+            {% for friend in friends %}
+                <a href="{{url_for('user_profile', user_id=friend.id)}}">
+                    <h3>{{ friend.first_name }} {{ friend.last_name }}</h3>
+                </a>
+            {% endfor %}
+        </div>
+    </div>
+{% endblock %}

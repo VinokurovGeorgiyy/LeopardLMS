@@ -8,10 +8,25 @@
     <div class="page-content" id="page-content">
         <div class="left">
             <div class="card">
-                <img src="{{user.profile_photo}}" width="192" height="192" style="padding-bottom: 10px">
+                <img src="{{user.profile_photo}}" class="main-user-profile-photo">
+
                 {% if current_user.id != user.id %}
+                    {% if user.id not in current_user.get_friends(only_id=True) %}
+                        <a class="btn btn-secondary btn-block" href="{{url_for('add_to_friends', user_id=user.id)}}">
+                            Добавить в друзья
+                        </a>
+                    {% else %}
+                        <div class="btn btn-block" style="border: solid; border-color: grey">
+                            Друзья
+                        </div>
+                    {% endif %}
                     <a class="btn btn-secondary btn-block" href="#">Сообщение</a>
+                {% else %}
+                    <a class="btn btn-secondary btn-block" href="#">Настройки</a>
                 {% endif %}
+            </div>
+            <div class="card">
+                Друзья {{ current_user.get_friends(only_id=True)|length }}
             </div>
         </div>
         <div class="right full-width">

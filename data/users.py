@@ -1,5 +1,6 @@
 import sqlalchemy as sql
 from .db_session import SqlAlchemyBase
+from .db_session import create_session
 import sqlalchemy.orm as orm
 from flask_login import UserMixin
 from sqlalchemy_serializer import SerializerMixin
@@ -23,6 +24,7 @@ class User(SqlAlchemyBase, UserMixin, SerializerMixin):
     hashed_password = sql.Column(sql.String, nullable=False)
     profile_photo = sql.Column(sql.Text, default='/static/img/profile-photo.jpg')
     chats = orm.relationship('Chat', secondary=users_chats, backref='users')
+    friends = sql.Column(sql.Text, default='')
 
     def check_correct_password(self, password):
         if len(password) < 8:
@@ -38,3 +40,22 @@ class User(SqlAlchemyBase, UserMixin, SerializerMixin):
 
     def make_hashed_password(self, string):
         return str(hashlib.blake2b(str(string).encode()).hexdigest())
+
+    def add_friend(self, user_id):
+        friends = self.friends.split(';')
+        friends = filter(lambda x: x, friends)
+        friends = list(map(int, friends))
+        if user_id not in friends:
+            friends.append(user_id)
+            self.friends = ';'.join(map(str, friends))
+            return True
+        return False
+
+    def get_friends(self, only_id=False):
+        session = create_session()
+        friends = self.friends.split(';')
+        friends = filter(lambda x: x, friends)
+        friends = map(int, friends)
+        if not only_id:
+            friends = map(session.query(User).get, friends)
+        return list(friends)

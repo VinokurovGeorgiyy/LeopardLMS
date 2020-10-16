@@ -1,18 +1,21 @@
 {% extends "base.html" %}
 
 {% block authorisation_panel %}
-    <a href="/profile" class="navbar-brand white-nav-link" style="font-size: 20px">
+    <a href="{{url_for('profile')}}" class="navbar-brand white-nav-link" style="font-size: 20px">
         {{ current_user.first_name }} {{ current_user.last_name }}
     </a>
-    <img src="{{current_user.profile_photo}}" width="40" height="40" style="border-radius: 20px">
+    <a class="btn btn-outline-light" href="{{url_for('logout')}}">
+        Выйти
+    </a>
+
 {% endblock %}
 
 {% block content %}
 <div class="user-navbar">
     <div class="btn-group user-navbar-buttons" role="group" aria-label="User navbar" id="user-navbar-buttons">
-        <a class="btn btn-light" href="/profile">Профиль</a>
-        <a class="btn btn-light" href="/messages">Сообщения</a>
-        <a class="btn btn-light" href="/friends">Друзья</a>
+        <a class="btn btn-light" href="{{url_for('profile')}}">Профиль</a>
+        <a class="btn btn-light" href="{{url_for('messenger')}}">Сообщения</a>
+        <a class="btn btn-light" href="{{url_for('friends')}}">Друзья</a>
         <a class="btn btn-light" href="#">Сообщества</a>
         <a class="btn btn-light" href="#">Мой дневник</a>
         <a class="btn btn-light" href="#">Моя школа</a>

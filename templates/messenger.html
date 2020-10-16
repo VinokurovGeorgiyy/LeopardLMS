@@ -1,0 +1,22 @@
+{% extends "workspace.html" %}
+
+{% block title %}Сообщения{% endblock %}
+
+{% block page_content %}
+    <div class="page-content" id="page-content">
+        <div class="card messenger">
+            <div class="chats-list-area">
+                <div class="chats-list-header"><h4>Чаты</h4></div>
+                <div class="chats-list-body">
+                    {% for chat in chats %}
+                        <div class="chat-list-item"></div>
+                    {% endfor %}
+                </div>
+                <div class="chats-list-footer"></div>
+            </div>
+            <div class="chat-area">
+
+            </div>
+        </div>
+    </div>
+{% endblock %}

@@ -1,5 +1,5 @@
 from flask import Flask, render_template, redirect, abort, url_for
-from flask_login import LoginManager, current_user, login_user, logout_user
+from flask_login import LoginManager, current_user, login_user, logout_user, login_required
 
 from forms import LoginForm, UserRegistrationForm
 
@@ -28,6 +28,20 @@ def homepage():
     return render_template("homepage.html")
 
 
+@app.route('/add-to-friends/user-<int:user_id>')
+@login_required
+def add_to_friends(user_id):
+    session = db_session.create_session()
+    user = session.query(User).get(user_id)
+    if user and user.id != current_user.id:
+        if current_user.add_friend(user_id):
+            user.add_friend(current_user.id)
+            session.add(current_user)
+            session.add(user)
+            session.commit()
+    return redirect(url_for('friends'))
+
+
 @app.route('/id-<int:user_id>')
 def user_profile(user_id):
     session = db_session.create_session()
@@ -38,13 +52,30 @@ def user_profile(user_id):
     return render_template('profile.html', **params)
 
 
+@app.route('/friends')
+@login_required
+def friends():
+    friends = current_user.get_friends()
+    params = {"friends": friends, "current_user": current_user}
+    return render_template("friends.html", **params)
+
+
 @app.route('/logout')
 def logout():
     logout_user()
     return redirect(url_for('homepage'))
 
 
+@app.route('/messenger')
+@login_required
+def messenger():
+    chats = current_user.chats
+    params = {"chats": chats, "current_user": current_user}
+    return render_template("messenger.html", **params)
+
+
 @app.route('/profile')
+@login_required
 def profile():
     return redirect(url_for('user_profile', user_id=current_user.id))
 
