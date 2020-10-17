@@ -1,7 +1,8 @@
 from flask import Flask, render_template, redirect, abort, url_for
 from flask_login import LoginManager, current_user, login_user, logout_user, login_required
 
-from forms import LoginForm, UserRegistrationForm
+from forms import LoginForm, UserRegistrationForm, UserProfileEditForm
+from forms import ChangePasswordForm
 
 from data import db_session
 from data.users import User
@@ -32,14 +33,51 @@ def homepage():
 @login_required
 def add_to_friends(user_id):
     session = db_session.create_session()
-    user = session.query(User).get(user_id)
-    if user and user.id != current_user.id:
-        if current_user.add_friend(user_id):
-            user.add_friend(current_user.id)
-            session.add(current_user)
-            session.add(user)
+    other_user = session.query(User).get(user_id)
+    user = session.query(User).get(current_user.id)
+    if other_user and other_user.id != user.id:
+        if user.add_friend(user_id):
+            other_user.add_friend(user.id)
             session.commit()
     return redirect(url_for('friends'))
+
+
+@app.route('/change-password', methods=['GET', 'POST'])
+@login_required
+def change_password():
+    session = db_session.create_session()
+    form = ChangePasswordForm()
+    params = {"current_user": current_user, "form": form, "message": ""}
+    if form.validate_on_submit():
+        new_password = form.new_password.data
+        user = session.query(User).get(current_user.id)
+        if user.check_password(form.old_password.data):
+            is_correct = user.check_correct_password(new_password)
+            if is_correct.get('error'):
+                params['message'] = is_correct['error']
+                return render_template("change_password.html", **params)
+            new_password = user.make_hashed_password(new_password)
+            user.hashed_password = new_password
+            session.commit()
+            return redirect(url_for('profile'))
+        params['message'] = "Неверный старый пароль"
+    return render_template("change_password.html", **params)
+
+
+@app.route('/edit-user-profile', methods=['GET', 'POST'])
+@login_required
+def edit_user_profile():
+    session = db_session.create_session()
+    form = UserProfileEditForm()
+    params = {"form": form, "user": current_user, "message": ""}
+    user = session.query(User).get(current_user.id)
+    if form.validate_on_submit():
+        user.last_name = form.last_name.data
+        user.first_name = form.first_name.data
+        user.patronymic = form.patronymic.data
+        session.commit()
+        return redirect(url_for('profile'))
+    return render_template('edit_user_profile.html', **params)
 
 
 @app.route('/id-<int:user_id>')

@@ -1,0 +1,45 @@
+{% extends "workspace.html" %}
+
+{% block title %}Редактирование профиля{% endblock %}
+
+{% block page_content %}
+    <div class="page-content">
+        <div class="card" style="margin-left: auto; margin-right: auto">
+            <h1 >Настройки</h1>
+            {% if message %}<div class="alert alert-danger">{{ message }}</div>{% endif %}
+            <form action="" method="post" enctype="multipart/form-data" novalidate>
+                {{ form.hidden_tag() }}
+                <div class="other-fields form-row">
+                    <div class="form-group col-md-4">
+                        {{ form.last_name.label }}
+                        {{ form.last_name(class="form-control", value=user.last_name) }}<br>
+                        {% for error in form.last_name.errors %}
+                            <div class="alert alert-danger" role="alert">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    <div class="form-group col-md-4">
+                        {{ form.first_name.label }}
+                        {{ form.first_name(class="form-control", value=user.first_name) }}<br>
+                        {% for error in form.first_name.errors %}
+                            <div class="alert alert-danger" role="alert">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                    <div class="form-group col-md-4">
+                        {{ form.patronymic.label }}
+                        {% if user.patronymic %}
+                            {{ form.patronymic(class="form-control", value=user.patronymic) }}
+                        {% else %}
+                            {{ form.patronymic(class="form-control") }}
+                        {% endif %}
+                        <br>
+                        {% for error in form.patronymic.errors %}
+                            <div class="alert alert-danger" role="alert">{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="submit-block"><a href="{{url_for('change_password')}}">Изменить пароль</a></div>
+                <div class="submit-block">{{ form.submit(type="submit", class="btn btn-success") }}</div>
+            </form>
+        </div>
+    </div>
+{% endblock %}

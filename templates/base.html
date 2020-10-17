@@ -71,6 +71,18 @@
             width: 100%;
         }
 
+        .cut-string {
+            white-space: nowrap; /* Отменяем перенос текста */
+            overflow: hidden; /* Обрезаем содержимое */
+            padding: 5px; /* Поля */
+            text-overflow: ellipsis; /* Многоточие */
+        }
+
+        .friends-list {
+            display: flex;
+            flex-wrap: wrap;
+        }
+
         .full-width {
             width: 100%;
         }
@@ -89,6 +101,41 @@
         .messenger {
             width: 100%;
             padding: 0px;
+        }
+
+        .middle-user-profile-photo {
+            width: 160px;
+            height: 160px;
+            padding-bottom: 10px;
+        }
+
+
+        #modal-friends-list {
+            background: rgba(0, 0, 0, 0.5);
+            background-attachment: fixed;
+            width: 100%;
+            height: 100vh;
+            min-width: 960px;
+            min-height: 540px;
+            position: absolute;
+            top: 0;
+            left: 0;
+            display: none;
+        }
+
+        #modal-friends-list:target {display: block;}
+
+        .modal-block {
+            position: absolute;
+            top: 0;
+            right: 0;
+            bottom: 0;
+            left: 0;
+            margin-left: auto;
+            margin-right: auto;
+            margin-top: 2%;
+            margin-bottom: 2%;
+            width: 60%;
         }
 
         .page-content {
@@ -113,6 +160,11 @@
             margin-left: auto;
             margin-right: auto;
             width: 480px;
+        }
+
+        .user-card {
+            max-width: 192px;
+            margin: 8px;
         }
 
         .user-navbar {

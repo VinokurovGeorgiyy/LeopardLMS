@@ -17,22 +17,29 @@
                         </a>
                     {% else %}
                         <div class="btn btn-block" style="border: solid; border-color: grey">
-                            Друзья
+                            В друзьях
                         </div>
                     {% endif %}
                     <a class="btn btn-secondary btn-block" href="#">Сообщение</a>
                 {% else %}
-                    <a class="btn btn-secondary btn-block" href="#">Настройки</a>
+                    <a class="btn btn-secondary btn-block" href="{{url_for('edit_user_profile')}}">Настройки</a>
                 {% endif %}
             </div>
             <div class="card">
-                Друзья {{ current_user.get_friends(only_id=True)|length }}
+                <a class="btn btn-light" onclick="showUserFriends()">
+                    Друзья {{ user.get_friends(only_id=True)|length }}
+                </a>
             </div>
         </div>
         <div class="right full-width">
             <div class="card">
                 <h4>{{ user.first_name }} {{ user.last_name }}</h4>
             </div>
+        </div>
+    </div>
+    <div id="modal-friends-list">
+        <div class="card modal-block">
+            <a onclick="closeUserFriends()">Close</a>
         </div>
     </div>
 {% endblock %}
