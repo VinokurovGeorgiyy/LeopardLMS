@@ -12,6 +12,11 @@ class ChangePasswordForm(FlaskForm):
     submit = SubmitField('Изменить пароль')
 
 
+class ChatForm(FlaskForm):
+    message = StringField('Сообщение', validators=[])
+    submit = SubmitField('Отправить')
+
+
 class LoginForm(FlaskForm):
     email = StringField('Электронная почта', validators=[DataRequired()])
     password = PasswordField('Пароль', validators=[DataRequired()])
@@ -34,3 +39,8 @@ class UserRegistrationForm(FlaskForm):
                                                    EqualTo('repeat')])
     repeat = PasswordField('Повторите пароль', validators=[DataRequired()])
     submit = SubmitField('Зарегистрироваться')
+
+
+class WriteMessageForm(FlaskForm):
+    message = TextAreaField('Сообщение', validators=[])
+

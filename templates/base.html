@@ -2,201 +2,31 @@
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <meta 
-        name="viewport" 
-        content="width=device-width, initial-scale=1, shrink-to-fit=no"
-    />
-    <link
-        rel="stylesheet"
-        href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
-        integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh"
-        crossorigin="anonymous"
-    />
-    <link
-        href="https://fonts.googleapis.com/css2?family=Exo+2&display=swap"
-        rel="stylesheet"
-    />
-    <script
-        src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
-        integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n"
-        crossorigin="anonymous"
-    ></script>
-    <script
-        src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
-        integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
-        crossorigin="anonymous"
-    ></script>
-    <script
-        src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
-        integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
-        crossorigin="anonymous"
-    ></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no"/>
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous"/>
+
+    <link href="https://fonts.googleapis.com/css2?family=PT+Serif&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Rubik+Mono+One&display=swap" rel="stylesheet">
+    <link href="{{url_for('static', filename='css/leopard-lms-styles.css')}}" rel="stylesheet">
+
+    <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+    <script>
+        $(function ActivateTooltips() {
+          $('[data-toggle="tooltip"]').tooltip()
+        })
+    </script>
     <title>{% block title %}{% endblock %}</title>
-    <style>
-        body {
-            background: linear-gradient(45deg, #33e310, #1535bf) no-repeat;
-            background-attachment: fixed;
-            font-family: "Exo 2", sans-serif;
-            height: 100vh;
-            min-width: 960px;
-        }
-
-        .card {
-            background-color: white;
-            border-radius: 4px;
-            box-shadow: 1px 1px 2px;
-            padding: 15px;
-            margin-bottom: 10px;
-        }
-
-        .chats-list-area {
-            width: 270px;
-        }
-
-        .chats-list-body {
-            overflow-y: auto;
-            height: 70vh;
-            min-height: 360px;
-        }
-
-        .chats-list-header {
-            text-align: center;
-        }
-
-        .chats-list-footer {
-        }
-
-        .content {
-            margin-top: 15px;
-            width: 100%;
-        }
-
-        .cut-string {
-            white-space: nowrap; /* Отменяем перенос текста */
-            overflow: hidden; /* Обрезаем содержимое */
-            padding: 5px; /* Поля */
-            text-overflow: ellipsis; /* Многоточие */
-        }
-
-        .friends-list {
-            display: flex;
-            flex-wrap: wrap;
-        }
-
-        .full-width {
-            width: 100%;
-        }
-
-        .leopard-lms-nav {
-            background-color: rgba(0, 0, 0, 0.5)!important;
-            padding: 0rem 1rem;
-        }
-
-        .main-user-profile-photo {
-            width: 192px;
-            height: 192px;
-            padding-bottom: 10px;
-        }
-
-        .messenger {
-            width: 100%;
-            padding: 0px;
-        }
-
-        .middle-user-profile-photo {
-            width: 160px;
-            height: 160px;
-            padding-bottom: 10px;
-        }
-
-
-        #modal-friends-list {
-            background: rgba(0, 0, 0, 0.5);
-            background-attachment: fixed;
-            width: 100%;
-            height: 100vh;
-            min-width: 960px;
-            min-height: 540px;
-            position: absolute;
-            top: 0;
-            left: 0;
-            display: none;
-        }
-
-        #modal-friends-list:target {display: block;}
-
-        .modal-block {
-            position: absolute;
-            top: 0;
-            right: 0;
-            bottom: 0;
-            left: 0;
-            margin-left: auto;
-            margin-right: auto;
-            margin-top: 2%;
-            margin-bottom: 2%;
-            width: 60%;
-        }
-
-        .page-content {
-            margin-top: 15px;
-            margin-left: auto;
-            margin-right: auto;
-            width: 80%;
-            display: flex;
-        }
-
-        .right {
-            margin-left: 20px;
-        }
-
-        .sign-in-card {
-            margin-left: auto;
-            margin-right: auto;
-            width: 360px;
-        }
-
-        .sign-up-card {
-            margin-left: auto;
-            margin-right: auto;
-            width: 480px;
-        }
-
-        .user-card {
-            max-width: 192px;
-            margin: 8px;
-        }
-
-        .user-navbar {
-            width: 100%;
-            text-align: center;
-        }
-
-        .user-navbar-buttons {
-            box-shadow: 1px 1px 2px;
-        }
-
-        .white-nav-link {
-            color: #ffffff;
-            font-size: 30px;
-            font-weight: bold;
-        }
-    </style>
 </head>
 <body>
-    <header class="navbar navbar-dark bg-dark leopard-lms-nav">
-        <a class="navbar-brand white-nav-link" href="/">
-            <img
-              src="static/img/step-white.svg"
-              width="40"
-              height="40"
-              class="d-inline-block align-top"
-              alt=""
-            />
+    <header class="navbar navbar-light leopard-lms-navbar">
+        <a class="navbar-brand leopard-lms-brand" href="{{url_for('homepage')}}">
             Leopard
         </a>
-        <div style="width: auto; float: right;">
-            {% block authorisation_panel %}{% endblock %}
+        <div class="user-authentication">
+            {% block user_authentication %}{% endblock %}
         </div>
     </header>
     <main role="main" class="content">

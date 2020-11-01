@@ -4,9 +4,9 @@
     Leopard LMS
 {% endblock %}
 
-{% block authorisation_panel %}
-    <a href="{{url_for('sign_in')}}" class="btn btn-outline-light">Войти в LMS</a>
-    <a href="{{url_for('sign_up')}}" class="btn btn-outline-light">Регистрация</a>
+{% block user_authentication %}
+    <a class="btn btn-outline-dark" href="{{url_for('sign_in')}}" style="margin-right: 0.5rem">Sign in</a>
+    <a class="btn btn-outline-dark" href="{{url_for('sign_up')}}" style="margin-right: 0.5rem">Sign up</a>
 {% endblock %}
 
 {% block content %}

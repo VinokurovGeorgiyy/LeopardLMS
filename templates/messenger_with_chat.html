@@ -1,0 +1,57 @@
+{% extends "messenger.html" %}
+
+{% block chat_name %}
+    {{chat_title}}
+{% endblock %}
+
+{% block input_message %}
+    <form action="" method="post" id="name-form" autocomplete=off class="send-message-form">
+        {{ form.hidden_tag() }}
+        <div class="send-message-form-fields">
+            <div class="send-message-form-message-field">
+                {{ form.message(class="form-control") }}
+            </div>
+            <div>{{ form.submit(type="submit", class="btn btn-dark my-2 my-sm-0", onclick="sendMessage()") }}</div>
+        </div>
+    </form>
+{% endblock %}
+
+{% block chat_script %}
+<script>
+    document.getElementById("message").value = '';
+    document.querySelector('#name-form').addEventListener('submit', function (e) {e.preventDefault();});
+</script>
+<script>
+    function deleteMessage(m_id) {
+        var z = new XMLHttpRequest();
+        z.open("DELETE", "{{url_for('delete_message')}}?message=" + m_id, true);
+        z.send(null);
+    }
+
+    function sendMessage() {
+        var xhr = new XMLHttpRequest();
+        var data = {message: document.getElementById("message").value, chat_id: {{chat.id}},};
+        xhr.open('POST', '{{url_for('send_message')}}', true);
+        xhr.setRequestHeader("Content-Type", "application/json");
+        xhr.send(JSON.stringify(data));
+        document.getElementById("message").value = '';}
+
+    function updateChat() {
+        var x = new XMLHttpRequest();
+        var y = new XMLHttpRequest();
+        y.open("GET", "{{url_for('get_messages', chat=chat.id, only_number=1)|safe}}", true);
+        y.onload = function() {
+            if (document.getElementById('n_messages').innerHTML != y.responseText) {
+                x.open("GET", "{{url_for('get_messages', chat=chat.id, only_number=0)|safe}}", true);
+                x.onload = function (){
+                    document.getElementById('messages-list').innerHTML = x.responseText;
+                    document.getElementById('n_messages').innerHTML = y.responseText;
+                }
+                x.send(null);
+            }
+        }
+        y.send(null);
+    }
+    setInterval("updateChat()", 1000);
+</script>
+{% endblock %}

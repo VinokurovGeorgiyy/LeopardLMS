@@ -1,0 +1,145 @@
+        body {
+            background: #fff;
+            min-width: 960px;
+        }
+
+        .card {
+            background-color: white;
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 10px;
+        }
+
+        .chat-list {
+            padding: 0px;
+        }
+
+        .chat-list-item {
+            height: 80px;
+            width: 100%;
+        }
+
+        .content {
+            margin-top: 15px;
+            width: 100%;
+        }
+
+        .cut-string {
+            white-space: nowrap; /* Отменяем перенос текста */
+            overflow: hidden; /* Обрезаем содержимое */
+            padding: 5px; /* Поля */
+            text-overflow: ellipsis; /* Многоточие */
+        }
+
+        .friends-list {
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        .full-width {
+            width: 100%;
+        }
+
+        .leopard-lms-brand {
+            font-family: "Rubik Mono One", sans-serif;
+            font-size: 2rem;
+            text-transform: uppercase;
+            background: linear-gradient(45deg, #0B2349 33%, #0D61BC 66%, #8AA9D6);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            color: #0B2349;
+        }
+
+        .leopard-lms-navbar {
+            border-bottom: 0.4rem solid black;
+        }
+
+        .main-user-profile-photo {
+            width: 192px;
+            height: 192px;
+            padding-bottom: 10px;
+        }
+
+        .message {
+            margin: 25px 10px 0px 10px;
+            display: flex;
+            justify-content: left;
+        }
+
+        .messenger {
+            min-height: 540px;
+            display: flex;
+            width: 100%;
+        }
+
+        .messenger-chats {
+            width: 320px;
+        }
+
+        .messenger-chat {
+            width: 100%!important;
+            margin: 0;
+            max-width: inherit;
+        }
+
+        .middle-user-profile-photo {
+            width: 160px;
+            height: 160px;
+            padding-bottom: 10px;
+        }
+
+        .page-content {
+            margin-top: 15px;
+            margin-left: auto;
+            margin-right: auto;
+            width: 80%;
+            display: flex;
+        }
+
+        .right {
+            margin-left: 20px;
+        }
+
+        .send-message-form {
+            width: 100%;
+        }
+
+        .send-message-form-fields {
+            display: flex;
+            justify-content: center;
+        }
+
+        .send-message-form-message-field {
+            width: 100%;
+            margin-right: 0.5rem;
+        }
+
+        .sign-in-card {
+            margin-left: auto;
+            margin-right: auto;
+            width: 360px;
+        }
+
+        .sign-up-card {
+            margin-left: auto;
+            margin-right: auto;
+            width: 320px;
+        }
+
+        .user-authentication {
+            display: flex;
+            float: right;
+            width: auto;
+        }
+
+        .user-card {
+            max-width: 192px;
+            margin: 8px;
+        }
+
+        .user-navbar {
+            width: 100%;
+            text-align: center;
+        }
+
+

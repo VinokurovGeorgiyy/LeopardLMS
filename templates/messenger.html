@@ -1,22 +1,42 @@
-{% extends "workspace.html" %}
+{% extends "workspace.html"%}
 
-{% block title %}Сообщения{% endblock %}
+{% block title %}Мессенджер{% endblock %}
 
 {% block page_content %}
     <div class="page-content" id="page-content">
-        <div class="card messenger">
-            <div class="chats-list-area">
-                <div class="chats-list-header"><h4>Чаты</h4></div>
-                <div class="chats-list-body">
-                    {% for chat in chats %}
-                        <div class="chat-list-item"></div>
-                    {% endfor %}
+        <div class="messenger">
+            <div class="modal-dialog modal-dialog-scrollable messenger-chats" style="margin: 0;">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5><a href="{{url_for('messenger')}}">Чаты</a></h5>
+                    </div>
+                    <div class="modal-body chat-list">
+                        {% for item in chats %}
+                            <div class="chat-list-item border-bottom">
+                                <a href="{{url_for('messenger', chat=item.id)}}">
+                                    {{item.get_title(current_user)}}
+                                </a>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    <div class="modal-footer"></div>
                 </div>
-                <div class="chats-list-footer"></div>
             </div>
-            <div class="chat-area">
-
+            <div class="modal-dialog modal-dialog-scrollable messenger-chat">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5>{% block chat_name %}Мессенджер{% endblock %}</h5>
+                        <div id="n_messages" hidden></div>
+                    </div>
+                    <div class="modal-body" id="messages-list"></div>
+                    <div class="modal-footer">
+                        {% block input_message %}
+                            <a href="#">Создать беседу</a>
+                        {% endblock %}
+                    </div>
+                </div>
             </div>
         </div>
     </div>
+    {% block chat_script %}{% endblock %}
 {% endblock %}

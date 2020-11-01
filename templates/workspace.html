@@ -1,26 +1,33 @@
 {% extends "base.html" %}
 
-{% block authorisation_panel %}
-    <a href="{{url_for('profile')}}" class="navbar-brand white-nav-link" style="font-size: 20px">
+{% block user_authentication %}
+    <a class="navbar-brand" href="{{url_for('profile')}}" style="margin-right: 0.5rem">
         {{ current_user.first_name }} {{ current_user.last_name }}
     </a>
-    <a class="btn btn-outline-light" href="{{url_for('logout')}}">
-        Выйти
-    </a>
+    <div class="dropdown">
+        <button class="navbar-toggler" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuButton">
+            <a class="dropdown-item" href="#">Уведомления</a>
+            <a class="dropdown-item" href="{{url_for('edit_user_profile')}}">Настройки</a>
+            <a class="dropdown-item" href="{{url_for('logout')}}">Выход</a>
+        </div>
+    </div>
 
 {% endblock %}
 
 {% block content %}
 <div class="user-navbar">
     <div class="btn-group user-navbar-buttons" role="group" aria-label="User navbar" id="user-navbar-buttons">
-        <a class="btn btn-light" href="{{url_for('profile')}}">Профиль</a>
-        <a class="btn btn-light" href="{{url_for('messenger')}}">Сообщения</a>
-        <a class="btn btn-light" href="{{url_for('friends')}}">Друзья</a>
-        <a class="btn btn-light" href="#">Сообщества</a>
-        <a class="btn btn-light" href="#">Мой дневник</a>
-        <a class="btn btn-light" href="#">Моя школа</a>
-        <a class="btn btn-light" href="#">Мой класс</a>
-        <a class="btn btn-light" href="#">Мои курсы</a>
+        <a class="btn btn-secondary" href="{{url_for('profile')}}">Профиль</a>
+        <a class="btn btn-secondary" href="{{url_for('messenger')}}">Сообщения</a>
+        <a class="btn btn-secondary" href="{{url_for('friends')}}">Друзья</a>
+        <a class="btn btn-secondary" href="#">Сообщества</a>
+        <a class="btn btn-secondary" href="#">Мой дневник</a>
+        <a class="btn btn-secondary" href="#">Моя школа</a>
+        <a class="btn btn-secondary" href="#">Мой класс</a>
+        <a class="btn btn-secondary" href="#">Мои курсы</a>
     </div>
 </div>
 {% block page_content %}{% endblock %}
@@ -30,12 +37,5 @@
             // Изменяем ширину контента в зависимости от ширины группы кнопок
             var w=$("#user-navbar-buttons").outerWidth();
             $("#page-content").css({"min-width":w});});
-
-        function showUserFriends() {
-            $("#modal-friends-list").css({"display":"block"});
-        }
-        function closeUserFriends() {
-            $("#modal-friends-list").css({"display":"none"});
-        }
     </script>
 {% endblock %}

@@ -1,0 +1,21 @@
+<a data-toggle="collapse" href="#collapse{{message_id}}" style="text-decoration: none; color: #000;">
+      <div class="message" id="message-{{message_id}}">
+          <img src="{{author_photo}}" width="40" height="40" style="border-radius: 20px">
+          <div style="margin-left: 15px">
+              <h6 style="margin-bottom: 0px">
+                  <b>{{author_first_name}}</b>
+                  <spin style="color: #aaa">
+                      {{day}}.{{month}}.{{year}} {{hour}}:{{minute}}
+                  </spin>
+              </h6>
+              <p>{{text}}</p>
+          </div>
+      </div>
+</a>
+<div class="collapse" id="collapse{{message_id}}" style="margin-top: 5px">
+    <div class="button-remove">
+        <a class="btn btn-danger" onclick="deleteMessage({{message_id}})" style="color: white; margin-left: 10px">
+            <b>Удалить сообщение</b>
+        </a>
+    </div>
+</div>
