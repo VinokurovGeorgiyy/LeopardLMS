@@ -1,0 +1,26 @@
+{% extends "workspace.html" %}
+
+{% block title %}
+    {{ current_user.first_name }} {{ current_user.last_name }}
+{% endblock %}
+
+{% block page_content %}
+    <div class="page-content">
+        <div class="left">
+            <div class="card">
+                <img src="{{community.main_photo}}" class="main-user-profile-photo">
+            </div>
+            <div class="card">
+
+            </div>
+            <div class="card">
+
+            </div>
+        </div>
+        <div class="right full-width">
+            <div class="card">
+                <h4>{{ community.title }}</h4>
+            </div>
+        </div>
+    </div>
+{% endblock %}

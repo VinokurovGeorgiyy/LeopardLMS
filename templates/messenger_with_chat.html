@@ -4,6 +4,9 @@
     {{chat_title}}
 {% endblock %}
 
+{% block chat_operations %}
+{% endblock %}
+
 {% block input_message %}
     <form action="" method="post" id="name-form" autocomplete=off class="send-message-form">
         {{ form.hidden_tag() }}
@@ -15,6 +18,8 @@
         </div>
     </form>
 {% endblock %}
+
+{% block create_group_chat %}{% endblock %}
 
 {% block chat_script %}
 <script>
@@ -46,6 +51,8 @@
                 x.onload = function (){
                     document.getElementById('messages-list').innerHTML = x.responseText;
                     document.getElementById('n_messages').innerHTML = y.responseText;
+                    var block = document.getElementById('messages-list');
+                    block.scrollTop = block.scrollHeight;
                 }
                 x.send(null);
             }

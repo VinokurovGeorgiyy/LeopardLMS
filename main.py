@@ -5,7 +5,7 @@ from forms import LoginForm, UserRegistrationForm, UserProfileEditForm
 from forms import ChangePasswordForm, ChatForm, WriteMessageForm
 
 from data import db_session
-from data.__all_models import User, Chat, Message
+from data.__all_models import User, Chat, Message, Community
 
 from lms_utils import *
 import datetime
@@ -65,6 +65,50 @@ def change_password():
     return render_template("change_password.html", **params)
 
 
+@app.route('/community-<int:community_id>')
+@login_required
+def community_profile(community_id):
+    session = db_session.create_session()
+    community = session.query(Community).get(community_id)
+    if community is None:
+        abort(404)
+    params = {"community": community, "current_user": current_user}
+    return render_template("community_profile.html", **params)
+
+
+@app.route('/create-group-chat', methods=['POST'])
+@login_required
+def create_group_chat():
+    if request.json is None:
+        return """"""
+    chat_title = str(request.json.get('chat_title'))
+    if not chat_title:
+        return """"""
+    users_list = str(request.json.get('users_list'))
+    session = db_session.create_session()
+    users_list = [x for x in users_list.split(';')]
+    users_list.append(str(current_user.id))
+    for i in range(len(users_list)):
+        if users_list[i].isdigit():
+            users_list[i] = int(users_list[i])
+            users_list[i] = session.query(User).get(users_list[i])
+    users_list = [item for item in users_list if item]
+    if not users_list:
+        return """"""
+    chat = Chat()
+    chat.type = 'group'
+    chat.title = chat_title
+    chat.set_admin(current_user.id)
+    for user in users_list:
+        chat.add_user(user.id)
+    session.add(chat)
+    session.commit()
+    for user in users_list:
+        user.add_chat(chat.id)
+    session.commit()
+    return f"""{chat.id}"""
+
+
 @app.route('/delete-message', methods=['DELETE'])
 @login_required
 def delete_message():
@@ -80,11 +124,12 @@ def delete_message():
         if current_user.id not in chat.get_users(only_id=True):
             return """"""
         if current_user.id != message.author:
-            return """"""
+            if not chat.is_admin(current_user.id):
+                if not chat.is_moderator(current_user.id):
+                    return """"""
     session.delete(message)
     session.commit()
     return """"""
-
 
 
 @app.route('/edit-user-profile', methods=['GET', 'POST'])
@@ -123,6 +168,10 @@ def get_messages():
         data = message.json_for_messenger()
         if current_user.id == message.author:
             text += render_template("message_own.html", **data)
+        elif chat.is_admin(current_user.id):
+            text += render_template("message_own.html", **data)
+        elif chat.is_moderator(current_user.id):
+            text += render_template("message_own.html", **data)
         else:
             text += render_template("message_someone.html", **data)
     return text
@@ -142,8 +191,8 @@ def user_profile(user_id):
 @app.route('/friends')
 @login_required
 def friends():
-    friends = current_user.get_friends()
-    params = {"friends": friends, "current_user": current_user}
+    user_friends = current_user.get_friends()
+    params = {"friends": user_friends, "current_user": current_user}
     return render_template("friends.html", **params)
 
 
@@ -159,7 +208,7 @@ def messenger():
     session = db_session.create_session()
     chats = current_user.get_chats()
     chat_id = request.args.get('chat', type=int)
-    params = {"current_user": current_user, "chats": chats}
+    params = {"current_user": current_user, "chats": chats, "chat": None}
 
     if chat_id is None:
         return render_template("messenger.html", **params)
@@ -256,7 +305,6 @@ def send_message():
     message.date = datetime.datetime.utcnow()
     session.add(message)
     session.commit()
-    print(chat.messages)
     return """"""
 
 
@@ -289,7 +337,6 @@ def write_message(user_id):
     message.chat = chat
     session.add(message)
     session.commit()
-    print(chat.messages)
     return """"""
 
 
