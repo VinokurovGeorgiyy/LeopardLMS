@@ -4,14 +4,11 @@
     {{chat_title}}
 {% endblock %}
 
-{% block chat_operations %}
-{% endblock %}
-
 {% block input_message %}
     <form action="" method="post" id="name-form" autocomplete=off class="send-message-form">
         {{ form.hidden_tag() }}
-        <div class="send-message-form-fields">
-            <div class="send-message-form-message-field">
+        <div class="fields">
+            <div class="message-field">
                 {{ form.message(class="form-control") }}
             </div>
             <div>{{ form.submit(type="submit", class="btn btn-dark my-2 my-sm-0", onclick="sendMessage()") }}</div>

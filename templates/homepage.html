@@ -1,13 +1,10 @@
 {% extends "base.html" %}
 
-{% block title %}
-    Leopard LMS
-{% endblock %}
+{% block title %}Leopard LMS{% endblock %}
 
 {% block user_authentication %}
-    <a class="btn btn-outline-dark" href="{{url_for('sign_in')}}" style="margin-right: 0.5rem">Sign in</a>
-    <a class="btn btn-outline-dark" href="{{url_for('sign_up')}}" style="margin-right: 0.5rem">Sign up</a>
+    <a class="btn btn-outline-dark" href="{{url_for('sign_in')}}">Sign in</a>
+    <a class="btn btn-outline-dark" href="{{url_for('sign_up')}}">Sign up</a>
 {% endblock %}
 
-{% block content %}
-{% endblock %}
+{% block content %}{% endblock %}

@@ -8,7 +8,31 @@ import hashlib
 import datetime
 
 
-class User(SqlAlchemyBase, UserMixin, SerializerMixin):
+class Model:
+    def add_obj(self, data, other_id, separator=";"):
+        separator = str(separator)
+        if not isinstance(other_id, int):
+            return False
+        data = self.extract_ids(data, separator)
+        if other_id not in data:
+            data.append(other_id)
+            return separator.join(map(str, data))
+        return False
+
+    def extract_ids(self, data, separator=";"):
+        data = [] if data is None else data.split(separator)
+        data = filter(lambda x: x, data)
+        return list(map(int, data))
+
+    def get_obj(self, data, model_class, separator=';', only_id=False):
+        session = create_session()
+        data = self.extract_ids(data, separator)
+        if not only_id:
+            data = map(session.query(model_class).get, data)
+        return list(data)
+
+
+class User(SqlAlchemyBase, UserMixin, SerializerMixin, Model):
     __tablename__ = 'users'
 
     id = sql.Column(sql.Integer, primary_key=True, autoincrement=True)
@@ -21,6 +45,31 @@ class User(SqlAlchemyBase, UserMixin, SerializerMixin):
     friends = sql.Column(sql.Text, default='')
     chats = sql.Column(sql.Text, default='')
     communities = sql.Column(sql.Text, default='')
+    courses = sql.Column(sql.Text, default='')
+
+    def add_chat(self, chat_id):
+        data = self.add_obj(self.chats, chat_id)
+        if data:
+            self.chats = data
+        return data
+
+    def add_community(self, community_id):
+        data = self.add_obj(self.communities, community_id)
+        if data:
+            self.communities = data
+        return data
+
+    def add_course(self, course_id):
+        data = self.add_obj(self.courses, course_id)
+        if data:
+            self.courses = data
+        return data
+
+    def add_friend(self, user_id):
+        data = self.add_obj(self.friends, user_id)
+        if data:
+            self.friends = data
+        return data
 
     def check_password(self, password):
         return self.make_hashed_password(password) == self.hashed_password
@@ -28,68 +77,17 @@ class User(SqlAlchemyBase, UserMixin, SerializerMixin):
     def make_hashed_password(self, string):
         return str(hashlib.blake2b(str(string).encode()).hexdigest())
 
-    def add_chat(self, chat_id):
-        if not isinstance(chat_id, int):
-            return False
-        chats = [] if self.chats is None else self.chats.split(';')
-        chats = filter(lambda x: x, chats)
-        chats = list(map(int, chats))
-        if chat_id not in chats:
-            chats.append(chat_id)
-            self.chats = ';'.join(map(str, chats))
-            return True
-        return False
-
-    def add_community(self, community_id):
-        if not isinstance(community_id, int):
-            return False
-        data = [] if self.communities is None else self.communities.split(';')
-        data = filter(lambda x: x, data)
-        data = list(map(int, data))
-        if community_id not in data:
-            data.append(community_id)
-            self.communities = ';'.join(map(str, data))
-            return True
-        return False
-
-    def add_friend(self, user_id):
-        if not isinstance(user_id, int):
-            return False
-        friends = [] if self.friends is None else self.friends.split(';')
-        friends = filter(lambda x: x, friends)
-        friends = list(map(int, friends))
-        if user_id not in friends:
-            friends.append(user_id)
-            self.friends = ';'.join(map(str, friends))
-            return True
-        return False
-
     def get_chats(self, only_id=False):
-        session = create_session()
-        chats = [] if self.chats is None else self.chats.split(';')
-        chats = filter(lambda x: x, chats)
-        chats = map(int, chats)
-        if not only_id:
-            chats = map(session.query(Chat).get, chats)
-        return list(chats)
+        return self.get_obj(self.chats, Chat, only_id=only_id)
 
     def get_communities(self, only_id=False):
-        session = create_session()
-        data = [] if self.communities is None else self.communities.split(';')
-        data = filter(lambda x: x, data)
-        data = map(int, data)
-        if not only_id:
-            data = map(session.query(Community).get, data)
-        return list(data)
+        return self.get_obj(self.communities, Community, only_id=only_id)
+
+    def get_courses(self, only_id=False):
+        return self.get_obj(self.courses, Course, only_id=only_id)
 
     def get_friends(self, only_id=False):
-        session = create_session()
-        friends = [] if self.friends is None else self.friends.split(';')
-        friends = filter(lambda x: x, friends)
-        friends = map(int, friends)
-        if not only_id:
-            friends = map(session.query(User).get, friends)
-        return list(friends)
+        return self.get_obj(self.friends, User, only_id=only_id)
 
     def find_personal_chat(self, user_id):
         if user_id == self.id:
@@ -106,7 +104,7 @@ class User(SqlAlchemyBase, UserMixin, SerializerMixin):
                 return chat
 
 
-class Chat(SqlAlchemyBase, SerializerMixin):
+class Chat(SqlAlchemyBase, SerializerMixin, Model):
     __tablename__ = 'chats'
     id = sql.Column(sql.Integer, primary_key=True, autoincrement=True)
     title = sql.Column(sql.String, nullable=True)
@@ -117,29 +115,17 @@ class Chat(SqlAlchemyBase, SerializerMixin):
     messages = orm.relationship('Message', backref='chat')
     main_photo = sql.Column(sql.Text, default='/static/img/profile-photo.jpg')
 
-    def add_user(self, user_id):
-        if not isinstance(user_id, int):
-            return False
-        users = [] if self.users is None else self.users.split(';')
-        users = filter(lambda x: x, users)
-        users = list(map(int, users))
-        if user_id not in users:
-            users.append(user_id)
-            self.users = ';'.join(map(str, users))
-            return True
-        return False
-
     def add_moderator(self, user_id):
-        if not isinstance(user_id, int):
-            return False
-        moderators = [] if self.moderators is None else self.moderators.split(';')
-        moderators = filter(lambda x: x, moderators)
-        moderators = list(map(int, moderators))
-        if user_id not in moderators:
-            moderators.append(user_id)
-            self.moderators = ';'.join(map(str, moderators))
-            return True
-        return False
+        data = self.add_obj(self.moderators, user_id)
+        if data:
+            self.moderators = data
+        return data
+
+    def add_user(self, user_id):
+        data = self.add_obj(self.users, user_id)
+        if data:
+            self.users = data
+        return data
 
     def get_photo_url(self, current_user):
         if self.type == 'group':
@@ -157,31 +143,17 @@ class Chat(SqlAlchemyBase, SerializerMixin):
             return f"{others[0].first_name} {others[0].last_name}"
         return f"{current_user.first_name} {current_user.last_name}"
 
-    def get_users(self, only_id=False):
-        session = create_session()
-        users = [] if self.users is None else self.users.split(';')
-        users = filter(lambda x: x, users)
-        users = map(int, users)
-        if not only_id:
-            users = map(session.query(User).get, users)
-        return list(users)
-
     def get_moderators(self, only_id=False):
-        session = create_session()
-        moderators = [] if self.moderators is None else self.moderators.split(';')
-        moderators = filter(lambda x: x, moderators)
-        moderators = list(map(int, moderators))
-        if not only_id:
-            moderators = map(session.query(User).get, moderators)
-        return list(moderators)
+        return self.get_obj(self.moderators, User, only_id=only_id)
+
+    def get_users(self, only_id=False):
+        return self.get_obj(self.users, User, only_id=only_id)
 
     def is_admin(self, user_id):
         return user_id == self.admin and user_id is not None
 
     def is_moderator(self, user_id):
-        moderators = [] if self.moderators is None else self.moderators.split(';')
-        moderators = filter(lambda x: x, moderators)
-        moderators = list(map(int, moderators))
+        moderators = self.extract_ids(self.moderators)
         return user_id in moderators
 
     def set_admin(self, user_id):
@@ -191,7 +163,7 @@ class Chat(SqlAlchemyBase, SerializerMixin):
         self.admin = user_id
 
 
-class Message(SqlAlchemyBase, SerializerMixin):
+class Message(SqlAlchemyBase, SerializerMixin, Model):
     __tablename__ = 'messages'
     id = sql.Column(sql.Integer, primary_key=True, autoincrement=True)
     author = sql.Column(sql.Integer, sql.ForeignKey('users.id'))
@@ -205,9 +177,11 @@ class Message(SqlAlchemyBase, SerializerMixin):
         first_name = author.first_name if author is not None else 'Кто-то'
         last_name = author.last_name if author is not None else 'Какой-то'
         photo = author.profile_photo if author is not None else ''
+
         timezone = datetime.datetime.now(datetime.timezone.utc).astimezone()
         utc_offset = timezone.utcoffset() // datetime.timedelta(seconds=3600)
         writing_date = self.date + datetime.timedelta(hours=utc_offset)
+
         message = self.text
         answer = {"message_id": self.id,
                   "author": self.author,
@@ -223,10 +197,11 @@ class Message(SqlAlchemyBase, SerializerMixin):
         return answer
 
 
-class Community(SqlAlchemyBase, SerializerMixin):
+class Community(SqlAlchemyBase, SerializerMixin, Model):
     __tablename__ = 'communities'
     id = sql.Column(sql.Integer, primary_key=True, autoincrement=True)
     title = sql.Column(sql.String, nullable=False)
+    description = sql.Column(sql.Text, default='')
     admin = sql.Column(sql.Integer, sql.ForeignKey('users.id'))
     moderators = sql.Column(sql.Text, default='')
     users = sql.Column(sql.Text, default='')
@@ -235,96 +210,46 @@ class Community(SqlAlchemyBase, SerializerMixin):
     main_photo = sql.Column(sql.Text, default='/static/img/profile-photo.jpg')
 
     def add_chat(self, chat_id):
-        if not isinstance(chat_id, int):
-            return False
-        chats = [] if self.chats is None else self.chats.split(';')
-        chats = filter(lambda x: x, chats)
-        chats = list(map(int, chats))
-        if chat_id not in chats:
-            chats.append(chat_id)
-            self.chats = ';'.join(map(str, chats))
-            return True
-        return False
+        data = self.add_obj(self.chats, chat_id)
+        if data:
+            self.chats = data
+        return data
 
     def add_community(self, community_id):
-        if not isinstance(community_id, int):
-            return False
-        data = [] if self.communities is None else self.communities.split(';')
-        data = filter(lambda x: x, data)
-        data = list(map(int, data))
-        if community_id not in data:
-            data.append(community_id)
-            self.communities = ';'.join(map(str, data))
-            return True
-        return False
-
-    def add_user(self, user_id):
-        if not isinstance(user_id, int):
-            return False
-        users = [] if self.users is None else self.users.split(';')
-        users = filter(lambda x: x, users)
-        users = list(map(int, users))
-        if user_id not in users:
-            users.append(user_id)
-            self.users = ';'.join(map(str, users))
-            return True
-        return False
+        data = self.add_obj(self.communities, community_id)
+        if data:
+            self.communities = data
+        return data
 
     def add_moderator(self, user_id):
-        if not isinstance(user_id, int):
-            return False
-        moderators = [] if self.moderators is None else self.moderators.split(';')
-        moderators = filter(lambda x: x, moderators)
-        moderators = list(map(int, moderators))
-        if user_id not in moderators:
-            moderators.append(user_id)
-            self.moderators = ';'.join(map(str, moderators))
-            return True
-        return False
+        data = self.add_obj(self.moderators, user_id)
+        if data:
+            self.moderators = data
+        return data
+
+    def add_user(self, user_id):
+        data = self.add_obj(self.users, user_id)
+        if data:
+            self.users = data
+        return data
 
     def get_chats(self, only_id=False):
-        session = create_session()
-        chats = [] if self.chats is None else self.chats.split(';')
-        chats = filter(lambda x: x, chats)
-        chats = map(int, chats)
-        if not only_id:
-            chats = map(session.query(Chat).get, chats)
-        return list(chats)
+        return self.get_obj(self.chats, Chat, only_id=only_id)
 
     def get_communities(self, only_id=False):
-        session = create_session()
-        data = [] if self.communities is None else self.communities.split(';')
-        data = filter(lambda x: x, data)
-        data = map(int, data)
-        if not only_id:
-            data = map(session.query(Community).get, data)
-        return list(data)
-
-    def get_users(self, only_id=False):
-        session = create_session()
-        users = [] if self.users is None else self.users.split(';')
-        users = filter(lambda x: x, users)
-        users = map(int, users)
-        if not only_id:
-            users = map(session.query(User).get, users)
-        return list(users)
+        return self.get_obj(self.communities, Community, only_id=only_id)
 
     def get_moderators(self, only_id=False):
-        session = create_session()
-        moderators = [] if self.moderators is None else self.moderators.split(';')
-        moderators = filter(lambda x: x, moderators)
-        moderators = list(map(int, moderators))
-        if not only_id:
-            moderators = map(session.query(User).get, moderators)
-        return list(moderators)
+        return self.get_obj(self.moderators, User, only_id=only_id)
+
+    def get_users(self, only_id=False):
+        return self.get_obj(self.users, User, only_id=only_id)
 
     def is_admin(self, user_id):
         return user_id == self.admin and user_id is not None
 
     def is_moderator(self, user_id):
-        moderators = [] if self.moderators is None else self.moderators.split(';')
-        moderators = filter(lambda x: x, moderators)
-        moderators = list(map(int, moderators))
+        moderators = self.extract_ids(self.moderators)
         return user_id in moderators
 
     def set_admin(self, user_id):
@@ -334,5 +259,15 @@ class Community(SqlAlchemyBase, SerializerMixin):
         self.admin = user_id
 
 
-# hsl(216deg 93% 94%)
-# rgb(253, 249, 245)
+class Course(SqlAlchemyBase, SerializerMixin, Model):
+    __tablename__ = 'courses'
+    id = sql.Column(sql.Integer, primary_key=True, autoincrement=True)
+    title = sql.Column(sql.String, nullable=False)
+    description = sql.Column(sql.Text, default='')
+    teacher = sql.Column(sql.Integer, sql.ForeignKey('users.id'))
+    users = sql.Column(sql.Text, default='')
+    posts = sql.Column(sql.Text, default='')
+    lessons = sql.Column(sql.Text, default='')
+    main_photo = sql.Column(sql.Text, default='/static/img/profile-photo.jpg')
+
+

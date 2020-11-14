@@ -44,3 +44,7 @@ class UserRegistrationForm(FlaskForm):
 class WriteMessageForm(FlaskForm):
     message = TextAreaField('Сообщение', validators=[])
 
+
+class SearchForm(FlaskForm):
+    data = StringField('Поиск', validators=[])
+    submit = SubmitField('Найти')

@@ -1,8 +1,8 @@
-<div class="message" id="message-{{message_id}}" style="justify-content: flex-start;">
-    <div class="message-block message-someone" style="border: 1px solid #aaa;">
-        <div class="message-someone-content" style="display: flex; justify-content: left">
-            <img src="{{author_photo}}" width="40" height="40" style="border-radius: 20px">
-            <div class="message-someone-text-block" style="margin-left: 15px">
+<div class="message message-someone" id="message-{{message_id}}">
+    <div class="message-block">
+        <div class="message-content">
+            <img src="{{author_photo}}" class="md-rounded-profile-photo">
+            <div class="message-text-block" style="margin-left: 15px">
                 <h6 class="message-header">
                     <b>{{author_first_name}}</b>
                     <spin class="message-datetime">

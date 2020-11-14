@@ -5,76 +5,70 @@
 {% endblock %}
 
 {% block page_content %}
-    <div class="page-content" id="page-content">
-        <div class="left">
-            <div class="card">
-                <img src="{{user.profile_photo}}" class="main-user-profile-photo">
-                {% if current_user.is_authenticated %}
-                    {% if current_user.id != user.id %}
-                        {% if user.id not in current_user.get_friends(only_id=True) %}
-                            <a class="btn btn-secondary btn-block" href="{{url_for('add_to_friends', user_id=user.id)}}" style="margin-bottom: 0.5rem">
-                                Добавить в друзья
-                            </a>
-                        {% else %}
-                            <div class="btn btn-secondary disabled" style="margin-bottom: 10px" tabindex="-1">
-                                В друзьях
+    <div class="left">
+        <div class="card">
+            <img src="{{user.profile_photo}}" class="main-profile-photo">
+            {% if current_user.id != user.id %}
+                {% if user.id not in current_user.get_friends(only_id=True) %}
+                    <a class="btn btn-secondary btn-block" href="{{url_for('add_to_friends', user_id=user.id)}}">Добавить в друзья</a>
+                {% else %}
+                    <div class="btn btn-secondary disabled">
+                        В друзьях
+                    </div>
+                {% endif %}
+                <button type="button" class="btn btn-secondary" data-toggle="modal" data-target="#write_message">
+                    Сообщение
+                </button>
+                <div class="modal fade" id="write_message" tabindex="-1" role="dialog" aria-hidden="true">
+                    <div class="modal-dialog" role="document">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Написать сообщение</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
                             </div>
-                        {% endif %}
-                        <button type="button" class="btn btn-secondary" data-toggle="modal" data-target="#write_message">
-                            Сообщение
-                        </button>
-                        <div class="modal fade" id="write_message" tabindex="-1" role="dialog" aria-hidden="true">
-                            <div class="modal-dialog" role="document">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title">Написать сообщение</h5>
-                                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                            <span aria-hidden="true">&times;</span>
-                                        </button>
+                            <div class="modal-body">
+                                <form>
+                                    {{ form.hidden_tag() }}
+                                    <div class="form-group">
+                                        {{form.message.label(class="col-form-label")}}
+                                        {{form.message(class="form-control")}}
                                     </div>
-                                    <div class="modal-body">
-                                        <form>
-                                            {{ form.hidden_tag() }}
-                                            <div class="form-group">
-                                                {{form.message.label(class="col-form-label")}}
-                                                {{form.message(class="form-control")}}
-                                            </div>
-                                        </form>
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-outline-secondary" data-dismiss="modal" onclick="sendMessage()">Отправить</button>
-                                    </div>
-                                </div>
+                                </form>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-outline-secondary" data-dismiss="modal" onclick="sendMessage()">Отправить</button>
                             </div>
                         </div>
-                    {% else %}
-                        <a class="btn btn-secondary btn-block" href="{{url_for('edit_user_profile')}}">Настройки</a>
-                    {% endif %}
-                {% endif %}
-            </div>
-            <div class="card">
-                {% if user.get_friends(only_id=True)|length != 0 %}
-                    Друзья {{ user.get_friends(only_id=True)|length }}
-                {% else %}
-                    <a href="#" style="text-decoration: none">Найти друзей</a>
-                {% endif %}
-            </div>
+                    </div>
+                </div>
+            {% else %}
+                <a class="btn btn-secondary btn-block" href="{{url_for('edit_user_profile')}}">Настройки</a>
+            {% endif %}
         </div>
-        <div class="right full-width">
-            <div class="card">
-                <h4>{{ user.first_name }} {{ user.last_name }}</h4>
-            </div>
+        <div class="card">
+            {% if user.get_friends(only_id=True)|length != 0 %}
+                Друзья {{ user.get_friends(only_id=True)|length }}
+            {% else %}
+                <a href="#">Найти друзей</a>
+            {% endif %}
         </div>
     </div>
-{% if current_user.is_authenticated and current_user.id != user.id %}
-<script>
-    function sendMessage() {
-        var xhr = new XMLHttpRequest();
-        var data = {message: document.getElementById("message").value,};
-        xhr.open('POST', '{{url_for('write_message', user_id=user.id)}}', true);
-        xhr.setRequestHeader("Content-Type", "application/json");
-        xhr.send(JSON.stringify(data));
-        document.getElementById("message").value = '';}
-</script>
-{% endif %}
+    <div class="right full-width">
+        <div class="card">
+            <h4>{{ user.first_name }} {{ user.last_name }}</h4>
+        </div>
+    </div>
+    {% if current_user.is_authenticated and current_user.id != user.id %}
+        <script>
+            function sendMessage() {
+                var xhr = new XMLHttpRequest();
+                var data = {message: document.getElementById("message").value,};
+                xhr.open('POST', '{{url_for('write_message', user_id=user.id)}}', true);
+                xhr.setRequestHeader("Content-Type", "application/json");
+                xhr.send(JSON.stringify(data));
+                document.getElementById("message").value = '';}
+        </script>
+    {% endif %}
 {% endblock %}

@@ -5,7 +5,7 @@ from forms import LoginForm, UserRegistrationForm, UserProfileEditForm
 from forms import ChangePasswordForm, ChatForm, WriteMessageForm
 
 from data import db_session
-from data.__all_models import User, Chat, Message, Community
+from data.__all_models import User, Chat, Message, Community, Course
 
 from lms_utils import *
 import datetime
@@ -76,6 +76,24 @@ def community_profile(community_id):
     return render_template("community_profile.html", **params)
 
 
+@app.route('/communities')
+@login_required
+def communities():
+    params = {"current_user": current_user}
+    return render_template("communities.html", **params)
+
+
+@app.route('/course-<int:course_id>')
+@login_required
+def course_profile(course_id):
+    session = db_session.create_session()
+    course = session.query(Course).get(course_id)
+    if course is None:
+        abort(404)
+    params = {"current_user": current_user, "course": course}
+    return render_template("course_profile.html", **params)
+
+
 @app.route('/create-group-chat', methods=['POST'])
 @login_required
 def create_group_chat():
@@ -86,13 +104,17 @@ def create_group_chat():
         return """"""
     users_list = str(request.json.get('users_list'))
     session = db_session.create_session()
-    users_list = [x for x in users_list.split(';')]
-    users_list.append(str(current_user.id))
+    # Только id
+    users_list = [int(x) for x in users_list.split(';') if x.isdigit()]
+    curr_user_friends = current_user.get_friends(only_id=True)
+    # Только друзья
+    users_list = list(filter(lambda x: x in curr_user_friends, users_list))
+    users_list.append(current_user.id)
     for i in range(len(users_list)):
-        if users_list[i].isdigit():
-            users_list[i] = int(users_list[i])
-            users_list[i] = session.query(User).get(users_list[i])
+        users_list[i] = session.query(User).get(users_list[i])
     users_list = [item for item in users_list if item]
+
+    print(users_list)
     if not users_list:
         return """"""
     chat = Chat()
@@ -178,6 +200,7 @@ def get_messages():
 
 
 @app.route('/id-<int:user_id>', methods=['GET', 'POST'])
+@login_required
 def user_profile(user_id):
     session = db_session.create_session()
     user = session.query(User).get(user_id)
@@ -188,7 +211,7 @@ def user_profile(user_id):
     return render_template('profile.html', **params)
 
 
-@app.route('/friends')
+@app.route('/friends', methods=['GET', 'POST'])
 @login_required
 def friends():
     user_friends = current_user.get_friends()
@@ -225,6 +248,13 @@ def messenger():
     params["form"] = form
     params["chat_title"] = chat_title
     return render_template("messenger_with_chat.html", **params)
+
+
+@app.route('/my-courses')
+@login_required
+def my_courses():
+    params = {"current_user": current_user}
+    return render_template("my_courses.html", **params)
 
 
 @app.route('/profile')
@@ -287,6 +317,8 @@ def send_message():
         return """"""
     session = db_session.create_session()
     text = request.json.get("message")
+    if not text:
+        return """"""
     chat_id = request.json.get("chat_id")
     if not str(chat_id).isdigit():
         return """"""

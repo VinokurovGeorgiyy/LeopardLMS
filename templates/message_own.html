@@ -1,12 +1,14 @@
-<div class="message" id="message-{{message_id}}" style="justify-content: flex-end;">
-    <div class="message-block message-own" style="background-color: hsl(216deg 93% 94%);">
-        <div class="message-own-content">
-            <h6 class="message-header" style="text-align: right">
-                <spin class="message-datetime">
-                    {{day}}.{{month}}.{{year}} {{hour}}:{{minute}}
-                </spin>
-            </h6>
-            <p class="message-paragraph" style="text-align: right">{{text}}</p>
+<div class="message message-own" id="message-{{message_id}}">
+    <div class="message-block">
+        <div class="message-content">
+            <div class="message-text-block">
+                <h6 class="message-header">
+                    <spin class="message-datetime">
+                        {{day}}.{{month}}.{{year}} {{hour}}:{{minute}}
+                    </spin>
+                </h6>
+                <p class="message-paragraph">{{text}}</p>
+            </div>
         </div>
     </div>
 </div>

@@ -1,18 +1,21 @@
 {% extends "workspace.html" %}
 
+{% block own_styles %}
+    {{ super() }}
+    <link href="{{url_for('static', filename='css/friends-presentation-styles.css')}}" rel="stylesheet">
+{% endblock %}
+
 {% block title %}Друзья{% endblock %}
 
 {% block page_content %}
-    <div class="page-content">
-        <div class="friends-list">
-            {% for friend in friends %}
-                <div class="card user-card">
-                    <img src="{{friend.profile_photo}}" class="middle-user-profile-photo">
-                    <a href="{{url_for('user_profile', user_id=friend.id)}}">
-                        <div class="cut-string" style="text-align: center">{{ friend.first_name }} {{ friend.last_name }}</div>
-                    </a>
-                </div>
-            {% endfor %}
-        </div>
+    <div class="friends-list full-width">
+        {% for friend in friends %}
+            <div class="card friends-list-item">
+                <img src="{{friend.profile_photo}}" class="secondary-profile-photo">
+                <a href="{{url_for('user_profile', user_id=friend.id)}}">
+                    <div class="cut-string">{{ friend.first_name }} {{ friend.last_name }}</div>
+                </a>
+            </div>
+        {% endfor %}
     </div>
 {% endblock %}
