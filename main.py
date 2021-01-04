@@ -1,11 +1,11 @@
-from flask import Flask, render_template, redirect, abort, url_for, request
+from flask import Flask, render_template, redirect, abort, url_for, request, make_response
 from flask_login import LoginManager, current_user, login_user, logout_user, login_required
 
-from forms import LoginForm, UserRegistrationForm, UserProfileEditForm
-from forms import ChangePasswordForm, ChatForm, WriteMessageForm
+from forms import LoginForm, UserRegistrationForm, CreateIndependentGroupForm
+from forms import ChatForm, WriteMessageForm, CreatePostForm
 
 from data import db_session
-from data.__all_models import User, Chat, Message, Community, Course
+from data.__all_models import User, Notification, Chat, Message, Post, Group
 
 from lms_utils import *
 import datetime
@@ -27,98 +27,151 @@ login_manager.login_view = 'sign_in'
 
 @app.route("/")
 def homepage():
-    return render_template("homepage.html")
+    return """"""
 
 
-@app.route('/add-to-friends/user-<int:user_id>')
+@app.route('/add-to-friends', methods=['POST'])
 @login_required
-def add_to_friends(user_id):
+def add_to_friends():
+    if current_user.is_blocked():
+        return make_response("LOCKED", 423)
+    if not request.args:
+        return make_response("BAD REQUEST: ARGS NOT FOUND", 400)
+    user_id = request.args.get('user_id', type=int)
     session = db_session.create_session()
-    other_user = session.query(User).get(user_id)
-    user = session.query(User).get(current_user.id)
-    if other_user and other_user.id != user.id:
-        if user.add_friend(user_id):
-            other_user.add_friend(user.id)
-            session.commit()
-    return redirect(url_for('friends'))
+    user = session.query(User).get(user_id)
+    curr_user = session.query(User).get(current_user.id)
+    if user and user.id != curr_user.id:
+        notification = user.friendship_notification_exists(curr_user.id)
+        if notification is not None:
+            notification = session.query(Notification).get(notification.id)
+            if curr_user.add_friend(user_id):
+                user.add_friend(curr_user.id)
+                user.delete_notification(notification.id)
+                curr_user.delete_notification(notification.id)
+                session.delete(notification)
+                session.commit()
+    return make_response("Success", 200)
 
 
-@app.route('/change-password', methods=['GET', 'POST'])
+@app.route('/chat-<int:chat_id>', methods=['GET', 'POST', 'DELETE'])
 @login_required
-def change_password():
+def chat_view(chat_id):
+    if current_user.is_blocked():
+        return make_response("LOCKED", 423)
     session = db_session.create_session()
-    form = ChangePasswordForm()
-    params = {"current_user": current_user, "form": form, "message": ""}
-    if form.validate_on_submit():
-        new_password = form.new_password.data
-        user = session.query(User).get(current_user.id)
-        if user.check_password(form.old_password.data):
-            is_correct = is_correct_password(new_password)
-            if is_correct.get('error'):
-                params['message'] = is_correct['error']
-                return render_template("change_password.html", **params)
-            new_password = user.make_hashed_password(new_password)
-            user.hashed_password = new_password
-            session.commit()
-            return redirect(url_for('profile'))
-        params['message'] = "Неверный старый пароль"
-    return render_template("change_password.html", **params)
+    chat_obj = session.query(Chat).get(chat_id)
+    if chat_obj is None:
+        return make_response(f"CHAT ID:{chat_id} NOT FOUND", 404)
+    if current_user.id not in chat_obj.get_users(only_id=True):
+        return make_response("FORBIDDEN", 403)
+
+    if request.method == 'GET':
+        only_number = request.args.get('only_number', type=int)
+        if only_number:
+            return f"{len(chat_obj.messages)}"
+        text = ''
+        for message in chat_obj.messages:
+            data = message.get_json()
+            if current_user.id == message.author:
+                text += render_template("message_own.html", **data)
+            elif chat_obj.check_admin(current_user.id):
+                text += render_template("message_own.html", **data)
+            elif chat_obj.check_moderator(current_user.id):
+                text += render_template("message_own.html", **data)
+            else:
+                text += render_template("message_someone.html", **data)
+        return text
+
+    if request.method == 'POST':
+        if not request.json:
+            return make_response("BAD REQUEST: ARGS NOT FOUND", 400)
+        text = request.json.get("message")
+        if not text:
+            return make_response("EMPTY MESSAGE", 400)
+        message = Message()
+        message.text = text
+        message.chat = chat_obj
+        message.author = current_user.id
+        message.date = datetime.datetime.utcnow()
+        session.add(message)
+        session.commit()
+        return make_response("Success", 200)
+    return make_response("Error", 404)
 
 
-@app.route('/community-<int:community_id>')
+@app.route('/courses')
 @login_required
-def community_profile(community_id):
-    session = db_session.create_session()
-    community = session.query(Community).get(community_id)
-    if community is None:
-        abort(404)
-    params = {"community": community, "current_user": current_user}
-    return render_template("community_profile.html", **params)
+def courses():
+    if current_user.is_blocked():
+        abort(423)
+    selector = request.args.get('selector')
 
+    if selector == 'popular':
+        params = {"current_user": current_user}
+        return render_template('courses $ popular.html', **params)
+    if selector == 'search':
+        params = {"current_user": current_user}
+        return render_template('courses $ search.html', **params)
 
-@app.route('/communities')
-@login_required
-def communities():
     params = {"current_user": current_user}
-    return render_template("communities.html", **params)
+    return render_template('courses $ my_courses.html', **params)
 
 
-@app.route('/course-<int:course_id>')
+@app.route('/create-group', methods=['POST'])
 @login_required
-def course_profile(course_id):
-    session = db_session.create_session()
-    course = session.query(Course).get(course_id)
-    if course is None:
-        abort(404)
-    params = {"current_user": current_user, "course": course}
-    return render_template("course_profile.html", **params)
+def create_group():
+    if current_user.is_blocked():
+        return make_response("LOCKED", 423)
+    dependency = request.args.get('dependency')
+    if dependency == 'independent':
+        form = CreateIndependentGroupForm()
+        if form.validate_on_submit():
+            session = db_session.create_session()
+            group_obj = Group()
+            group_obj.set_admin(current_user.id)
+            group_obj.title = form.title.data
+            group_obj.set_type(form.group_type.data)
+            if form.description.data:
+                group_obj.description = form.description.data
+            session.add(group_obj)
+            session.commit()
+            curr_user = session.query(User).get(current_user.id)
+            curr_user.add_group(group_obj.id)
+            group_obj.add_user(current_user.id)
+            session.commit()
+            return redirect(url_for('group_profile', group_id=group_obj.id))
+        return make_response('Error', 400)
+    return make_response('Error', 400)
 
 
 @app.route('/create-group-chat', methods=['POST'])
 @login_required
 def create_group_chat():
+    if current_user.is_blocked():
+        return make_response("LOCKED", 423)
     if request.json is None:
-        return """"""
+        return make_response("BAD REQUEST: ARGS NOT FOUND", 400)
     chat_title = str(request.json.get('chat_title'))
     if not chat_title:
-        return """"""
+        return make_response("CHAT TITLE NOT FOUND", 400)
     users_list = str(request.json.get('users_list'))
     session = db_session.create_session()
-    # Только id
+
     users_list = [int(x) for x in users_list.split(';') if x.isdigit()]
     curr_user_friends = current_user.get_friends(only_id=True)
-    # Только друзья
+
     users_list = list(filter(lambda x: x in curr_user_friends, users_list))
     users_list.append(current_user.id)
+    users_list = list(set(users_list))
     for i in range(len(users_list)):
         users_list[i] = session.query(User).get(users_list[i])
     users_list = [item for item in users_list if item]
 
-    print(users_list)
     if not users_list:
-        return """"""
+        return make_response("CHAT CAN NOT BE WITHOUT USERS", 400)
     chat = Chat()
-    chat.type = 'group'
+    chat.set_type("GROUP")
     chat.title = chat_title
     chat.set_admin(current_user.id)
     for user in users_list:
@@ -131,98 +184,176 @@ def create_group_chat():
     return f"""{chat.id}"""
 
 
-@app.route('/delete-message', methods=['DELETE'])
+@app.route('/create-notification', methods=['POST'])
 @login_required
-def delete_message():
-    session = db_session.create_session()
-    message_id = request.args.get('message', type=int)
-    if message_id is None:
-        return """"""
-    message = session.query(Message).get(message_id)
-    if message is None:
-        return """"""
-    chat = session.query(Chat).get(message.chat_id)
-    if chat is not None:
-        if current_user.id not in chat.get_users(only_id=True):
-            return """"""
-        if current_user.id != message.author:
-            if not chat.is_admin(current_user.id):
-                if not chat.is_moderator(current_user.id):
-                    return """"""
-    session.delete(message)
-    session.commit()
-    return """"""
+def create_notification():
+    if current_user.is_blocked():
+        return make_response("LOCKED", 423)
+    if not request.args:
+        return make_response("BAD REQUEST: ARGS NOT FOUND", 400)
+    selector = request.args.get('selector')
+    if not selector:
+        return make_response("SELECTOR NOT EXISTS", 400)
+    if selector == 'friendship':
+        user_id = request.args.get('to_user', type=int)
+        session = db_session.create_session()
+        user = session.query(User).get(user_id)
+        curr_user = session.query(User).get(current_user.id)
+        if user is None:
+            return make_response("USER NOT FOUND", 404)
 
-
-@app.route('/edit-user-profile', methods=['GET', 'POST'])
-@login_required
-def edit_user_profile():
-    session = db_session.create_session()
-    form = UserProfileEditForm()
-    params = {"form": form, "user": current_user, "message": ""}
-    user = session.query(User).get(current_user.id)
-    if form.validate_on_submit():
-        user.last_name = form.last_name.data
-        user.first_name = form.first_name.data
-        user.patronymic = form.patronymic.data
+        notification = Notification()
+        if user.id in curr_user.get_friends(only_id=True):
+            return make_response("USER ALREADY IS FRIEND", 404)
+        if curr_user.friendship_notification_exists(user.id):
+            return make_response("Error", 404)
+        if user.friendship_notification_exists(curr_user.id):
+            return make_response("Error", 404)
+        notification.set_type(selector)
+        notification.sender = curr_user.id
+        session.add(notification)
         session.commit()
-        return redirect(url_for('profile'))
-    return render_template('edit_user_profile.html', **params)
+        notification.add_recipient(user.id)
+        notification.send()
+        curr_user.add_notification(notification.id)
+        session.commit()
+        return make_response("Success", 200)
+    return make_response("Error", 404)
 
 
-@app.route('/get-messages')
+@app.route('/create-post', methods=['POST'])
 @login_required
-def get_messages():
+def create_post():
+    return make_response("Error", 404)
+
+
+@app.route('/delete-from-friends', methods=['DELETE'])
+@login_required
+def delete_from_friends():
+    if current_user.is_blocked():
+        return make_response("LOCKED", 423)
+    if not request.args:
+        return make_response("ARGS NOT FOUND", 400)
+    user_id = request.args.get('user_id', type=int)
     session = db_session.create_session()
-    chat_id = request.args.get('chat', type=int)
-    only_number = request.args.get('only_number', type=int)
-    if chat_id is None:
-        abort(404)
-    chat = session.query(Chat).get(chat_id)
-    if chat is None:
-        abort(404)
-    if current_user.id not in [item for item in chat.get_users(only_id=True)]:
-        abort(403)
-    if only_number:
-        return f"{len(chat.messages)}"
-    text = ''
-    for message in chat.messages:
-        data = message.json_for_messenger()
-        if current_user.id == message.author:
-            text += render_template("message_own.html", **data)
-        elif chat.is_admin(current_user.id):
-            text += render_template("message_own.html", **data)
-        elif chat.is_moderator(current_user.id):
-            text += render_template("message_own.html", **data)
-        else:
-            text += render_template("message_someone.html", **data)
-    return text
+    user = session.query(User).get(user_id)
+    curr_user = session.query(User).get(current_user.id)
+    if user.id in curr_user.get_friends(only_id=True):
+        user.delete_friend(curr_user.id)
+        curr_user.delete_friend(user.id)
+        session.commit()
+        return make_response('Success', 200)
+    return make_response('Error', 404)
 
 
-@app.route('/id-<int:user_id>', methods=['GET', 'POST'])
+@app.route('/delete-notification', methods=['DELETE'])
+@login_required
+def delete_notification():
+    if current_user.is_blocked():
+        return make_response("LOCKED", 423)
+    if not request.args:
+        return make_response("ARGS NOT FOUND", 400)
+    item = request.args.get('id', type=int)
+    session = db_session.create_session()
+    item = session.query(Notification).get(item)
+    if item is None:
+        return make_response("NOTIFICATION NOT FOUND", 404)
+    if item.is_friendship():
+        curr_user = session.query(User).get(current_user.id)
+        if curr_user.id == item.sender:
+            curr_user.delete_notification(item.id)
+            item.cancel()
+            session.delete(item)
+            session.commit()
+            return make_response("Success", 200)
+        if curr_user.id in item.get_recipients(only_id=True):
+            sender = session.query(User).get(item.sender)
+            sender.delete_notification(item.id)
+            item.cancel()
+            session.delete(item)
+            session.commit()
+            return make_response("Success", 200)
+    return make_response("Error", 404)
+
+
+@app.route('/friends')
+@login_required
+def friends():
+    if current_user.is_blocked():
+        abort(423)
+    selector = request.args.get('selector')
+
+    if selector == 'notifications':
+        inbox, outbox = [], []
+        for item in current_user.get_notifications():
+            if item.is_friendship():
+                if item.sender != current_user.id:
+                    inbox += [item]
+                else:
+                    outbox += [item]
+        params = {"current_user": current_user, 'outbox': outbox, 'inbox': inbox}
+        return render_template('friends $ notifications.html', **params)
+    if selector == 'search':
+        params = {"current_user": current_user}
+        return render_template('friends $ search.html', **params)
+
+    params = {"current_user": current_user}
+    return render_template('friends $ my_friends.html', **params)
+
+
+@app.route('/group-<int:group_id>')
+@login_required
+def group_profile(group_id):
+    if current_user.is_blocked():
+        abort(423)
+    session = db_session.create_session()
+    group_obj = session.query(Group).get(group_id)
+    if group_obj is None:
+        abort(404)
+    params = {"current_user": current_user, "group": group_obj}
+    return render_template('group_profile.html', **params)
+
+
+@app.route('/groups')
+@login_required
+def groups():
+    if current_user.is_blocked():
+        abort(423)
+    selector = request.args.get('selector')
+
+    if selector == 'popular':
+        params = {"current_user": current_user}
+        return render_template('groups $ popular.html', **params)
+    if selector == 'search':
+        params = {"current_user": current_user}
+        return render_template('groups $ search.html', **params)
+
+    form = CreateIndependentGroupForm()
+    params = {"current_user": current_user, "create_group_form": form}
+    return render_template('groups $ my_groups.html', **params)
+
+
+@app.route('/id-<int:user_id>', methods=['GET'])
 @login_required
 def user_profile(user_id):
+    if current_user.is_blocked():
+        abort(423)
     session = db_session.create_session()
     user = session.query(User).get(user_id)
     if not user:
         abort(404)
-    form = WriteMessageForm()
-    params = {'user': user, 'current_user': current_user, "form": form}
-    return render_template('profile.html', **params)
-
-
-@app.route('/friends', methods=['GET', 'POST'])
-@login_required
-def friends():
-    user_friends = current_user.get_friends()
-    params = {"friends": user_friends, "current_user": current_user}
-    return render_template("friends.html", **params)
+    write_message_form = WriteMessageForm()
+    create_post_form = CreatePostForm()
+    params = {'user': user, 'current_user': current_user,
+              "write_message_form": write_message_form,
+              "create_post_form": create_post_form}
+    return render_template('user_profile.html', **params)
 
 
 @app.route('/logout')
 def logout():
     logout_user()
-    return redirect(url_for('homepage'))
+    return redirect(url_for('profile'))
 
 
 @app.route('/messenger')
@@ -250,13 +381,6 @@ def messenger():
     return render_template("messenger_with_chat.html", **params)
 
 
-@app.route('/my-courses')
-@login_required
-def my_courses():
-    params = {"current_user": current_user}
-    return render_template("my_courses.html", **params)
-
-
 @app.route('/profile')
 @login_required
 def profile():
@@ -266,7 +390,7 @@ def profile():
 @app.route("/sign-in", methods=['GET', 'POST'])
 def sign_in():
     if current_user.is_authenticated:
-        return redirect(url_for('user_profile', user_id=current_user.id))
+        return redirect(url_for('profile'))
     form = LoginForm()
     params = {'form': form, 'message': ''}
     if form.validate_on_submit():
@@ -275,8 +399,9 @@ def sign_in():
         user = session.query(User).filter(User.email == email).first()
         if user and user.check_password(form.password.data):
             login_user(user, remember=True)
-            return redirect(url_for('user_profile', user_id=current_user.id))
-        params['message'] = "Неправильный логин или пароль"
+            return redirect(url_for('profile'))
+        else:
+            params['message'] = "Неправильный логин или пароль"
     return render_template('sign-in.html', **params)
 
 
@@ -296,13 +421,14 @@ def sign_up():
         user.last_name = form.last_name.data
         user.first_name = form.first_name.data
         user.patronymic = form.patronymic.data
+        user.set_status("USER")
 
         correct_password = is_correct_password(form.password.data)
         if correct_password.get('error'):
             params['message'] = correct_password['error']
             return render_template('sign-up.html', **params)
 
-        user.hashed_password = user.make_hashed_password(form.password.data)
+        user.hashed_password = user.make_password(form.password.data)
         session.add(user)
         session.commit()
         login_user(user, remember=True)
@@ -310,66 +436,40 @@ def sign_up():
     return render_template('sign-up.html', **params)
 
 
-@app.route('/send-message', methods=['POST'])
+@app.route('/write-message', methods=['POST'])
 @login_required
-def send_message():
-    if not request.json:
-        return """"""
-    session = db_session.create_session()
-    text = request.json.get("message")
-    if not text:
-        return """"""
-    chat_id = request.json.get("chat_id")
-    if not str(chat_id).isdigit():
-        return """"""
-
-    chat = session.query(Chat).get(chat_id)
-    if chat is None:
-        abort(404)
-    chat_users = chat.get_users()
-    if current_user.id not in [item.id for item in chat_users]:
-        abort(403)
-
-    message = Message()
-    message.text = text
-    message.chat = chat
-    message.author = current_user.id
-    message.date = datetime.datetime.utcnow()
-    session.add(message)
-    session.commit()
-    return """"""
-
-
-@app.route('/write-message/user-<int:user_id>', methods=['POST'])
-@login_required
-def write_message(user_id):
-    session = db_session.create_session()
-    if not request.json:
-        return """"""
-    text = request.json.get('message')
-    chat = current_user.find_personal_chat(user_id)
-    curr_user = session.query(User).get(current_user.id)
-    if chat is None:
-        user = session.query(User).get(user_id)
-        if user is None:
-            abort(404)
-        chat = Chat()
-        chat.type = 'personal'
-        chat.add_user(user_id)
-        chat.add_user(current_user.id)
-        session.add(chat)
+def write_message():
+    if current_user.is_blocked():
+        return make_response("LOCKED", 423)
+    form = WriteMessageForm()
+    if form.validate_on_submit():
+        session = db_session.create_session()
+        user_id = form.user_id.data
+        text = form.message.data
+        chat = current_user.find_personal_chat(user_id)
+        curr_user = session.query(User).get(current_user.id)
+        if chat is None:
+            user = session.query(User).get(user_id)
+            if user is None:
+                return make_response(f"USER ID:{user_id} NOT FOUND", 404)
+            chat = Chat()
+            chat.set_type("PERSONAL")
+            chat.add_user(user_id)
+            chat.add_user(current_user.id)
+            session.add(chat)
+            session.commit()
+            user.add_chat(chat.id)
+            curr_user.add_chat(chat.id)
+        chat = session.query(Chat).get(chat.id)
+        message = Message()
+        message.text = text
+        message.author = current_user.id
+        message.date = datetime.datetime.utcnow()
+        message.chat = chat
+        session.add(message)
         session.commit()
-        user.add_chat(chat.id)
-        curr_user.add_chat(chat.id)
-    chat = session.query(Chat).get(chat.id)
-    message = Message()
-    message.text = text
-    message.author = current_user.id
-    message.date = datetime.datetime.utcnow()
-    message.chat = chat
-    session.add(message)
-    session.commit()
-    return """"""
+        return redirect(url_for("user_profile", user_id=user_id))
+    return make_response("Error", 400)
 
 
 @login_manager.user_loader

@@ -1,0 +1,66 @@
+{% extends "courses.html" %}
+
+{% block title %}
+    Мои курсы | {{ current_user.first_name }} {{ current_user.last_name }}
+{% endblock %}
+
+{% set my_courses = current_user.get_courses() %}
+
+{% block main_block %}
+    <ul class="nav nav-pills mb-3 nav-justified" id="my-courses-tab" role="tablist">
+        <li class="nav-item mr-1" role="presentation">
+            <a class="btn btn-outline-dark btn-pill btn-block active" id="all-my-courses-tab" data-toggle="pill" href="#all-my-courses" role="tab" aria-controls="all-my-groups" aria-selected="true">
+                Все курсы
+            </a>
+        </li>
+        <li class="nav-item ml-1 mr-1" role="presentation">
+            <a class="btn btn-outline-dark btn-pill btn-block " id="learning-tab" data-toggle="pill" href="#learning" role="tab" aria-controls="learning" aria-selected="false">
+                Обучение
+            </a>
+        </li>
+        <li class="nav-item ml-1 mr-1" role="presentation">
+            <a class="btn btn-outline-dark btn-pill btn-block " id="teaching-tab" data-toggle="pill" href="#teaching" role="tab" aria-controls="teaching" aria-selected="false">
+                Преподавание
+            </a>
+        </li>
+        <li class="nav-item ml-1" role="presentation">
+            <a class="btn btn-outline-dark btn-pill btn-block " id="create-course-tab" data-toggle="pill" href="#create-course" role="tab" aria-controls="create-course" aria-selected="false">
+                Создать курс
+            </a>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="my-courses">
+        <div class="tab-pane fade show active" id="all-my-courses" role="tabpanel" aria-labelledby="all-my-courses-tab">
+            {% if my_courses|length == 0 %}
+                <div class="card d-flex justify-content-center align-items-center">
+                    Вы не записаны ни на одном курсе
+                </div>
+            {% endif %}
+            {% for item in my_courses %}
+                <div class="alert card" id="my-course-card-{{item.id}}">
+                    <div class="d-flex">
+                        <div class="mr-2">
+                            <img src="{{item.get_profile_photo_url()}}" class="sm-rounded-circle">
+                        </div>
+                        <div class="w-100">
+                            <a class="text-decoration-none text-dark" href="#">
+                                <h5>{{ item.title }}</h5>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+        <div class="tab-pane fade" id="learning" role="tabpanel" aria-labelledby="learning-tab">
+
+        </div>
+        <div class="tab-pane fade" id="teaching" role="tabpanel" aria-labelledby="teaching-tab">
+
+        </div>
+        <div class="tab-pane fade" id="create-course" role="tabpanel" aria-labelledby="create-course-tab">
+
+        </div>
+    </div>
+
+{% endblock %}

@@ -1,111 +1,184 @@
-{% extends "workspace.html"%}
+{% extends "workspace.html" %}
 
-{% block own_styles %}
-    {{ super() }}
-    <link href="{{url_for('static', filename='css/messenger-styles.css')}}" rel="stylesheet">
+{% block title %}
+    Мессенджер
 {% endblock %}
 
-{% block title %}Мессенджер{% endblock %}
+{% block style %}
+<style>
+    .chats-list-item {
+        display: flex;
+        padding: .3rem;
+    }
 
-{% block page_content %}
-    <div class="messenger">
-        <div class="modal-dialog modal-dialog-scrollable chats">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5><a href="{{url_for('messenger')}}" class="decor-none">Чаты</a></h5>
-                </div>
-                <div class="modal-body chats-list">
-                    {% for item in chats %}
-                        <a href="{{url_for('messenger', chat=item.id)}}" class="decor-none">
-                            {% if chat != None and chat.id == item.id %}
-                                <div class="chats-list-item border-bottom active">
-                                    <img src="{{item.get_photo_url(current_user)}}" class="md-rounded-profile-photo">
-                                    <h6>{{item.get_title(current_user)}}</h6>
-                                </div>
-                            {% else %}
-                                <div class="chats-list-item border-bottom">
-                                    <img src="{{item.get_photo_url(current_user)}}" class="md-rounded-profile-photo">
-                                    <h6>{{item.get_title(current_user)}}</h6>
-                                </div>
-                            {% endif %}
-                        </a>
-                    {% endfor %}
-                </div>
-                <div class="modal-footer"></div>
-            </div>
+    .chats-list-item.active {
+        background-color: hsl(216deg 93% 94%);
+    }
+
+    .chats-list-item > .chat-title {
+        max-width: 200px;
+    }
+
+    .choose-user-field {
+        flex: 1 1 auto;
+        border-top-right-radius: 5px;
+        border-bottom-right-radius: 5px;
+        padding: 5px;
+    }
+
+    .message {
+        width: 100%;
+        display: flex;
+        margin-bottom: 10px;
+    }
+
+    .message-block {
+        padding: 0.5rem;
+        border-radius: 10px;
+        max-width: 80%;
+    }
+
+    .message-datetime {
+        color: #aaa;
+    }
+
+    .message-header, .message-paragraph {
+        margin-bottom: 0px;
+    }
+
+    .message-own {
+        justify-content: flex-end;
+    }
+
+    .message-own > .message-block {
+        background-color: hsl(216deg 93% 94%);
+    }
+
+    .message-own .message-header {
+        text-align: right;
+    }
+
+    .message-own .message-paragraph {
+        text-align: right;
+    }
+
+    .message-someone {
+        justify-content: flex-start;
+    }
+
+    .message-someone > .message-block {
+        border: 1px solid #aaa;
+    }
+
+    .message-someone > .message-block > .message-content {
+        display: flex;
+        justify-content: left;
+    }
+
+    .user-content > .main-content > .secondary-block {
+        width: 280px;
+        min-width: 280px;
+    }
+
+    .user-content > .main-content > .main-block {
+        width: 606px;
+        min-width: 606px;
+    }
+</style>
+{% endblock %}
+
+{% block secondary_block %}
+<div class="modal-dialog modal-dialog-scrollable chats-list" style="height: 90vh">
+    <div class="modal-content border-dark">
+        <div class="modal-header border-dark p-2">
+            <a class="text-decoration-none text-dark" href="{{url_for('messenger')}}">
+                <h5 class="m-0">Чаты</h5>
+            </a>
         </div>
-        <div class="modal-dialog modal-dialog-scrollable current-chat">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5>{% block chat_name %}Мессенджер{% endblock %}</h5>
-                    <div id="n_messages" hidden></div>
-                </div>
-                <div class="modal-body" id="messages-list"></div>
-                <div class="modal-footer">
-                    {% block input_message %}
-                        <button type="button" class="btn btn-outline-secondary" data-toggle="modal" data-target="#create_group_chat">
-                            Создать беседу
-                        </button>
-                    {% endblock %}
-                </div>
-            </div>
+        <div class="modal-body p-0">
+            {% for item in chats %}
+                <a href="{{url_for('messenger', chat=item.id)}}" class="text-decoration-none text-body">
+                    {% if chat != None and chat.id == item.id %}
+                        <div class="chats-list-item border-bottom active">
+                            <img src="{{item.get_profile_photo_url(current_user)}}" class="sm-rounded-circle">
+                            <h6 class="chat-title text-truncate ml-1">{{item.get_title(current_user)}}</h6>
+                        </div>
+                    {% else %}
+                        <div class="chats-list-item border-bottom">
+                            <img src="{{item.get_profile_photo_url(current_user)}}" class="sm-rounded-circle">
+                            <h6 class="chat-title text-truncate ml-1">{{item.get_title(current_user)}}</h6>
+                        </div>
+                    {% endif %}
+                </a>
+            {% endfor %}
         </div>
-        {% block create_group_chat %}
-            <div class="modal fade create-group-chat" id="create_group_chat" tabindex="-1" role="dialog" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-scrollable" role="document">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h5 class="modal-title">Создать беседу</h5>
-                            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
-                        </div>
-                        <div class="modal-body">
-                            <h6>Добавить участников:</h6>
-                            {% for friend in current_user.get_friends() %}
-                                <div class="input-group mb-3">
-                                    <div class="input-group-prepend">
-                                        <div class="input-group-text">
-                                            <input type="checkbox" aria-label="Checkbox for following text input" id="{{friend.id}}">
-                                        </div>
-                                    </div>
-                                    <div class="choose-user-field border" id="friend-for-chat-{{friend.id}}">
-                                        {{ friend.first_name }} {{ friend.last_name }}
-                                    </div>
-                                </div>
-                            {% endfor %}
-                        </div>
-                        <div class="modal-footer">
-                            <div style="display: flex; width: 100%">
-                                <input type="text" class="form-control" id="chat-title" autocomplete=off style="margin-right: 0.5rem" placeholder="Введите название беседы...">
-                                <button type="button" class="btn btn-outline-secondary" data-dismiss="modal" onclick="createGroupChat()">Создать</button>
+        <div class="modal-footer border-dark"></div>
+    </div>
+</div>
+{% endblock %}
+
+{% block main_block %}
+<div class="modal-dialog modal-dialog-scrollable current-chat" style="height: 90vh">
+    <div class="modal-content border-dark">
+        <div class="modal-header border-dark p-2">
+            <h5 class="m-0">{% block current_chat_name %}Мессенджер{% endblock %}</h5>
+            <div id="n_messages" hidden></div>
+        </div>
+        <div class="modal-body" id="messages-list">
+            {% block messages_list %}
+                <h4 class="text-center">Создание чата</h4>
+                {% if current_user.get_friends(only_id=True)|length == 0 %}
+                    Вы не можете добавить кого-либо в чат
+                {% else %}
+                    <h6>Добавить участников:</h6>
+                {% endif %}
+                {% for friend in current_user.get_friends() %}
+                    <div class="input-group mb-3">
+                        <div class="input-group-prepend">
+                            <div class="input-group-text">
+                                <input type="checkbox" id="{{friend.id}}">
                             </div>
                         </div>
+                        <div class="choose-user-field border">
+                            {{ friend.first_name }} {{ friend.last_name }}
+                        </div>
                     </div>
+                {% endfor %}
+            {% endblock %}
+        </div>
+        <div class="modal-footer border-dark p-2">
+            {% block input_message %}
+                <div class="d-flex w-100">
+                    <input type="text" class="form-control mr-2" id="group-chat-title" autocomplete=off placeholder="Введите название беседы...">
+                    <button type="button" class="btn btn-secondary" onclick="createGroupChat()">
+                        Создать
+                    </button>
                 </div>
-            </div>
-        {% endblock %}
+            {% endblock %}
+        </div>
     </div>
-    {% block chat_script %}
-        <script>
-            function createGroupChat() {
-                var xhr = new XMLHttpRequest();
-                var users = "";
-                var checked_users = document.querySelectorAll("input[type='checkbox']:checked");
-                for (var i = 0; i < checked_users.length; i++) {
-                    users += checked_users[i].id + ";";
-                }
-                var data = {chat_title: document.getElementById("chat-title").value,
-                            users_list: users,}
-                xhr.open('POST', '{{url_for('create_group_chat')}}', true);
-                xhr.setRequestHeader("Content-Type", "application/json");
-                xhr.onload = function (){
-                    if (xhr.responseText) {
-                        window.location.href = "{{url_for('messenger')}}?chat=" + xhr.responseText;
-                    }
-                }
-                xhr.send(JSON.stringify(data));
+</div>
+{% endblock %}
+
+{% block script %}
+<script>
+    function createGroupChat() {
+        let xhr = new XMLHttpRequest();
+        let users = "";
+        let checked_users = document.querySelectorAll("input[type='checkbox']:checked");
+        for (let i = 0; i < checked_users.length; i++) {
+            users += checked_users[i].id + ";";
+        }
+        let data = {chat_title: document.getElementById("group-chat-title").value,
+                    users_list: users,}
+        xhr.open('POST', '{{url_for('create_group_chat')}}', true);
+        xhr.setRequestHeader("Content-Type", "application/json");
+        xhr.onload = function (){
+            if (xhr.responseText) {
+                window.location.href = "{{url_for('messenger')}}?chat=" + xhr.responseText;
             }
-        </script>
-    {% endblock %}
+        }
+        xhr.send(JSON.stringify(data));
+    }
+</script>
 {% endblock %}

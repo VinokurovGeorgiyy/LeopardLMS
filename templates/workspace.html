@@ -1,46 +1,321 @@
 {% extends "base.html" %}
 
-{% block own_styles %}
-    {{ super() }}
-    <link href="{{url_for('static', filename='css/user-navbar-styles.css')}}" rel="stylesheet">
-{% endblock %}
+{% block header %}
+<style>
+    body {
+        background-color: #23272b;
+        overflow-y: hidden;
+        min-width: 990px;
+    }
 
-{% block user_authentication %}
-    <a class="navbar-brand" href="{{url_for('profile')}}">{{ current_user.first_name }} {{ current_user.last_name }}</a>
-    <div class="dropdown">
-        <button class="navbar-toggler" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dropdownMenuButton">
-            <a class="dropdown-item" href="#">Уведомления</a>
-            <a class="dropdown-item" href="{{url_for('edit_user_profile')}}">Настройки</a>
-            <a class="dropdown-item" href="{{url_for('logout')}}">Выход</a>
+    .btn-pill {
+        margin-bottom: .5rem;
+    }
+
+    .btn-pill.focus, .btn-pill:focus {
+        box-shadow: none;
+    }
+
+    .btn-pill:not(:disabled):not(.disabled).active:focus,
+    .btn-pill:not(:disabled):not(.disabled):active:focus,
+    .show>.btn-pill.dropdown-toggle:focus {
+        box-shadow: none;
+    }
+
+    .btn-user-navbar {
+        width: 100%;
+        height: 52px;
+        margin-bottom: 8px;
+        display: flex;
+    }
+
+    .btn-user-navbar.last {
+        margin-bottom: 48px;
+    }
+
+    .btn-user-navbar-pic {
+        margin-left: 6px;
+        min-width: 52px;
+        background-color: #fff;
+        border-radius: 6px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+
+    .btn-user-navbar-label {
+        margin-left: 6px;
+        margin-right: 6px;
+        width: 100%;
+        background-color: #fff;
+        border-radius: 6px;
+        font-family: 'Goldman', cursive;
+        font-size: 20px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        visibility: visible;
+    }
+
+    .card {
+        width: 100%;
+        border-radius: .5rem;
+        padding: 15px;
+        border: 2px solid black;
+    }
+
+    .chats-list, .current-chat {
+        margin: 0;
+        margin-left: auto;
+        margin-right: auto;
+        min-width: inherit;
+        max-width: inherit;
+        min-height: inherit;
+        max-height: inherit;
+        width: 100%;
+    }
+
+    .current-chat > .modal-content, .chats-list > .modal-content {
+        border-width: 2px;
+    }
+
+    .leopard-lms-brand {
+        font-family: "Goldman", cursive;
+        font-size: 1.8rem;
+    }
+
+    .leopard-lms-navbar {
+        padding: 0rem .5rem;
+    }
+
+    .leopard-lms-navbar-links {
+        display: flex;
+    }
+
+    .md-rounded-circle {
+        width: 64px;
+        height: 64px;
+        border-radius: 50%;
+    }
+
+    .sm-rounded-circle {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+    }
+
+    .toggle-user-navbar-link {
+        margin-left: .35rem;
+        margin-right: .7rem;
+        display: flex;
+        align-items: center;
+    }
+
+    .user-content {
+        width: 100%;
+        height: 100%;
+        background-color: #ffffff;
+        border-top-left-radius: .5rem;
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+
+    .user-content > .main-content {
+        display: flex;
+        justify-content: center;
+    }
+
+    .user-content > .main-content > .secondary-block {
+        margin-left: 6px;
+        margin-right: 6px;
+        margin-top: .5rem;
+        width: 218px;
+        min-width: 218px;
+    }
+
+    .user-content > .main-content > .main-block {
+        margin-left: 6px;
+        margin-right: 6px;
+        margin-top: .5rem;
+        width: 668px;
+        min-width: 668px;
+    }
+
+    .user-name-brand {
+        font-family: "Nunito", sans-serif;
+    }
+
+    .user-navbar {
+        height: 100%;
+        width: 64px;
+        min-width: 64px;
+        overflow-y: auto;
+        scrollbar-width: none;
+    }
+
+    .user-navbar > a {
+        color: #000;
+        text-decoration: none;
+    }
+
+    .user-navbar > a:hover {
+        color: #333;
+    }
+
+    .user-navbar.opened {
+        width: 240px;
+        min-width: 240px;
+    }
+
+    .user-navbar::-webkit-scrollbar {
+        width: 0;
+        height: 0;
+    }
+
+    .user-page {
+        display: flex;
+        height: 100vh;
+    }
+
+    .user-profile.card {
+        border: 2px solid #000;
+        padding: 11px;
+        margin-bottom: .5rem;
+    }
+</style>
+{% block style %}{% endblock %}
+    <header class="navbar navbar-dark leopard-lms-navbar">
+        <div class="leopard-lms-navbar-links">
+            <a onclick="toggleUserNavbar()" class="toggle-user-navbar-link">
+                <svg width="2.5rem" height="2.5rem" viewBox="0 0 16 16" class="bi bi-list" fill="#fff" xmlns="http://www.w3.org/2000/svg">
+                    <path fill-rule="evenodd" d="M2.5 11.5A.5.5 0 0 1 3 11h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4A.5.5 0 0 1 3 7h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5zm0-4A.5.5 0 0 1 3 3h10a.5.5 0 0 1 0 1H3a.5.5 0 0 1-.5-.5z"/>
+                </svg>
+            </a>
+            <a class="navbar-brand leopard-lms-brand" href="{{url_for('homepage')}}">
+                Leopard
+            </a>
         </div>
-    </div>
+        <div class="user-authentication">
+            <a class="navbar-brand user-name-brand" href="{{url_for('profile')}}">
+                {{ current_user.first_name }}
+            </a>
+        </div>
+    </header>
 {% endblock %}
 
 {% block content %}
-    <div class="user-navbar">
-        <div class="btn-group" role="group" aria-label="User navbar" id="user-navbar-buttons">
-            <a class="btn btn-outline-secondary" href="{{url_for('profile')}}">Профиль</a>
-            <a class="btn btn-outline-secondary" href="{{url_for('messenger')}}">Сообщения</a>
-            <a class="btn btn-outline-secondary" href="{{url_for('friends')}}">Друзья</a>
-            <a class="btn btn-outline-secondary" href="{{url_for('communities')}}">Сообщества</a>
-            <a class="btn btn-outline-secondary" href="#">Мой дневник</a>
-            <a class="btn btn-outline-secondary" href="#">Моя школа</a>
-            <a class="btn btn-outline-secondary" href="#">Мой класс</a>
-            <a class="btn btn-outline-secondary" href="{{url_for('my_courses')}}">Мои курсы</a>
+    <div class="user-page">
+        <div class="user-navbar opened">
+            <a href="{{url_for('profile')}}" title="Home">
+                <div class="btn-user-navbar">
+                    <div class="btn-user-navbar-pic">
+                        <svg width="2rem" height="2rem" viewBox="0 0 16 16" class="bi bi-house-door-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M6.5 10.995V14.5a.5.5 0 0 1-.5.5H2a.5.5 0 0 1-.5-.5v-7a.5.5 0 0 1 .146-.354l6-6a.5.5 0 0 1 .708 0l6 6a.5.5 0 0 1 .146.354v7a.5.5 0 0 1-.5.5h-4a.5.5 0 0 1-.5-.5V11c0-.25-.25-.5-.5-.5H7c-.25 0-.5.25-.5.495z"/>
+                            <path fill-rule="evenodd" d="M13 2.5V6l-2-2V2.5a.5.5 0 0 1 .5-.5h1a.5.5 0 0 1 .5.5z"/>
+                        </svg>
+                    </div>
+                    <div class="btn-user-navbar-label">Home</div>
+                </div>
+            </a>
+            <a href="{{url_for('friends')}}" title="Friends">
+                <div class="btn-user-navbar">
+                    <div class="btn-user-navbar-pic">
+                        <svg width="2rem" height="2rem" viewBox="0 0 16 16" class="bi bi-person-check-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                            <path fill-rule="evenodd" d="M1 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1H1zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm9.854-2.854a.5.5 0 0 1 0 .708l-3 3a.5.5 0 0 1-.708 0l-1.5-1.5a.5.5 0 0 1 .708-.708L12.5 7.793l2.646-2.647a.5.5 0 0 1 .708 0z"/>
+                        </svg>
+                    </div>
+                    <div class="btn-user-navbar-label">Friends</div>
+                </div>
+            </a>
+            <a href="{{url_for('messenger')}}">
+                <div class="btn-user-navbar">
+                    <div class="btn-user-navbar-pic">
+                        <svg width="2rem" height="2rem" viewBox="0 0 16 16" class="bi bi-chat-left-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                            <path fill-rule="evenodd" d="M2 0a2 2 0 0 0-2 2v12.793a.5.5 0 0 0 .854.353l2.853-2.853A1 1 0 0 1 4.414 12H14a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2z"/>
+                        </svg>
+                    </div>
+                    <div class="btn-user-navbar-label">Chats</div>
+                </div>
+            </a>
+            <a href="{{url_for('groups')}}">
+                <div class="btn-user-navbar">
+                    <div class="btn-user-navbar-pic">
+                        <svg width="2rem" height="2rem" viewBox="0 0 16 16" class="bi bi-people-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                            <path fill-rule="evenodd" d="M7 14s-1 0-1-1 1-4 5-4 5 3 5 4-1 1-1 1H7zm4-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6zm-5.784 6A2.238 2.238 0 0 1 5 13c0-1.355.68-2.75 1.936-3.72A6.325 6.325 0 0 0 5 9c-4 0-5 3-5 4s1 1 1 1h4.216zM4.5 8a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5z"/>
+                        </svg>
+                    </div>
+                    <div class="btn-user-navbar-label">Groups</div>
+                </div>
+            </a>
+            <a href="{{url_for('courses')}}">
+                <div class="btn-user-navbar last">
+                    <div class="btn-user-navbar-pic">
+                        <svg width="2rem" height="2rem" viewBox="0 0 16 16" class="bi bi-grid-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                            <path fill-rule="evenodd" d="M1 2.5A1.5 1.5 0 0 1 2.5 1h3A1.5 1.5 0 0 1 7 2.5v3A1.5 1.5 0 0 1 5.5 7h-3A1.5 1.5 0 0 1 1 5.5v-3zm8 0A1.5 1.5 0 0 1 10.5 1h3A1.5 1.5 0 0 1 15 2.5v3A1.5 1.5 0 0 1 13.5 7h-3A1.5 1.5 0 0 1 9 5.5v-3zm-8 8A1.5 1.5 0 0 1 2.5 9h3A1.5 1.5 0 0 1 7 10.5v3A1.5 1.5 0 0 1 5.5 15h-3A1.5 1.5 0 0 1 1 13.5v-3zm8 0A1.5 1.5 0 0 1 10.5 9h3a1.5 1.5 0 0 1 1.5 1.5v3a1.5 1.5 0 0 1-1.5 1.5h-3A1.5 1.5 0 0 1 9 13.5v-3z"/>
+                        </svg>
+                    </div>
+                    <div class="btn-user-navbar-label">Courses</div>
+                </div>
+            </a>
+            <a href="#">
+                <div class="btn-user-navbar">
+                    <div class="btn-user-navbar-pic">
+                        <svg width="2rem" height="2rem" viewBox="0 0 16 16" class="bi bi-gear-fill" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                            <path fill-rule="evenodd" d="M9.405 1.05c-.413-1.4-2.397-1.4-2.81 0l-.1.34a1.464 1.464 0 0 1-2.105.872l-.31-.17c-1.283-.698-2.686.705-1.987 1.987l.169.311c.446.82.023 1.841-.872 2.105l-.34.1c-1.4.413-1.4 2.397 0 2.81l.34.1a1.464 1.464 0 0 1 .872 2.105l-.17.31c-.698 1.283.705 2.686 1.987 1.987l.311-.169a1.464 1.464 0 0 1 2.105.872l.1.34c.413 1.4 2.397 1.4 2.81 0l.1-.34a1.464 1.464 0 0 1 2.105-.872l.31.17c1.283.698 2.686-.705 1.987-1.987l-.169-.311a1.464 1.464 0 0 1 .872-2.105l.34-.1c1.4-.413 1.4-2.397 0-2.81l-.34-.1a1.464 1.464 0 0 1-.872-2.105l.17-.31c.698-1.283-.705-2.686-1.987-1.987l-.311.169a1.464 1.464 0 0 1-2.105-.872l-.1-.34zM8 10.93a2.929 2.929 0 1 0 0-5.86 2.929 2.929 0 0 0 0 5.858z"/>
+                        </svg>
+                    </div>
+                    <div class="btn-user-navbar-label">Settings</div>
+                </div>
+            </a>
+        </div>
+        <div class="user-content">
+            <div class="main-content">
+                <div class="secondary-block">
+                    {% block secondary_block %}{% endblock %}
+                </div>
+                <div class="main-block">
+                    {% block main_block %}{% endblock %}
+                </div>
+            </div>
         </div>
     </div>
-    <div class="page-content" id="page-content">
-        {% block page_content %}{% endblock %}
-    </div>
-    <script>
-        $(document).ready(
-            function setPageContentMinWidth(){
-                var w=$("#user-navbar-buttons").outerWidth();
-                $("#page-content").css({"width":w});
-                $("body").css({"min-width":w});
-            });
-    </script>
+
+<script>
+    function autoCollapseUserNavbar() {
+        let w = document.documentElement.clientWidth;
+        if (w<1199) {
+            $('.btn-user-navbar-label').css('visibility', 'hidden');
+            $(".user-navbar").addClass("closed");
+            $(".user-navbar").removeClass("opened");
+        }
+    }
+
+    function setUserPageHeight() {
+        let h = $(".leopard-lms-navbar").outerHeight(true);
+        $(".user-page").css("height", document.documentElement.clientHeight-h);
+    }
+
+    function toggleUserNavbar() {
+        let w = document.documentElement.clientWidth;
+        if ($('.user-navbar').hasClass('closed') && (w>=1199)) {
+            $('.btn-user-navbar-label').css('visibility', 'visible');
+            $(".user-navbar").addClass("opened");
+            $(".user-navbar").removeClass("closed");}
+        else {
+            $('.btn-user-navbar-label').css('visibility', 'hidden');
+            $(".user-navbar").addClass("closed");
+            $(".user-navbar").removeClass("opened");}
+    }
+
+    $(window).on('resize', function() {
+        setUserPageHeight();
+        autoCollapseUserNavbar();
+    });
+    $( document ).ready(function() {
+        setUserPageHeight();
+        autoCollapseUserNavbar();
+    });
+</script>
+{% block script %}{% endblock %}
+
 {% endblock %}

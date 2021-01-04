@@ -1,0 +1,25 @@
+{% extends "workspace.html" %}
+
+{% block title %}
+    Курсы | {{ current_user.first_name }} {{ current_user.last_name }}
+{% endblock %}
+
+{% block secondary_block %}
+    <div class="card">
+        <a class="btn btn-outline-dark btn-pill text-nowrap" href="{{url_for('courses', selector='my_courses')}}">
+            Мои курсы
+        </a>
+        <a class="btn btn-outline-dark btn-pill text-nowrap" href="{{url_for('courses', selector='popular')}}">
+            Популярные
+        </a>
+        <a class="btn btn-outline-dark btn-pill text-nowrap" href="{{url_for('courses', selector='search')}}">
+            Поиск курсов
+        </a>
+    </div>
+{% endblock %}
+
+{% block main_block %}
+{% endblock %}
+
+{% block script %}
+{% endblock %}

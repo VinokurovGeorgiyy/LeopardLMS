@@ -1,0 +1,48 @@
+{% extends "friends.html" %}
+
+{% block title %}
+    Мои друзья | {{ current_user.first_name }} {{ current_user.last_name }}
+{% endblock %}
+
+{% set friends = current_user.get_friends() %}
+
+{% block main_block %}
+    {% if friends|length == 0 %}
+        <div class="card d-flex justify-content-center align-items-center">
+            Вы ещё никого не добавили в друзья
+        </div>
+    {% endif %}
+    {% for friend in friends %}
+        <div class="alert card" id="friend-card-{{friend.id}}">
+            <div class="d-flex">
+                <div class="mr-2">
+                    <img src="{{friend.get_profile_photo_url()}}" class="sm-rounded-circle">
+                </div>
+                <div class="w-100">
+                    <a class="text-decoration-none text-dark" href="{{url_for('user_profile', user_id=friend.id)}}">
+                        <h5>{{friend.first_name}} {{friend.last_name}}</h5>
+                        <a class="btn btn-danger btn-sm text-white" onclick="deleteFromFriends({{friend.id}})">
+                            Удалить из друзей
+                        </a>
+                    </a>
+                </div>
+            </div>
+        </div>
+    {% endfor %}
+{% endblock %}
+
+{% block script %}
+    <script>
+        function deleteFromFriends(user_id) {
+            let xhr = new XMLHttpRequest();
+            xhr.open('DELETE', '{{url_for('delete_from_friends')}}?user_id=' + user_id, true);
+            xhr.onload = function() {
+                if (xhr.status == 200) {
+                    let div = document.getElementById('friend-card-' + user_id);
+                    div.remove();
+                }
+            }
+            xhr.send(null);
+        }
+    </script>
+{% endblock %}

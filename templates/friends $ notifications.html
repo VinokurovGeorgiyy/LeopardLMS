@@ -1,0 +1,108 @@
+{% extends "friends.html" %}
+
+{% block title %}
+    Заявки в друзья | {{ current_user.first_name }} {{ current_user.last_name }}
+{% endblock %}
+
+{% block main_block %}
+    <ul class="nav nav-pills mb-3 nav-justified" id="friendship-notifications-tab" role="tablist">
+        <li class="nav-item mr-1" role="presentation">
+            <a class="btn btn-outline-dark btn-pill btn-block active" id="inbox-notifications-tab" data-toggle="pill" href="#inbox-notifications" role="tab" aria-controls="inbox-notifications" aria-selected="true">
+                Входящие
+            </a>
+        </li>
+        <li class="nav-item ml-1" role="presentation">
+            <a class="btn btn-outline-dark btn-pill btn-block " id="outbox-notifications-tab" data-toggle="pill" href="#outbox-notifications" role="tab" aria-controls="outbox-notifications" aria-selected="false">
+                Исходящие
+            </a>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="friendship-notifications">
+        <div class="tab-pane fade show active" id="inbox-notifications" role="tabpanel" aria-labelledby="inbox-notifications-tab">
+            {% if not inbox %}
+                <div class="card d-flex justify-content-center align-items-center">
+                    Входящих заявок не найдено
+                </div>
+            {% else %}
+                {% for item in inbox %}
+                    <div class="alert card" id="friendship-notification-{{item.id}}">
+                        <div class="d-flex">
+                            {% set sender = item.get_sender() %}
+                            <div class="mr-2">
+                                <img src="{{sender.get_profile_photo_url()}}" class="md-rounded-circle">
+                            </div>
+                            <div class="w-100">
+                                <a class="text-decoration-none text-dark" href="{{url_for('user_profile', user_id=sender.id)}}">
+                                    <h4>{{sender.first_name}} {{sender.last_name}}</h4>
+                                </a>
+                                <div class="d-flex">
+                                    <a class="btn btn-success btn-sm text-white mr-2" onclick="addToFriends({{sender.id}}, {{item.id}})">
+                                        Добавить в друзья
+                                    </a>
+                                    <a class="btn btn-danger btn-sm text-white" onclick="cancelFriendshipNotification({{item.id}})">
+                                        Отклонить заявку
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+        <div class="tab-pane fade" id="outbox-notifications" role="tabpanel" aria-labelledby="outbox-notifications-tab">
+            {% if not outbox %}
+                <div class="card d-flex justify-content-center align-items-center">
+                    Исходящих заявок не найдено
+                </div>
+            {% else %}
+                {% for item in outbox %}
+                    <div class="alert card" id="friendship-notification-{{item.id}}">
+                        <div class="d-flex">
+                            {% set addressee = item.get_recipients()[0] %}
+                            <div class="mr-2">
+                                <img src="{{addressee.get_profile_photo_url()}}" class="md-rounded-circle">
+                            </div>
+                            <div class="w-100">
+                                <a class="text-decoration-none text-dark" href="{{url_for('user_profile', user_id=addressee.id)}}">
+                                    <h4>{{addressee.first_name}} {{addressee.last_name}}</h4>
+                                </a>
+                                <a class="btn btn-danger btn-sm text-white" onclick="cancelFriendshipNotification({{item.id}})">
+                                    Отменить заявку
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}
+
+{% block script %}
+    <script>
+        function addToFriends(user_id, item_id) {
+            let xhr = new XMLHttpRequest();
+            xhr.open('POST', '{{url_for("add_to_friends")}}?user_id=' + user_id, true);
+            xhr.onload = function() {
+                if (xhr.status == 200) {
+                    let div = document.getElementById('friendship-notification-' + item_id);
+                    div.remove();
+                }
+            }
+            xhr.send(null);
+        }
+
+        function cancelFriendshipNotification(item_id) {
+            let xhr = new XMLHttpRequest();
+            xhr.open('DELETE', '{{url_for('delete_notification')}}?id=' + item_id, true);
+            xhr.onload = function() {
+                if (xhr.status == 200) {
+                    let div = document.getElementById('friendship-notification-' + item_id);
+                    div.remove();
+                }
+            }
+            xhr.send(null);
+        }
+    </script>
+{% endblock %}

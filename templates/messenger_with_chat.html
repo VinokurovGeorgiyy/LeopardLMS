@@ -1,54 +1,45 @@
 {% extends "messenger.html" %}
 
-{% block chat_name %}
+{% block current_chat_name %}
     {{chat_title}}
 {% endblock %}
 
+{% block messages_list %}{% endblock %}
+
 {% block input_message %}
-    <form action="" method="post" id="name-form" autocomplete=off class="send-message-form">
+    <form id="send-message-form" autocomplete=off class="w-100">
         {{ form.hidden_tag() }}
-        <div class="fields">
-            <div class="message-field">
-                {{ form.message(class="form-control") }}
+        <div class="d-flex w-100">
+            <div class="w-100 mr-2">
+                {{form.message(class="form-control")}}
             </div>
-            <div>{{ form.submit(type="submit", class="btn btn-dark my-2 my-sm-0", onclick="sendMessage()") }}</div>
+            <div>{{form.submit(type="submit", class="btn btn-dark my-2 my-sm-0", onclick="sendMessage()")}}</div>
         </div>
     </form>
+
 {% endblock %}
 
-{% block create_group_chat %}{% endblock %}
-
-{% block chat_script %}
+{% block script %}
 <script>
-    document.getElementById("message").value = '';
-    document.querySelector('#name-form').addEventListener('submit', function (e) {e.preventDefault();});
-</script>
-<script>
-    function deleteMessage(m_id) {
-        var z = new XMLHttpRequest();
-        z.open("DELETE", "{{url_for('delete_message')}}?message=" + m_id, true);
-        z.send(null);
-    }
-
     function sendMessage() {
-        var xhr = new XMLHttpRequest();
-        var data = {message: document.getElementById("message").value, chat_id: {{chat.id}},};
-        xhr.open('POST', '{{url_for('send_message')}}', true);
+        let xhr = new XMLHttpRequest();
+        let data = {message: document.getElementById("message").value};
+        xhr.open('POST', '{{url_for('chat_view', chat_id=chat.id)}}', true);
         xhr.setRequestHeader("Content-Type", "application/json");
         xhr.send(JSON.stringify(data));
         document.getElementById("message").value = '';}
 
     function updateChat() {
-        var x = new XMLHttpRequest();
-        var y = new XMLHttpRequest();
-        y.open("GET", "{{url_for('get_messages', chat=chat.id, only_number=1)|safe}}", true);
+        let x = new XMLHttpRequest();
+        let y = new XMLHttpRequest();
+        y.open("GET", "{{url_for('chat_view', chat_id=chat.id, only_number=1)|safe}}", true);
         y.onload = function() {
             if (document.getElementById('n_messages').innerHTML != y.responseText) {
-                x.open("GET", "{{url_for('get_messages', chat=chat.id, only_number=0)|safe}}", true);
+                x.open("GET", "{{url_for('chat_view', chat_id=chat.id, only_number=0)|safe}}", true);
                 x.onload = function (){
                     document.getElementById('messages-list').innerHTML = x.responseText;
                     document.getElementById('n_messages').innerHTML = y.responseText;
-                    var block = document.getElementById('messages-list');
+                    let block = document.getElementById('messages-list');
                     block.scrollTop = block.scrollHeight;
                 }
                 x.send(null);
@@ -56,6 +47,12 @@
         }
         y.send(null);
     }
+
+    $( document ).ready(function () {
+        document.getElementById("message").value = '';
+        document.querySelector('#send-message-form').addEventListener('submit', function (e) {e.preventDefault();});
+    });
+
     setInterval("updateChat()", 1000);
 </script>
 {% endblock %}

@@ -1,20 +1,25 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, SubmitField
-from wtforms import IntegerField, TextAreaField, FileField
+from wtforms import StringField, PasswordField, SubmitField
+from wtforms import TextAreaField, IntegerField, SelectField
 from wtforms.validators import DataRequired, EqualTo, Email
-
-
-class ChangePasswordForm(FlaskForm):
-    old_password = PasswordField('Старый пароль', validators=[DataRequired()])
-    new_password = PasswordField('Новый пароль',
-                                 validators=[DataRequired(), EqualTo('repeat_password')])
-    repeat_password = PasswordField('Повторите пароль', validators=[DataRequired()])
-    submit = SubmitField('Изменить пароль')
 
 
 class ChatForm(FlaskForm):
     message = StringField('Сообщение', validators=[])
     submit = SubmitField('Отправить')
+
+
+class CreateIndependentGroupForm(FlaskForm):
+    title = StringField('Название', validators=[DataRequired()])
+    description = TextAreaField('Описание', validators=[])
+    group_type = SelectField('Тип', choices=[('OPENED', 'Открытая'), ('CLOSED', 'Закрытая')])
+    submit = SubmitField('Создать')
+
+
+class CreatePostForm(FlaskForm):
+    text = TextAreaField('Текст', validators=[])
+    code = TextAreaField('Код', validators=[DataRequired()])
+    submit = SubmitField('Создать')
 
 
 class LoginForm(FlaskForm):
@@ -23,28 +28,17 @@ class LoginForm(FlaskForm):
     submit = SubmitField('Вход')
 
 
-class UserProfileEditForm(FlaskForm):
-    last_name = StringField('Фамилия', validators=[DataRequired()])
-    first_name = StringField('Имя', validators=[DataRequired()])
-    patronymic = StringField('Отчество', validators=[])
-    submit = SubmitField('Сохранить')
-
-
 class UserRegistrationForm(FlaskForm):
     last_name = StringField('Фамилия', validators=[DataRequired()])
     first_name = StringField('Имя', validators=[DataRequired()])
     patronymic = StringField('Отчество', validators=[])
     email = StringField('Email', validators=[DataRequired(), Email()])
-    password = PasswordField('Пароль', validators=[DataRequired(),
-                                                   EqualTo('repeat')])
+    password = PasswordField('Пароль', validators=[DataRequired(), EqualTo('repeat')])
     repeat = PasswordField('Повторите пароль', validators=[DataRequired()])
     submit = SubmitField('Зарегистрироваться')
 
 
 class WriteMessageForm(FlaskForm):
-    message = TextAreaField('Сообщение', validators=[])
-
-
-class SearchForm(FlaskForm):
-    data = StringField('Поиск', validators=[])
-    submit = SubmitField('Найти')
+    message = TextAreaField('Сообщение', validators=[DataRequired()])
+    user_id = IntegerField('ID получателя', validators=[DataRequired()])
+    submit = SubmitField('Отправить')

@@ -1,0 +1,23 @@
+{% extends "workspace.html" %}
+
+{% block title %}{% endblock %}
+
+{% block secondary_block %}
+    <div class="card">
+        <a class="btn btn-outline-dark mb-2 text-nowrap" href="{{url_for('groups', selector='my_groups')}}">
+            Мои группы
+        </a>
+        <a class="btn btn-outline-dark mb-2 text-nowrap" href="{{url_for('groups', selector='popular')}}">
+            Популярные
+        </a>
+        <a class="btn btn-outline-dark text-nowrap" href="{{url_for('groups', selector='search')}}">
+            Поиск групп
+        </a>
+    </div>
+{% endblock %}
+
+{% block main_block %}
+{% endblock %}
+
+{% block script %}
+{% endblock %}

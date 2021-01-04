@@ -1,21 +1,21 @@
 {% extends "workspace.html" %}
 
-{% block own_styles %}
-    {{ super() }}
-    <link href="{{url_for('static', filename='css/friends-presentation-styles.css')}}" rel="stylesheet">
+{% block secondary_block %}
+    <div class="card">
+        <a class="btn btn-outline-dark mb-2 text-nowrap" href="{{url_for('friends', selector='my_friends')}}">
+            Мои друзья
+        </a>
+        <a class="btn btn-outline-dark mb-2 text-nowrap" href="{{url_for('friends', selector='notifications')}}">
+            Заявки в друзья
+        </a>
+        <a class="btn btn-outline-dark text-nowrap" href="{{url_for('friends', selector='search')}}">
+            Найти друзей
+        </a>
+    </div>
 {% endblock %}
 
-{% block title %}Друзья{% endblock %}
+{% block main_block %}
+{% endblock %}
 
-{% block page_content %}
-    <div class="friends-list full-width">
-        {% for friend in friends %}
-            <div class="card friends-list-item">
-                <img src="{{friend.profile_photo}}" class="secondary-profile-photo">
-                <a href="{{url_for('user_profile', user_id=friend.id)}}">
-                    <div class="cut-string">{{ friend.first_name }} {{ friend.last_name }}</div>
-                </a>
-            </div>
-        {% endfor %}
-    </div>
+{% block script %}
 {% endblock %}
