@@ -1,8 +1,8 @@
 from flask import Flask, render_template, redirect, abort, url_for, request, make_response
+from flask import jsonify
 from flask_login import LoginManager, current_user, login_user, logout_user, login_required
 
-from forms import LoginForm, UserRegistrationForm, CreateIndependentGroupForm
-from forms import ChatForm, WriteMessageForm, CreatePostForm
+from forms import *
 
 from data import db_session
 from data.__all_models import User, Notification, Chat, Message, Post, Group
@@ -41,7 +41,9 @@ def add_to_friends():
     session = db_session.create_session()
     user = session.query(User).get(user_id)
     curr_user = session.query(User).get(current_user.id)
-    if user and user.id != curr_user.id:
+    if not user:
+        return make_response("USER NOT FOUND", 404)
+    if user.id != curr_user.id:
         notification = user.friendship_notification_exists(curr_user.id)
         if notification is not None:
             notification = session.query(Notification).get(notification.id)
@@ -51,7 +53,8 @@ def add_to_friends():
                 curr_user.delete_notification(notification.id)
                 session.delete(notification)
                 session.commit()
-    return make_response("Success", 200)
+                return make_response("Success", 200)
+    return make_response("Error", 400)
 
 
 @app.route('/chat-<int:chat_id>', methods=['GET', 'POST', 'DELETE'])
@@ -238,12 +241,11 @@ def delete_from_friends():
     session = db_session.create_session()
     user = session.query(User).get(user_id)
     curr_user = session.query(User).get(current_user.id)
-    if user.id in curr_user.get_friends(only_id=True):
+    if user is not None:
         user.delete_friend(curr_user.id)
-        curr_user.delete_friend(user.id)
-        session.commit()
-        return make_response('Success', 200)
-    return make_response('Error', 404)
+    curr_user.delete_friend(user.id)
+    session.commit()
+    return make_response('Success', 200)
 
 
 @app.route('/delete-notification', methods=['DELETE'])
@@ -294,7 +296,11 @@ def friends():
         params = {"current_user": current_user, 'outbox': outbox, 'inbox': inbox}
         return render_template('friends $ notifications.html', **params)
     if selector == 'search':
-        params = {"current_user": current_user}
+        simple_search_form = SearchForm()
+        advanced_search_form = AdvancedSearchUserForm()
+        params = {"current_user": current_user,
+                  "simple_search_form": simple_search_form,
+                  "advanced_search_form": advanced_search_form}
         return render_template('friends $ search.html', **params)
 
     params = {"current_user": current_user}
@@ -310,7 +316,9 @@ def group_profile(group_id):
     group_obj = session.query(Group).get(group_id)
     if group_obj is None:
         abort(404)
-    params = {"current_user": current_user, "group": group_obj}
+    form = CreatePostForm()
+    params = {"current_user": current_user, "group": group_obj,
+              "create_post_form": form}
     return render_template('group_profile.html', **params)
 
 
@@ -359,6 +367,8 @@ def logout():
 @app.route('/messenger')
 @login_required
 def messenger():
+    if current_user.is_blocked():
+        abort(423)
     session = db_session.create_session()
     chats = current_user.get_chats()
     chat_id = request.args.get('chat', type=int)
@@ -385,6 +395,51 @@ def messenger():
 @login_required
 def profile():
     return redirect(url_for('user_profile', user_id=current_user.id))
+
+
+@app.route('/search-user', methods=['POST'])
+@login_required
+def search_user():
+    if current_user.is_blocked():
+        return make_response("LOCKED", 423)
+    if request.json is None:
+        return make_response("BAD REQUEST: ARGS NOT FOUND", 400)
+    type_of_search = request.json.get('type_of_search')
+    simple_request = request.json.get('request')
+    first_name = request.json.get('first_name')
+    last_name = request.json.get('last_name')
+    session = db_session.create_session()
+    query = session.query(User)
+
+    if type_of_search == 'simple':
+        if not simple_request:
+            return make_response("EMPTY REQUEST", 400)
+        points = map(lambda x: x.lower(), str(simple_request).split())
+        for point in points:
+            search_data = f"%{point}%"
+            f_search_data = f"%{point[0].upper() + point[1:]}%"
+            query = query.filter((User.first_name.like(search_data)) |
+                                 (User.last_name.like(search_data)) |
+                                 (User.first_name.like(f_search_data)) |
+                                 (User.last_name.like(f_search_data)))
+    elif type_of_search == 'advanced':
+        if not first_name and not last_name:
+            return make_response("EMPTY REQUEST", 400)
+        if first_name:
+            query = query.filter(User.first_name == first_name)
+        if last_name:
+            query = query.filter(User.last_name == last_name)
+    else:
+        return make_response("BAD REQUEST: SEARCH_TYPE_ERROR", 400)
+
+    result = query.all()
+    users = []
+    for item in result:
+        users += [{"id": item.id,
+                   "name": f'{item.first_name} {item.last_name}',
+                   "profile_url": url_for("user_profile", user_id=item.id),
+                   "profile_photo_url": item.get_profile_photo_url()}]
+    return make_response(jsonify({"users": users}), 200)
 
 
 @app.route("/sign-in", methods=['GET', 'POST'])

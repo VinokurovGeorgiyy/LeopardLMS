@@ -4,8 +4,101 @@
     Найти друзей
 {% endblock %}
 
+{% block secondary_block %}
+    {{ super() }}
+    <div class="card mt-3">
+        <h6 class="text-center">Расширенный поиск</h6>
+        <form id="advanced-search-friends-form" autocomplete=off>
+            {{ advanced_search_form.hidden_tag() }}
+            <div class="form-group">
+                {{advanced_search_form.advanced_last_name(class="form-control", placeholder="Фамилия")}}
+            </div>
+            <div class="form-group">
+                {{advanced_search_form.advanced_first_name(class="form-control", placeholder="Имя")}}
+            </div>
+            <div class="submit-block">
+                {{advanced_search_form.advanced_submit(type="submit", class="btn btn-secondary btn-block", onclick="searchUser('advanced')")}}
+            </div>
+        </form>
+    </div>
+{% endblock %}
+
 {% block main_block %}
+    <form id="simple-search-friends-form" autocomplete=off class="w-100">
+        {{ simple_search_form.hidden_tag() }}
+        <div class="d-flex w-100">
+            <div class="w-100 mr-2">
+                {{simple_search_form.request(class="form-control border border-dark", placeholder="Введите запрос")}}
+            </div>
+            <div>{{simple_search_form.submit(type="submit", class="btn btn-dark my-2 my-sm-0", onclick="searchUser('simple')")}}</div>
+        </div>
+    </form>
+    <div class="mt-3" id="search-result">
+    </div>
 {% endblock %}
 
 {% block script %}
+<script>
+    function searchUser(type_of_search) {
+        let xhr = new XMLHttpRequest();
+        let data = {type_of_search: type_of_search,
+                    request: document.getElementById("request").value,
+                    first_name: document.getElementById("advanced_first_name").value,
+                    last_name: document.getElementById("advanced_last_name").value};
+        xhr.open('POST', '{{url_for('search_user')}}', true);
+        xhr.onload = function() {
+            let div = document.getElementById("search-result");
+            while (div.firstChild) {
+                div.removeChild(div.firstChild);
+            }
+            if (xhr.status == 200) {
+                let data = JSON.parse(xhr.responseText);
+                if (data["users"].length == 0) {
+                    let card = document.createElement('div');
+                    card.className = "card d-flex justify-content-center align-items-center";
+                    card.textContent = "По Вашему запросу ничего не найдено";
+                    div.append(card);
+                }
+                for (let i = 0; i < data["users"].length; i++) {
+                    let user_card = document.createElement('div');
+                    user_card.className = "alert card";
+                    let user_card_content = document.createElement('div');
+                    user_card_content.className = "d-flex";
+                    let user_photo_block = document.createElement('div');
+                    user_photo_block.className = "mr-2";
+                    let user_photo = document.createElement('img');
+                    user_photo.src = data["users"][i]["profile_photo_url"];
+                    user_photo.className = "sm-rounded-circle";
+                    user_photo_block.append(user_photo);
+                    let user_info_block = document.createElement('div');
+                    user_info_block.className = "w-100";
+                    let user_profile_link = document.createElement('a');
+                    user_profile_link.className = "text-decoration-none text-dark";
+                    user_profile_link.href = data["users"][i]["profile_url"];
+                    let user_name = document.createElement('h5');
+                    user_name.textContent = data["users"][i]["name"];
+                    user_profile_link.append(user_name);
+                    user_info_block.append(user_profile_link);
+                    user_card_content.append(user_photo_block);
+                    user_card_content.append(user_info_block);
+                    user_card.append(user_card_content);
+                    div.append(user_card);
+                }
+            } else {
+                let card = document.createElement('div');
+                card.className = "card d-flex justify-content-center align-items-center";
+                card.textContent = "Ошибка при отправке запроса";
+                div.append(card);
+            }
+
+        }
+        xhr.setRequestHeader("Content-Type", "application/json");
+        xhr.send(JSON.stringify(data));
+    }
+
+    $( document ).ready(function () {
+        document.querySelector('#simple-search-friends-form').addEventListener('submit', function (e) {e.preventDefault();});
+        document.querySelector('#advanced-search-friends-form').addEventListener('submit', function (e) {e.preventDefault();});
+    });
+</script>
 {% endblock %}

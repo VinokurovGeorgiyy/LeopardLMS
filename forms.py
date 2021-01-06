@@ -4,6 +4,12 @@ from wtforms import TextAreaField, IntegerField, SelectField
 from wtforms.validators import DataRequired, EqualTo, Email
 
 
+class AdvancedSearchUserForm(FlaskForm):
+    advanced_first_name = StringField('Имя', validators=[])
+    advanced_last_name = StringField('Фамилия', validators=[])
+    advanced_submit = SubmitField('Поиск')
+
+
 class ChatForm(FlaskForm):
     message = StringField('Сообщение', validators=[])
     submit = SubmitField('Отправить')
@@ -26,6 +32,11 @@ class LoginForm(FlaskForm):
     email = StringField('Электронная почта', validators=[DataRequired()])
     password = PasswordField('Пароль', validators=[DataRequired()])
     submit = SubmitField('Вход')
+
+
+class SearchForm(FlaskForm):
+    request = StringField('Введите запрос', validators=[])
+    submit = SubmitField('Найти')
 
 
 class UserRegistrationForm(FlaskForm):

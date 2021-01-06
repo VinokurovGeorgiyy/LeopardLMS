@@ -1,13 +1,64 @@
 {% extends "workspace.html" %}
 
+{% set is_group_admin = group.check_admin(current_user.id) %}
+{% set is_group_moderator = group.check_moderator(current_user.id) %}
+
 {% block title %}
     {{ group.title }}
 {% endblock %}
 
 {% block secondary_block %}
+    <div class="group-profile card">
+        <img src="{{group.get_profile_photo_url()}}" width="192" height="192" alt="Фото профиля группы">
+        {% if is_group_admin or is_group_moderator %}
+            <a class="btn btn-dark btn-block mt-2" href="#">Редактировать</a>
+        {% endif %}
+    </div>
+    <div class="group-profile card">
+        Участники {{group.get_users(only_id=True)|length}}
+    </div>
+    <div class="group-profile card">
+        Группы {{group.get_groups(only_id=True)|length}}
+    </div>
+    <div class="group-profile card">
+        Курсы {{group.get_courses(only_id=True)|length}}
+    </div>
 {% endblock %}
 
 {% block main_block %}
+    <div class="user-profile card">
+        <h4 class="text-center">{{ group.title }}</h4>
+    </div>
+    {% if group.description %}
+        <div class="user-profile card">
+            <p>{{ group.description }}<p>
+        </div>
+    {% endif %}
+    {% if is_group_admin or is_group_moderator %}
+        <button type="button" class="btn btn-dark mb-2" data-toggle="collapse" data-target="#create_post" aria-expanded="false" aria-controls="createPost">
+            Создать публикацию
+        </button>
+        <div class="collapse" id="create_post">
+            <div class="group-profile card">
+                <form action="{{url_for('create_post')}}" method="post">
+                    {{ create_post_form.hidden_tag() }}
+                    <div class="form-group">
+                        {{create_post_form.text.label(class="col-form-label")}}
+                        {{create_post_form.text(class="form-control")}}
+                    </div>
+                    <div class="form-group">
+                        {{create_post_form.code(class="form-control", hidden=True)}}
+                    </div>
+                    <div class="submit-block">
+                        {{create_post_form.submit(type="submit", class="btn btn-secondary")}}
+                    </div>
+                </form>
+            </div>
+        </div>
+    {% endif %}
+    <div class="card d-flex justify-content-center align-items-center">
+        Публикаций нет
+    </div>
 {% endblock %}
 
 {% block script %}
