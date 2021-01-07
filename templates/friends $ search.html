@@ -16,6 +16,9 @@
             <div class="form-group">
                 {{advanced_search_form.advanced_first_name(class="form-control", placeholder="Имя")}}
             </div>
+            <div class="form-group">
+                {{advanced_search_form.advanced_user_id(class="form-control", placeholder="ID пользователя")}}
+            </div>
             <div class="submit-block">
                 {{advanced_search_form.advanced_submit(type="submit", class="btn btn-secondary btn-block", onclick="searchUser('advanced')")}}
             </div>
@@ -44,7 +47,8 @@
         let data = {type_of_search: type_of_search,
                     request: document.getElementById("request").value,
                     first_name: document.getElementById("advanced_first_name").value,
-                    last_name: document.getElementById("advanced_last_name").value};
+                    last_name: document.getElementById("advanced_last_name").value,
+                    user_id: document.getElementById("advanced_user_id").value};
         xhr.open('POST', '{{url_for('search_user')}}', true);
         xhr.onload = function() {
             let div = document.getElementById("search-result");

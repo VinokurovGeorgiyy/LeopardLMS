@@ -4,15 +4,35 @@ from wtforms import TextAreaField, IntegerField, SelectField
 from wtforms.validators import DataRequired, EqualTo, Email
 
 
+class AdvancedSearchCourseForm(FlaskForm):
+    advanced_title = StringField('Название', validators=[])
+    advanced_course_id = IntegerField('ID курса', validators=[])
+    advanced_submit = SubmitField('Поиск')
+
+
+class AdvancedSearchGroupForm(FlaskForm):
+    advanced_title = StringField('Название', validators=[])
+    advanced_group_id = IntegerField('ID группы', validators=[])
+    advanced_submit = SubmitField('Поиск')
+
+
 class AdvancedSearchUserForm(FlaskForm):
     advanced_first_name = StringField('Имя', validators=[])
     advanced_last_name = StringField('Фамилия', validators=[])
+    advanced_user_id = IntegerField('ID пользователя', validators=[])
     advanced_submit = SubmitField('Поиск')
 
 
 class ChatForm(FlaskForm):
     message = StringField('Сообщение', validators=[])
     submit = SubmitField('Отправить')
+
+
+class CreateIndependentCourseForm(FlaskForm):
+    title = StringField('Название', validators=[DataRequired()])
+    description = TextAreaField('Описание', validators=[])
+    course_type = SelectField('Тип', choices=[('OPENED', 'Открытый'), ('CLOSED', 'Закрытый')])
+    submit = SubmitField('Создать')
 
 
 class CreateIndependentGroupForm(FlaskForm):
