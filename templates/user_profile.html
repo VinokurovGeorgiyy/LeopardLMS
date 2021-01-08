@@ -7,7 +7,7 @@
 {% endblock %}
 
 {% block secondary_block %}
-    <div class="user-profile card">
+    <div class="card">
         <img src="{{user.get_profile_photo_url()}}" width="192" height="192" alt="Фото профиля">
         {% if current_user.id != user.id %}
             {% if user.id in current_user.get_friends(only_id=True) %}
@@ -30,12 +30,12 @@
         {% endif %}
     </div>
     {% if user_friends|length != 0 %}
-        <div class="user-profile card">
+        <div class="card">
             Друзья {{user_friends|length}}
         </div>
     {% else %}
         {% if current_user.id == user.id %}
-            <div class="user-profile card">
+            <div class="card">
                 <a href="{{url_for('friends', selector='search')}}" class="text-decoration-none">
                     Найти друзей
                 </a>
@@ -45,7 +45,7 @@
 {% endblock %}
 
 {% block main_block %}
-    <div class="user-profile card">
+    <div class="card">
         <h4>{{ user.first_name }} {{ user.last_name }}</h4>
         <div>Фамилия: {{ user.last_name }}</div>
         <div>Имя: {{ user.first_name }}</div>
@@ -59,7 +59,7 @@
             Написать сообщение
         </button>
         <div class="collapse" id="write_message">
-            <div class="user-profile card">
+            <div class="card">
                 <div>Кому: {{ user.last_name }} {{ user.first_name }}</div>
                 <form action="{{url_for('write_message')}}" method="post">
                     {{ write_message_form.hidden_tag() }}
@@ -81,7 +81,7 @@
             Создать публикацию
         </button>
         <div class="collapse" id="create_post">
-            <div class="user-profile card">
+            <div class="card">
                 <form action="{{url_for('create_post')}}" method="post">
                     {{ create_post_form.hidden_tag() }}
                     <div class="form-group">
@@ -104,6 +104,7 @@
 {% endblock %}
 
 {% block script %}
+{{ super() }}
 <script>
     function addToFriends() {
         let xhr = new XMLHttpRequest();

@@ -1,0 +1,35 @@
+<script>
+    function sendMessage() {
+        let xhr = new XMLHttpRequest();
+        let data = {message: document.getElementById("message").value};
+        xhr.open('POST', '{{url_for('chat_view', chat_id=chat.id)}}', true);
+        xhr.setRequestHeader("Content-Type", "application/json");
+        xhr.send(JSON.stringify(data));
+        document.getElementById("message").value = '';}
+
+    function updateChat() {
+        let x = new XMLHttpRequest();
+        let y = new XMLHttpRequest();
+        y.open("GET", "{{url_for('chat_view', chat_id=chat.id, only_number=1)|safe}}", true);
+        y.onload = function() {
+            if (document.getElementById('n_messages').innerHTML != y.responseText) {
+                x.open("GET", "{{url_for('chat_view', chat_id=chat.id, only_number=0)|safe}}", true);
+                x.onload = function (){
+                    document.getElementById('messages-list').innerHTML = x.responseText;
+                    document.getElementById('n_messages').innerHTML = y.responseText;
+                    let block = document.getElementById('messages-list');
+                    block.scrollTop = block.scrollHeight;
+                }
+                x.send(null);
+            }
+        }
+        y.send(null);
+    }
+
+    $( document ).ready(function () {
+        document.getElementById("message").value = '';
+        document.querySelector('#send-message-form').addEventListener('submit', function (e) {e.preventDefault();});
+    });
+
+    setInterval("updateChat()", 1000);
+</script>

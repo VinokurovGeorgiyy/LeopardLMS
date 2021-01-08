@@ -8,29 +8,29 @@
 {% endblock %}
 
 {% block secondary_block %}
-    <div class="group-profile card">
+    <div class="card">
         <img src="{{group.get_profile_photo_url()}}" width="192" height="192" alt="Фото профиля группы">
         {% if is_group_admin or is_group_moderator %}
             <a class="btn btn-dark btn-block mt-2" href="#">Редактировать</a>
         {% endif %}
     </div>
-    <div class="group-profile card">
+    <div class="card">
         Участники {{group.get_users(only_id=True)|length}}
     </div>
-    <div class="group-profile card">
+    <div class="card">
         Группы {{group.get_groups(only_id=True)|length}}
     </div>
-    <div class="group-profile card">
+    <div class="card">
         Курсы {{group.get_courses(only_id=True)|length}}
     </div>
 {% endblock %}
 
 {% block main_block %}
-    <div class="group-profile card">
+    <div class="card">
         <h4 class="text-center">{{ group.title }}</h4>
     </div>
     {% if group.description %}
-        <div class="group-profile card">
+        <div class="card">
             <p>{{ group.description }}<p>
         </div>
     {% endif %}
@@ -39,7 +39,7 @@
             Создать публикацию
         </button>
         <div class="collapse" id="create_post">
-            <div class="group-profile card">
+            <div class="card">
                 <form action="{{url_for('create_post')}}" method="post">
                     {{ create_post_form.hidden_tag() }}
                     <div class="form-group">
@@ -62,4 +62,5 @@
 {% endblock %}
 
 {% block script %}
+{{ super() }}
 {% endblock %}

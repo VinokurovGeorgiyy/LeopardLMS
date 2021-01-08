@@ -38,6 +38,7 @@
 {% endblock %}
 
 {% block script %}
+{{ super() }}
 <script>
     function searchCourse(type_of_search) {
         let xhr = new XMLHttpRequest();
@@ -68,7 +69,7 @@
                     course_photo_block.className = "mr-2";
                     let course_photo = document.createElement('img');
                     course_photo.src = data["courses"][i]["profile_photo_url"];
-                    course_photo.className = "sm-rounded-circle";
+                    course_photo.className = "rounded-circle-2";
                     course_photo_block.append(course_photo);
                     let course_info_block = document.createElement('div');
                     course_info_block.className = "w-100";

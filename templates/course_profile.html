@@ -8,7 +8,7 @@
 {% endblock %}
 
 {% block secondary_block %}
-    <div class="course-profile card">
+    <div class="card">
         <img src="{{course.get_profile_photo_url()}}" width="192" height="192" alt="Фото профиля курса">
         {% if is_course_admin or is_course_moderator %}
             <a class="btn btn-dark btn-block mt-2" href="#">Редактировать</a>
@@ -17,11 +17,11 @@
 {% endblock %}
 
 {% block main_block %}
-    <div class="course-profile card">
+    <div class="card">
         <h4 class="text-center">Курс "{{ course.title }}"</h4>
     </div>
     {% if course.description %}
-        <div class="course-profile card">
+        <div class="card">
             <p>{{ course.description }}<p>
         </div>
     {% endif %}
@@ -31,4 +31,5 @@
 {% endblock %}
 
 {% block script %}
+{{ super() }}
 {% endblock %}

@@ -38,6 +38,7 @@
 {% endblock %}
 
 {% block script %}
+{{ super() }}
 <script>
     function searchGroup(type_of_search) {
         let xhr = new XMLHttpRequest();
@@ -68,7 +69,7 @@
                     group_photo_block.className = "mr-2";
                     let group_photo = document.createElement('img');
                     group_photo.src = data["groups"][i]["profile_photo_url"];
-                    group_photo.className = "sm-rounded-circle";
+                    group_photo.className = "rounded-circle-2";
                     group_photo_block.append(group_photo);
                     let group_info_block = document.createElement('div');
                     group_info_block.className = "w-100";
