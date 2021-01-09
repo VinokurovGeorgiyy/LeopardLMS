@@ -30,7 +30,7 @@
                         <div class="d-flex">
                             {% set sender = item.get_sender() %}
                             <div class="mr-2">
-                                <img src="{{sender.get_profile_photo_url()}}" class="rounded-circle-2">
+                                <img src="{{sender.get_profile_photo_url()}}" class="md-rounded-circle">
                             </div>
                             <div class="w-100">
                                 <a class="text-decoration-none text-dark" href="{{url_for('user_profile', user_id=sender.id)}}">
@@ -61,7 +61,7 @@
                         <div class="d-flex">
                             {% set addressee = item.get_recipients()[0] %}
                             <div class="mr-2">
-                                <img src="{{addressee.get_profile_photo_url()}}" class="rounded-circle-2">
+                                <img src="{{addressee.get_profile_photo_url()}}" class="md-rounded-circle">
                             </div>
                             <div class="w-100">
                                 <a class="text-decoration-none text-dark" href="{{url_for('user_profile', user_id=addressee.id)}}">
@@ -80,7 +80,6 @@
 {% endblock %}
 
 {% block script %}
-{{ super() }}
     <script>
         function addToFriends(user_id, item_id) {
             let xhr = new XMLHttpRequest();

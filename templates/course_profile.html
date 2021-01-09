@@ -1,0 +1,34 @@
+{% extends "workspace.html" %}
+
+{% set is_course_admin = course.check_admin(current_user.id) %}
+{% set is_course_moderator = course.check_moderator(current_user.id) %}
+
+{% block title %}
+    Курс: {{ course.title }}
+{% endblock %}
+
+{% block secondary_block %}
+    <div class="course-profile card">
+        <img src="{{course.get_profile_photo_url()}}" width="192" height="192" alt="Фото профиля курса">
+        {% if is_course_admin or is_course_moderator %}
+            <a class="btn btn-dark btn-block mt-2" href="#">Редактировать</a>
+        {% endif %}
+    </div>
+{% endblock %}
+
+{% block main_block %}
+    <div class="course-profile card">
+        <h4 class="text-center">Курс "{{ course.title }}"</h4>
+    </div>
+    {% if course.description %}
+        <div class="course-profile card">
+            <p>{{ course.description }}<p>
+        </div>
+    {% endif %}
+    <div class="card d-flex justify-content-center align-items-center">
+        Публикаций нет
+    </div>
+{% endblock %}
+
+{% block script %}
+{% endblock %}
