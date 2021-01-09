@@ -16,7 +16,7 @@
         <div class="alert card" id="friend-card-{{friend.id}}">
             <div class="d-flex">
                 <div class="mr-2">
-                    <img src="{{friend.get_profile_photo_url()}}" class="rounded-circle-2">
+                    <img src="{{friend.get_profile_photo_url()}}" class="sm-rounded-circle">
                 </div>
                 <div class="w-100">
                     <a class="text-decoration-none text-dark" href="{{url_for('user_profile', user_id=friend.id)}}">
@@ -32,7 +32,6 @@
 {% endblock %}
 
 {% block script %}
-{{ super() }}
     <script>
         function deleteFromFriends(user_id) {
             let xhr = new XMLHttpRequest();
