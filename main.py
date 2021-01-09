@@ -5,7 +5,7 @@ from flask_login import LoginManager, current_user, login_user, logout_user, log
 from forms import *
 
 from data import db_session
-from data.__all_models import User, Notification, Chat, Message, Post, Group, Course, Lesson
+from data.__all_models import User, Notification, Chat, Message, Post, Group
 
 from lms_utils import *
 import datetime
@@ -103,19 +103,6 @@ def chat_view(chat_id):
     return make_response("Error", 404)
 
 
-@app.route('/course-<int:course_id>')
-@login_required
-def course_profile(course_id):
-    if current_user.is_blocked():
-        abort(423)
-    session = db_session.create_session()
-    course_obj = session.query(Course).get(course_id)
-    if course_obj is None:
-        abort(404)
-    params = {"current_user": current_user, "course": course_obj}
-    return render_template('course_profile.html', **params)
-
-
 @app.route('/courses')
 @login_required
 def courses():
@@ -127,52 +114,11 @@ def courses():
         params = {"current_user": current_user}
         return render_template('courses $ popular.html', **params)
     if selector == 'search':
-        simple_search_form = SearchForm()
-        advanced_search_form = AdvancedSearchCourseForm()
-        params = {"current_user": current_user,
-                  "simple_search_form": simple_search_form,
-                  "advanced_search_form": advanced_search_form}
+        params = {"current_user": current_user}
         return render_template('courses $ search.html', **params)
 
-    my_courses_list = current_user.get_courses()
-    my_courses_learning_list, my_courses_teaching_list = [], []
-    for i in my_courses_list:
-        if i.check_admin(current_user.id) or i.check_moderator(current_user.id):
-            my_courses_teaching_list += [i]
-        else:
-            my_courses_learning_list += [i]
-    create_course_form = CreateIndependentCourseForm()
-    params = {"current_user": current_user, "my_courses": my_courses_list,
-              "my_courses_learning": my_courses_learning_list,
-              "my_courses_teaching": my_courses_teaching_list,
-              "create_course_form": create_course_form}
+    params = {"current_user": current_user}
     return render_template('courses $ my_courses.html', **params)
-
-
-@app.route('/create-course', methods=['POST'])
-@login_required
-def create_course():
-    if current_user.is_blocked():
-        return make_response("LOCKED", 423)
-    dependency = request.args.get('dependency')
-    if dependency == 'independent':
-        form = CreateIndependentCourseForm()
-        if form.validate_on_submit():
-            session = db_session.create_session()
-            course_obj = Course()
-            course_obj.set_admin(current_user.id)
-            course_obj.title = form.title.data
-            course_obj.set_type(form.course_type.data)
-            if form.description.data:
-                course_obj.description = form.description.data
-            session.add(course_obj)
-            session.commit()
-            curr_user = session.query(User).get(current_user.id)
-            curr_user.add_course(course_obj.id)
-            session.commit()
-            return redirect(url_for('course_profile', course_id=course_obj.id))
-        return make_response('Error', 400)
-    return make_response('Error', 400)
 
 
 @app.route('/create-group', methods=['POST'])
@@ -387,18 +333,11 @@ def groups():
         params = {"current_user": current_user}
         return render_template('groups $ popular.html', **params)
     if selector == 'search':
-        simple_search_form = SearchForm()
-        advanced_search_form = AdvancedSearchGroupForm()
-        params = {"current_user": current_user,
-                  "simple_search_form": simple_search_form,
-                  "advanced_search_form": advanced_search_form}
+        params = {"current_user": current_user}
         return render_template('groups $ search.html', **params)
 
     form = CreateIndependentGroupForm()
-    my_groups = current_user.get_groups()
-    my_groups_control = [i for i in my_groups if i.check_admin(current_user.id)]
-    params = {"current_user": current_user, "create_group_form": form,
-              "my_groups_control": my_groups_control, "my_groups": my_groups}
+    params = {"current_user": current_user, "create_group_form": form}
     return render_template('groups $ my_groups.html', **params)
 
 
@@ -458,98 +397,6 @@ def profile():
     return redirect(url_for('user_profile', user_id=current_user.id))
 
 
-@app.route('/search-course', methods=['POST'])
-@login_required
-def search_course():
-    if current_user.is_blocked():
-        return make_response("LOCKED", 423)
-    if request.json is None:
-        return make_response("BAD REQUEST: ARGS NOT FOUND", 400)
-    type_of_search = request.json.get('type_of_search')
-    simple_request = request.json.get('request')
-    title = request.json.get('title')
-    course_id = request.json.get('course_id')
-    session = db_session.create_session()
-    query = session.query(Course)
-
-    if type_of_search == 'simple':
-        if not simple_request:
-            return make_response("EMPTY REQUEST", 400)
-        points = map(lambda x: x.lower(), str(simple_request).split())
-        for point in points:
-            search_data = f"%{point}%"
-            f_search_data = f"%{point[0].upper() + point[1:]}%"
-            query = query.filter((Course.title.like(search_data)) |
-                                 (Course.title.like(f_search_data)))
-    elif type_of_search == 'advanced':
-        if not title and not course_id:
-            return make_response("EMPTY REQUEST", 400)
-        if title:
-            query = query.filter(Course.title == title)
-        if course_id and str(course_id).isdigit():
-            course_id = int(course_id)
-            query = query.filter(Course.id == course_id)
-    else:
-        return make_response("BAD REQUEST: SEARCH_TYPE_ERROR", 400)
-
-    result = query.all()
-    courses_list = []
-    for item in result:
-        courses_list += [
-            {"id": item.id,
-             "name": f'{item.title}',
-             "profile_url": url_for("course_profile", course_id=item.id),
-             "profile_photo_url": item.get_profile_photo_url()}
-        ]
-    return make_response(jsonify({"courses": courses_list}), 200)
-
-
-@app.route('/search-group', methods=['POST'])
-@login_required
-def search_group():
-    if current_user.is_blocked():
-        return make_response("LOCKED", 423)
-    if request.json is None:
-        return make_response("BAD REQUEST: ARGS NOT FOUND", 400)
-    type_of_search = request.json.get('type_of_search')
-    simple_request = request.json.get('request')
-    title = request.json.get('title')
-    group_id = request.json.get('group_id')
-    session = db_session.create_session()
-    query = session.query(Group)
-
-    if type_of_search == 'simple':
-        if not simple_request:
-            return make_response("EMPTY REQUEST", 400)
-        points = map(lambda x: x.lower(), str(simple_request).split())
-        for point in points:
-            search_data = f"%{point}%"
-            f_search_data = f"%{point[0].upper() + point[1:]}%"
-            query = query.filter((Group.title.like(search_data)) |
-                                 (Group.title.like(f_search_data)))
-    elif type_of_search == 'advanced':
-        if not title and not group_id:
-            return make_response("EMPTY REQUEST", 400)
-        if title:
-            query = query.filter(Group.title == title)
-        if group_id and str(group_id).isdigit():
-            group_id = int(group_id)
-            query = query.filter(Group.id == group_id)
-    else:
-        return make_response("BAD REQUEST: SEARCH_TYPE_ERROR", 400)
-
-    result = query.all()
-    groups_list = []
-    for item in result:
-        groups_list += [
-            {"id": item.id,
-             "name": f'{item.title}',
-             "profile_url": url_for("group_profile", group_id=item.id),
-             "profile_photo_url": item.get_profile_photo_url()}
-        ]
-    return make_response(jsonify({"groups": groups_list}), 200)
-
-
 @app.route('/search-user', methods=['POST'])
 @login_required
 def search_user():
@@ -561,7 +408,6 @@ def search_user():
     simple_request = request.json.get('request')
     first_name = request.json.get('first_name')
     last_name = request.json.get('last_name')
-    user_id = request.json.get('user_id')
     session = db_session.create_session()
     query = session.query(User)
 
@@ -577,15 +423,12 @@ def search_user():
                                  (User.first_name.like(f_search_data)) |
                                  (User.last_name.like(f_search_data)))
     elif type_of_search == 'advanced':
-        if not first_name and not last_name and not user_id:
+        if not first_name and not last_name:
             return make_response("EMPTY REQUEST", 400)
         if first_name:
             query = query.filter(User.first_name == first_name)
         if last_name:
             query = query.filter(User.last_name == last_name)
-        if user_id and str(user_id).isdigit():
-            user_id = int(user_id)
-            query = query.filter(User.id == user_id)
     else:
         return make_response("BAD REQUEST: SEARCH_TYPE_ERROR", 400)
 
