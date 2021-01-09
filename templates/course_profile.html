@@ -4,7 +4,7 @@
 {% set is_course_moderator = course.check_moderator(current_user.id) %}
 
 {% block title %}
-    Курс: {{ course.title }}
+    Курс: "{{ course.title }}"
 {% endblock %}
 
 {% block secondary_block %}
