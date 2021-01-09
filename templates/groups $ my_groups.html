@@ -4,6 +4,8 @@
     Мои группы | {{ current_user.first_name }} {{ current_user.last_name }}
 {% endblock %}
 
+{% set my_groups = current_user.get_groups() %}
+
 {% block main_block %}
     <ul class="nav nav-pills mb-3 nav-justified" id="my-groups-tab" role="tablist">
         <li class="nav-item mr-1" role="presentation">
@@ -34,7 +36,7 @@
                 <div class="alert card">
                     <div class="d-flex">
                         <div class="mr-2">
-                            <img src="{{item.get_profile_photo_url()}}" class="rounded-circle-2">
+                            <img src="{{item.get_profile_photo_url()}}" class="sm-rounded-circle">
                         </div>
                         <div class="w-100">
                             <a class="text-decoration-none text-dark" href="{{url_for('group_profile', group_id=item.id)}}">
@@ -46,30 +48,12 @@
             {% endfor %}
         </div>
         <div class="tab-pane fade" id="groups-control" role="tabpanel" aria-labelledby="groups-control-tab">
-            {% if my_groups_control|length == 0 %}
-                <div class="card d-flex justify-content-center align-items-center">
-                    Вы не являетесь администратором какой-либо группы
-                </div>
-            {% endif %}
-            {% for item in my_groups_control %}
-                <div class="alert card">
-                    <div class="d-flex">
-                        <div class="mr-2">
-                            <img src="{{item.get_profile_photo_url()}}" class="rounded-circle-2">
-                        </div>
-                        <div class="w-100">
-                            <a class="text-decoration-none text-dark" href="{{url_for('group_profile', group_id=item.id)}}">
-                                <h5>{{ item.title }}</h5>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            {% endfor %}
+
         </div>
         <div class="tab-pane fade" id="create-group" role="tabpanel" aria-labelledby="create-group-tab">
             <div class="card">
                 <h4 class="text-center">Создание группы</h4>
-                <form action="{{url_for('create_group', dependency='independent')}}" autocomplete=off method="post">
+                <form action="{{url_for('create_group', dependency='independent')}}" method="post">
                     {{ create_group_form.hidden_tag() }}
                     <div class="form-group">
                         {{create_group_form.title.label(class="col-form-label")}}
@@ -93,5 +77,4 @@
 {% endblock %}
 
 {% block script %}
-{{ super() }}
 {% endblock %}

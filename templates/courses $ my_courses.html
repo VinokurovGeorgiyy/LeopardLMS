@@ -4,6 +4,8 @@
     Мои курсы | {{ current_user.first_name }} {{ current_user.last_name }}
 {% endblock %}
 
+{% set my_courses = current_user.get_courses() %}
+
 {% block main_block %}
     <ul class="nav nav-pills mb-3 nav-justified" id="my-courses-tab" role="tablist">
         <li class="nav-item mr-1" role="presentation">
@@ -36,13 +38,13 @@
                 </div>
             {% endif %}
             {% for item in my_courses %}
-                <div class="alert card" >
+                <div class="alert card" id="my-course-card-{{item.id}}">
                     <div class="d-flex">
                         <div class="mr-2">
-                            <img src="{{item.get_profile_photo_url()}}" class="rounded-circle-2">
+                            <img src="{{item.get_profile_photo_url()}}" class="sm-rounded-circle">
                         </div>
                         <div class="w-100">
-                            <a class="text-decoration-none text-dark" href="{{url_for('course_profile', course_id=item.id)}}">
+                            <a class="text-decoration-none text-dark" href="#">
                                 <h5>{{ item.title }}</h5>
                             </a>
                         </div>
@@ -51,69 +53,13 @@
             {% endfor %}
         </div>
         <div class="tab-pane fade" id="learning" role="tabpanel" aria-labelledby="learning-tab">
-            {% if my_courses_learning|length == 0 %}
-                <div class="card d-flex justify-content-center align-items-center">
-                    Вы не обучаетесь ни на одном курсе
-                </div>
-            {% endif %}
-            {% for item in my_courses_learning %}
-                <div class="alert card">
-                    <div class="d-flex">
-                        <div class="mr-2">
-                            <img src="{{item.get_profile_photo_url()}}" class="rounded-circle-2">
-                        </div>
-                        <div class="w-100">
-                            <a class="text-decoration-none text-dark" href="{{url_for('course_profile', course_id=item.id)}}">
-                                <h5>{{ item.title }}</h5>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            {% endfor %}
+
         </div>
         <div class="tab-pane fade" id="teaching" role="tabpanel" aria-labelledby="teaching-tab">
-            {% if my_courses_teaching|length == 0 %}
-                <div class="card d-flex justify-content-center align-items-center">
-                    Вы не являетесь преподавателем или администратором какого-либо курса
-                </div>
-            {% endif %}
-            {% for item in my_courses_teaching %}
-                <div class="alert card" >
-                    <div class="d-flex">
-                        <div class="mr-2">
-                            <img src="{{item.get_profile_photo_url()}}" class="rounded-circle-2">
-                        </div>
-                        <div class="w-100">
-                            <a class="text-decoration-none text-dark" href="{{url_for('course_profile', course_id=item.id)}}">
-                                <h5>{{ item.title }}</h5>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            {% endfor %}
+
         </div>
         <div class="tab-pane fade" id="create-course" role="tabpanel" aria-labelledby="create-course-tab">
-            <div class="card">
-                <h4 class="text-center">Создание курса</h4>
-                <form action="{{url_for('create_course', dependency='independent')}}" autocomplete=off method="post">
-                    {{ create_course_form.hidden_tag() }}
-                    <div class="form-group">
-                        {{create_course_form.title.label(class="col-form-label")}}
-                        {{create_course_form.title(class="form-control")}}
-                    </div>
-                    <div class="form-group">
-                        {{create_course_form.description.label(class="col-form-label")}}
-                        {{create_course_form.description(class="form-control")}}
-                    </div>
-                    <div class="form-group">
-                        {{create_course_form.course_type.label(class="col-form-label")}}
-                        {{create_course_form.course_type(class="form-control")}}
-                    </div>
-                    <div class="submit-block">
-                        {{create_course_form.submit(type="submit", class="btn btn-secondary")}}
-                    </div>
-                </form>
-            </div>
+
         </div>
     </div>
 
