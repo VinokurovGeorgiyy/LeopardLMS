@@ -8,7 +8,7 @@
 
 {% block secondary_block %}
     <div class="card">
-        <img src="{{user.get_profile_photo_url()}}" width="192" height="192" alt="Фото профиля">
+        <img src="{{user.get_profile_photo_url()}}" width="190" height="190" alt="Фото профиля">
         {% if current_user.id != user.id %}
             {% if user.id in current_user.get_friends(only_id=True) %}
                 <div class="btn btn-dark disabled btn-block mt-2">В друзьях</div>
@@ -36,7 +36,7 @@
     {% else %}
         {% if current_user.id == user.id %}
             <div class="card">
-                <a href="{{url_for('friends', selector='search')}}" class="text-decoration-none">
+                <a href="{{url_for('friends', selector='search')}}" class="text-decoration-none text-dark">
                     Найти друзей
                 </a>
             </div>

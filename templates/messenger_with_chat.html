@@ -1,7 +1,12 @@
 {% extends "messenger.html" %}
 
 {% block current_chat_name %}
-    {{chat_title}}
+    <div class="current-chat-header">
+        <a class="mr-2">
+            {{ macros.bi_three_dots(width="2rem", height="2rem") }}
+        </a>
+        <h5 class="current-chat-title">{{chat_title}}</h5>
+    </div>
 {% endblock %}
 
 {% block messages_list %}{% endblock %}

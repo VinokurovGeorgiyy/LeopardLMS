@@ -9,7 +9,7 @@
 
 {% block secondary_block %}
     <div class="card">
-        <img src="{{group.get_profile_photo_url()}}" width="192" height="192" alt="Фото профиля группы">
+        <img src="{{group.get_profile_photo_url()}}" width="190" height="190" alt="Фото профиля группы">
         {% if is_group_admin or is_group_moderator %}
             <a class="btn btn-dark btn-block mt-2" href="#">Редактировать</a>
         {% endif %}

@@ -9,7 +9,7 @@
 
 {% block secondary_block %}
     <div class="card">
-        <img src="{{course.get_profile_photo_url()}}" width="192" height="192" alt="Фото профиля курса">
+        <img src="{{course.get_profile_photo_url()}}" width="190" height="190" alt="Фото профиля курса">
         {% if is_course_admin or is_course_moderator %}
             <a class="btn btn-dark btn-block mt-2" href="#">Редактировать</a>
         {% endif %}

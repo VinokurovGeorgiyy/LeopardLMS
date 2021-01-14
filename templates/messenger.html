@@ -43,8 +43,12 @@
 <div class="modal-dialog modal-dialog-scrollable current-chat" style="height: 90vh">
     <div class="modal-content border-dark">
         <div class="modal-header border-dark p-2">
-            <h5 class="m-0">{% block current_chat_name %}Мессенджер{% endblock %}</h5>
             <div id="n_messages" hidden></div>
+            {% block current_chat_name %}
+                <div class="current-chat-header">
+                    <h5 class="current-chat-title">Мессенджер</h5>
+                </div>
+            {% endblock %}
         </div>
         <div class="modal-body" id="messages-list">
             {% block messages_list %}
