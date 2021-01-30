@@ -1,11 +1,15 @@
 {% extends "workspace.html" %}
 
+{% block styles %}
+    {% include "_style_workspace.html" %}
+{% endblock %}
+
 {% block secondary_block %}
     <div class="card">
         <a class="btn btn-outline-dark mb-2 text-nowrap" href="{{url_for('friends', selector='my_friends')}}">
             Мои друзья
         </a>
-        <a class="btn btn-outline-dark mb-2 text-nowrap" href="{{url_for('friends', selector='notifications')}}">
+        <a class="btn btn-outline-dark mb-2 text-nowrap" href="{{url_for('friends', selector='alerts')}}">
             Заявки в друзья
         </a>
         <a class="btn btn-outline-dark text-nowrap" href="{{url_for('friends', selector='search')}}">
@@ -14,9 +18,8 @@
     </div>
 {% endblock %}
 
-{% block main_block %}
-{% endblock %}
+{% block main_block %}{% endblock %}
 
-{% block script %}
-{{ super() }}
+{% block scripts %}
+    {% include "_script_workspace.html" %}
 {% endblock %}

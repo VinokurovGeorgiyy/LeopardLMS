@@ -13,18 +13,15 @@
         <link href="https://fonts.googleapis.com/css2?family=Goldman:wght@700&display=swap" rel="stylesheet">
         <link href="https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,300;0,400;0,600;0,700;0,800;1,300;1,400;1,600;1,700;1,800&display=swap" rel="stylesheet">
 
-        <script>
-            $(function ActivateTooltips() {
-                $('[data-tooltip="tooltip"]').tooltip();}
-            )
-        </script>
+        {% block styles %}{% endblock %}
+        <script>$(function ActivateTooltips() {$('[data-tooltip="tooltip"]').tooltip();})</script>
 
         <title>{% block title %}Leopard LMS{% endblock %}</title>
     </head>
     <body>
-        {% block style %}{% endblock %}
         {% block header %}{% endblock %}
         {% block content %}{% endblock %}
-        {% block script %}{% endblock %}
+
+        {% block scripts %}{% endblock %}
     </body>
 </html>

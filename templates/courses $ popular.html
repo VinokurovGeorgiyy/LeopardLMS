@@ -4,9 +4,13 @@
     Популярные курсы
 {% endblock %}
 
+{% block styles %}
+    {% include "_style_workspace.html" %}
+{% endblock %}
+
 {% block main_block %}
 {% endblock %}
 
-{% block script %}
-{{ super() }}
+{% block scripts %}
+    {% include "_script_workspace.html" %}
 {% endblock %}

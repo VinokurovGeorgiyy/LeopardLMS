@@ -1,0 +1,28 @@
+{# Template "_script_ui_card.html" is required #}
+<script>
+    function unitDataHandler(requestObj, responseBlockId, emptyDataText, requestErrText, dataHandler, clearResponseBlock=false, dataPresentation='list') {
+        let responseBlock = document.getElementById(responseBlockId);
+        if (clearResponseBlock) {
+            while (responseBlock.firstChild) {responseBlock.removeChild(responseBlock.firstChild);}
+        }
+        if (requestObj.status == 200) {
+            let data = JSON.parse(requestObj.responseText);
+            data = data["data"];
+            if (data.length == 0) {
+                responseBlock.append(uiSimpleTextCard(emptyDataText));
+            }
+            for (let i = 0; i < data.length; i++) {
+                let item = dataHandler(data[i]);
+                let card = false;
+                if (dataPresentation == "grid") {
+                    card = uiUnitGridCard(item["photoUrl"], item["titleText"], item["titleUrl"], item["options"]);
+                } else {
+                    card = uiUnitListCard(item["photoUrl"], item["titleText"], item["titleUrl"], item["options"]);
+                }
+                responseBlock.append(card);
+            }
+        } else {
+            responseBlock.append(uiSimpleTextCard(requestErrText));
+        }
+    }
+</script>

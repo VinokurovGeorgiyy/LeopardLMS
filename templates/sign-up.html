@@ -33,17 +33,6 @@
                 {% endfor %}
             </div>
             <div class="form-group">
-                {{ form.patronymic(
-                    class="form-control",
-                    placeholder="Отчество",
-                    readonly=True,
-                    onfocus="this.removeAttribute('readonly')")
-                }}
-                {% for error in form.patronymic.errors %}
-                    <div class="alert alert-danger" role="alert">{{ error }}</div>
-                {% endfor %}
-            </div>
-            <div class="form-group">
                 {{ form.email(
                     class="form-control",
                     type="email",

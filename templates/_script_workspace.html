@@ -1,28 +1,20 @@
 <script>
     function autoCollapseUserNavbar() {
         let w = document.documentElement.clientWidth;
-        if (w<1199) {
+        if ((w<1199) && $('.user-navbar').hasClass('opened')) {
             $('.user-navbar-item-label').css('visibility', 'hidden');
             $(".user-navbar").addClass("closed");
             $(".user-navbar").removeClass("opened");
+        } else if ((w>=1199)&& $('.user-navbar').hasClass('closed')) {
+            $('.user-navbar-item-label').css('visibility', 'visible');
+            $(".user-navbar").addClass("opened");
+            $(".user-navbar").removeClass("closed");
         }
     }
 
     function setUserPageHeight() {
         let h = $(".leopard-lms-navbar").outerHeight(true);
         $(".user-page").css("height", document.documentElement.clientHeight-h);
-    }
-
-    function toggleUserNavbar() {
-        let w = document.documentElement.clientWidth;
-        if ($('.user-navbar').hasClass('closed') && (w>=1199)) {
-            $('.user-navbar-item-label').css('visibility', 'visible');
-            $(".user-navbar").addClass("opened");
-            $(".user-navbar").removeClass("closed");}
-        else {
-            $('.user-navbar-item-label').css('visibility', 'hidden');
-            $(".user-navbar").addClass("closed");
-            $(".user-navbar").removeClass("opened");}
     }
 
     $(window).on('resize', function() {

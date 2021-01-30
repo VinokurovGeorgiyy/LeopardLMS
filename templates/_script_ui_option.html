@@ -1,0 +1,33 @@
+<script>
+    function uiOptionButton(optionBlockClassName, optionBtnClassName, optionBtnTextContent, optionBtnOnclick) {
+        let optionBlock = document.createElement('div');
+        optionBlock.className = optionBlockClassName;
+        let optionButton = document.createElement('a');
+        optionButton.className = optionBtnClassName;
+        optionButton.textContent = optionBtnTextContent;
+        optionButton.onclick = optionBtnOnclick;
+        optionBlock.append(optionButton);
+        return optionBlock;
+    }
+
+    function uiOptionLink(optionBlockClassName, optionLinkClassName, optionLinkTextContent, optionLinkHref) {
+        let optionBlock = document.createElement('div');
+        optionBlock.className = optionBlockClassName;
+        let optionLink = document.createElement('a');
+        optionLink.className = optionLinkClassName;
+        optionLink.textContent = optionLinkTextContent;
+        optionLink.href = optionLinkHref;
+        optionBlock.append(optionLink);
+        return optionBlock;
+    }
+
+    function uiOptionLabel(optionBlockClassName, optionLblClassName, optionLblTextContent) {
+        let optionBlock = document.createElement('div');
+        optionBlock.className = optionBlockClassName;
+        let optionLabel = document.createElement('div');
+        optionLabel.className = optionLblClassName;
+        optionLabel.textContent = optionLblTextContent;
+        optionBlock.append(optionLabel);
+        return optionBlock;
+    }
+</script>

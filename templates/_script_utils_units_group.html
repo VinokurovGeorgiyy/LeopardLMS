@@ -1,0 +1,31 @@
+{# Template "_script_utils_units.html" is required #}
+{# Template "_script_utils_requests.html" is required #}
+{# Template "_script_ui_option.html" is required #}
+<script>
+    function searchGroup(typeOfSearch, responseBlockId, labels, presentation='list') {
+        let requestUrl = "/search-group";
+        let data = {"type_of_search": typeOfSearch};
+        data["title"] = document.getElementById("title").value;
+        data["group_id"] = document.getElementById("group_id").value;
+        data["request"] = document.getElementById("request").value;
+        if (typeOfSearch == "simple" && !data["request"]) {
+            return;
+        }
+        if (typeOfSearch == "advanced" && !data["title"] && !data["group_id"]) {
+            return;
+        }
+        let emptyDataText = labels["NO_RESULT"];
+        let requestErrText = labels["REQUEST_ERR"];
+        let dataHandler = function(item) {
+            item["titleText"] = item["title"];
+            item["titleUrl"] = item["profile_url"];
+            item["photoUrl"] = item["profile_photo_url"];
+            item["options"] = [];
+            return item;
+        };
+        let responseHandler = function(requestObj) {
+            unitDataHandler(requestObj, responseBlockId, emptyDataText, requestErrText, dataHandler, true, presentation);
+        };
+        sendPostRequest(requestUrl, "Content-Type", "application/json", responseHandler, JSON.stringify(data));
+    }
+</script>

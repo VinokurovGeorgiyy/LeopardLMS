@@ -5,22 +5,22 @@ from wtforms.validators import DataRequired, EqualTo, Email
 
 
 class AdvancedSearchCourseForm(FlaskForm):
-    advanced_title = StringField('Название', validators=[])
-    advanced_course_id = IntegerField('ID курса', validators=[])
-    advanced_submit = SubmitField('Поиск')
+    title = StringField('Название', validators=[])
+    course_id = IntegerField('ID курса', validators=[])
+    submit = SubmitField('Поиск')
 
 
 class AdvancedSearchGroupForm(FlaskForm):
-    advanced_title = StringField('Название', validators=[])
-    advanced_group_id = IntegerField('ID группы', validators=[])
-    advanced_submit = SubmitField('Поиск')
+    title = StringField('Название', validators=[])
+    group_id = IntegerField('ID группы', validators=[])
+    submit = SubmitField('Поиск')
 
 
 class AdvancedSearchUserForm(FlaskForm):
-    advanced_first_name = StringField('Имя', validators=[])
-    advanced_last_name = StringField('Фамилия', validators=[])
-    advanced_user_id = IntegerField('ID пользователя', validators=[])
-    advanced_submit = SubmitField('Поиск')
+    first_name = StringField('Имя', validators=[])
+    last_name = StringField('Фамилия', validators=[])
+    user_id = IntegerField('ID пользователя', validators=[])
+    submit = SubmitField('Поиск')
 
 
 class ChatForm(FlaskForm):
@@ -28,14 +28,14 @@ class ChatForm(FlaskForm):
     submit = SubmitField('Отправить')
 
 
-class CreateIndependentCourseForm(FlaskForm):
+class CreateCourseForm(FlaskForm):
     title = StringField('Название', validators=[DataRequired()])
     description = TextAreaField('Описание', validators=[])
     course_type = SelectField('Тип', choices=[('OPENED', 'Открытый'), ('CLOSED', 'Закрытый')])
     submit = SubmitField('Создать')
 
 
-class CreateIndependentGroupForm(FlaskForm):
+class CreateGroupForm(FlaskForm):
     title = StringField('Название', validators=[DataRequired()])
     description = TextAreaField('Описание', validators=[])
     group_type = SelectField('Тип', choices=[('OPENED', 'Открытая'), ('CLOSED', 'Закрытая')])
@@ -62,7 +62,6 @@ class SearchForm(FlaskForm):
 class UserRegistrationForm(FlaskForm):
     last_name = StringField('Фамилия', validators=[DataRequired()])
     first_name = StringField('Имя', validators=[DataRequired()])
-    patronymic = StringField('Отчество', validators=[])
     email = StringField('Email', validators=[DataRequired(), Email()])
     password = PasswordField('Пароль', validators=[DataRequired(), EqualTo('repeat')])
     repeat = PasswordField('Повторите пароль', validators=[DataRequired()])

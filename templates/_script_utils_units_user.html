@@ -1,0 +1,185 @@
+{# Template "_script_utils_units.html" is required #}
+{# Template "_script_utils_requests.html" is required #}
+{# Template "_script_ui_option.html" is required #}
+<script>
+    function searchUser(typeOfSearch, responseBlockId, labels, presentation='list') {
+        let requestUrl = "/search-user";
+        let data = {"type_of_search": typeOfSearch};
+        data["first_name"] = document.getElementById("first_name").value;
+        data["last_name"] = document.getElementById("last_name").value;
+        data["user_id"] = document.getElementById("user_id").value;
+        data["request"] = document.getElementById("request").value;
+        if (typeOfSearch == "simple" && !data["request"]) {
+            return;
+        }
+        if (typeOfSearch == "advanced" && !data["first_name"] && !data["last_name"] && !data["user_id"]) {
+            return;
+        }
+        let emptyDataText = labels["NO_RESULT"];
+        let requestErrText = labels["REQUEST_ERR"];
+        let dataHandler = function(item) {
+            item["titleText"] = item["name"];
+            item["titleUrl"] = item["profile_url"];
+            item["photoUrl"] = item["profile_photo_url"];
+            item["options"] = [];
+            return item;
+        };
+        let responseHandler = function(requestObj) {
+            unitDataHandler(requestObj, responseBlockId, emptyDataText, requestErrText, dataHandler, true, presentation);
+        };
+        sendPostRequest(requestUrl, "Content-Type", "application/json", responseHandler, JSON.stringify(data));
+    }
+
+    function userAddFriend(userId, friendId) {
+        let requestUrl = '/user-' + userId + '/friends?friend_id=' + friendId;
+        let responseHandler = function(requestObj) {
+            if (requestObj.status == 200) {window.location.href=window.location.href;};
+        };
+        sendPostRequest(requestUrl, "", "", responseHandler, {});
+    }
+
+    function userDeleteFriend(userId, friendId) {
+        let requestUrl = '/user-' + userId + '/friends?friend_id=' + friendId;
+        let responseHandler = function(requestObj) {
+            if (requestObj.status == 200) {window.location.href=window.location.href;};
+        };
+        sendDeleteRequest(requestUrl, responseHandler);
+    }
+
+    function userGetCourses(userId, userRole, responseBlockId, labels, presentation='list') {
+        let requestUrl = '/user-' + userId + '/courses?role=' + userRole;
+        let emptyDataText = labels["NO_COURSES"];
+        if (userRole == "user") {
+            emptyDataText = labels["NO_COURSES_LEARNING"];
+        } else if (userRole == "admin|moderator"){
+            emptyDataText = labels["NO_COURSES_TEACHING"];
+        }
+        let requestErrText = labels["REQUEST_ERR"];
+        let dataHandler = function(item) {
+            item["titleText"] = item["title"];
+            item["titleUrl"] = item["profile_url"];
+            item["photoUrl"] = item["profile_photo_url"];
+            item["options"] = [];
+
+            let lblClassName = "btn-sm rounded-pill bg-secondary text-white pr-3 pl-3 font-weight-600";
+            let lblTextContent = labels["OPENED_COURSE"];
+            if (item["type"] == "CLOSED") {
+                lblClassName = "btn-sm rounded-pill bg-dark text-white pr-3 pl-3 font-weight-600";
+                lblTextContent = labels["CLOSED_COURSE"];
+            }
+            item["options"].push(uiOptionLabel("mr-2", lblClassName, lblTextContent));
+            return item;
+        };
+        let responseHandler = function(requestObj) {
+            unitDataHandler(requestObj, responseBlockId, emptyDataText, requestErrText, dataHandler, dataPresentation=presentation);
+        };
+        sendGetRequest(requestUrl, responseHandler);
+    }
+
+    function userGetGroups(userId, userRole, responseBlockId, labels, presentation='list') {
+        let requestUrl = '/user-' + userId + '/groups?role=' + userRole;
+        let emptyDataText = labels["NO_GROUPS"];
+        if (userRole == "admin") {
+            emptyDataText = labels["NO_GROUPS_CONTROLLED"];
+        }
+        let requestErrText = labels["REQUEST_ERR"];
+        let dataHandler = function(item) {
+            item["titleText"] = item["title"];
+            item["titleUrl"] = item["profile_url"];
+            item["photoUrl"] = item["profile_photo_url"];
+            item["options"] = [];
+
+            let lblClassName = "btn-sm rounded-pill bg-secondary text-white pr-3 pl-3 font-weight-600";
+            let lblTextContent = labels["OPENED_GROUP"];
+            if (item["type"] == "CLOSED") {
+                lblClassName = "btn-sm rounded-pill bg-dark text-white pr-3 pl-3 font-weight-600";
+                lblTextContent = labels["CLOSED_GROUP"];
+            }
+            item["options"].push(uiOptionLabel("mr-2", lblClassName, lblTextContent));
+            return item;
+        };
+        let responseHandler = function(requestObj) {
+            unitDataHandler(requestObj, responseBlockId, emptyDataText, requestErrText, dataHandler, dataPresentation=presentation);
+        };
+        sendGetRequest(requestUrl, responseHandler);
+    }
+
+    function userGetFriends(userId, responseBlockId, labels, presentation='list') {
+        let requestUrl = '/user-' + userId + '/friends';
+        let emptyDataText = labels["NO_FRIENDS"];
+        let requestErrText = labels["REQUEST_ERR"];
+        let dataHandler = function(item) {
+            item["titleText"] = item["name"];
+            item["titleUrl"] = item["profile_url"];
+            item["photoUrl"] = item["profile_photo_url"];
+            item["options"] = [];
+
+            let btnClassName = "btn btn-sm rounded-pill btn-dark text-white pr-3 pl-3 font-weight-600";
+            let btnTextContent = labels["DELETE_FROM_FRIENDS"];
+            let btnOnclick = function() {
+                userDeleteFriend.call(this, userId, item["id"]);
+            }
+            item["options"].push(uiOptionButton("mr-2", btnClassName, btnTextContent, btnOnclick));
+            return item;
+        };
+        let responseHandler = function(requestObj) {
+            unitDataHandler(requestObj, responseBlockId, emptyDataText, requestErrText, dataHandler, dataPresentation=presentation);
+        };
+        sendGetRequest(requestUrl, responseHandler);
+    }
+
+    function userGetFriendshipInboxAlerts(userId, responseBlockId, labels, presentation='list') {
+        let requestUrl = '/user-' + userId + '/alerts?alert_type=application_friendship&role=recipient';
+        let emptyDataText = labels["NO_INBOX"];
+        let requestErrText = labels["REQUEST_ERR"];
+        let dataHandler = function(item) {
+            item["titleText"] = item["creator"]["name"];
+            item["titleUrl"] = item["creator"]["profile_url"];
+            item["photoUrl"] = item["creator"]["profile_photo_url"];
+            item["options"] = [];
+
+            let btnClassName = "btn btn-sm rounded-pill btn-dark text-white pr-3 pl-3 font-weight-600";
+            let btnTextContent = labels["ADD_TO_FRIENDS"];
+            let btnOnclick = function() {
+                userAddFriend.call(this, userId, item["creator"]["id"]);
+            }
+            item["options"].push(uiOptionButton("mr-2", btnClassName, btnTextContent, btnOnclick));
+
+            btnClassName = "btn btn-sm rounded-pill btn-dark text-white pr-3 pl-3 font-weight-600";
+            btnTextContent = labels["REJECT_APPLICATION"];
+            btnOnclick = function() {
+                userDeleteAlert.call(this, userId, item["id"]);
+            }
+            item["options"].push(uiOptionButton("mr-2", btnClassName, btnTextContent, btnOnclick));
+            return item;
+        };
+        let responseHandler = function(requestObj) {
+            unitDataHandler(requestObj, responseBlockId, emptyDataText, requestErrText, dataHandler, dataPresentation=presentation);
+        };
+        sendGetRequest(requestUrl, responseHandler);
+    }
+
+    function userGetFriendshipOutboxAlerts(userId, responseBlockId, labels, presentation='list') {
+        let requestUrl = '/user-' + userId + '/alerts?alert_type=application_friendship&role=creator';
+        let emptyDataText = labels["NO_OUTBOX"];
+        let requestErrText = labels["REQUEST_ERR"];
+        let dataHandler = function(item) {
+            item["titleText"] = item["recipient"]["name"];
+            item["titleUrl"] = item["recipient"]["profile_url"];
+            item["photoUrl"] = item["recipient"]["profile_photo_url"];
+            item["options"] = [];
+
+            let btnClassName = "btn btn-sm rounded-pill btn-dark text-white pr-3 pl-3 font-weight-600";
+            let btnTextContent = labels["CANCEL_APPLICATION"];
+            let btnOnclick = function() {
+                userDeleteAlert.call(this, userId, item["id"]);
+            }
+            item["options"].push(uiOptionButton("mr-2", btnClassName, btnTextContent, btnOnclick));
+            return item;
+        };
+        let responseHandler = function(requestObj) {
+            unitDataHandler(requestObj, responseBlockId, emptyDataText, requestErrText, dataHandler, dataPresentation=presentation);
+        };
+        sendGetRequest(requestUrl, responseHandler);
+    }
+</script>

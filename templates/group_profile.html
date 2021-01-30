@@ -2,65 +2,155 @@
 
 {% set is_group_admin = group.check_admin(current_user.id) %}
 {% set is_group_moderator = group.check_moderator(current_user.id) %}
+{% set is_group_user = group.check_user(current_user.id) %}
 
 {% block title %}
     {{ group.title }}
 {% endblock %}
 
+{% block styles %}
+    {% include "_style_workspace.html" %}
+{% endblock %}
+
 {% block secondary_block %}
     <div class="card">
-        <img src="{{group.get_profile_photo_url()}}" width="190" height="190" alt="Фото профиля группы">
-        {% if is_group_admin or is_group_moderator %}
-            <a class="btn btn-dark btn-block mt-2" href="#">Редактировать</a>
+        <img src="{{group.get_profile_photo_url()}}" class="profile-photo-primary">
+        {% if is_group_admin %}
+            <a class="btn btn-dark btn-block mt-2" href="{{url_for('group_profile', group_id=group.id)}}">
+                Управление
+            </a>
         {% endif %}
     </div>
     <div class="card">
-        Участники {{group.get_users(only_id=True)|length}}
-    </div>
-    <div class="card">
-        Группы {{group.get_groups(only_id=True)|length}}
-    </div>
-    <div class="card">
-        Курсы {{group.get_courses(only_id=True)|length}}
+        <ul class="nav nav-pills" id="group-sidebar" role="tablist" aria-orientation="vertical">
+            <li class="nav-item btn-block m-0" role="presentation">
+                <a class="btn btn-outline-dark btn-pill btn-block active" id="group-posts-tab" data-toggle="pill" href="#group-posts" role="tab" aria-controls="group-posts" aria-selected="true">
+                    Публикации
+                </a>
+            </li>
+            <li class="nav-item btn-block m-0" role="presentation">
+                <a class="btn btn-outline-dark btn-pill btn-block" id="group-users-tab" data-toggle="pill" href="#group-users" role="tab" aria-controls="group-users" aria-selected="false">
+                    Пользователи
+                </a>
+            </li>
+            <li class="nav-item btn-block m-0" role="presentation">
+                <a class="btn btn-outline-dark btn-pill btn-block" id="group-moderators-tab" data-toggle="pill" href="#group-moderators" role="tab" aria-controls="group-moderators" aria-selected="false">
+                    Модераторы
+                </a>
+            </li>
+            <li class="nav-item btn-block m-0" role="presentation">
+                <a class="btn btn-outline-dark btn-pill btn-block" id="group-admins-tab" data-toggle="pill" href="#group-admins" role="tab" aria-controls="group-admins" aria-selected="false">
+                    Администраторы
+                </a>
+            </li>
+            <li class="nav-item btn-block mt-4" role="presentation">
+                <a class="btn btn-outline-dark btn-pill btn-block" id="group-groups-tab" data-toggle="pill" href="#group-groups" role="tab" aria-controls="group-groups" aria-selected="false">
+                    Подгруппы
+                </a>
+            </li>
+            <li class="nav-item btn-block m-0" role="presentation">
+                <a class="btn btn-outline-dark btn-pill btn-block" id="group-courses-tab" data-toggle="pill" href="#group-courses" role="tab" aria-controls="group-courses" aria-selected="false">
+                    Курсы
+                </a>
+            </li>
+        </ul>
     </div>
 {% endblock %}
 
 {% block main_block %}
     <div class="card">
-        <h4 class="text-center">{{ group.title }}</h4>
+        <h4>{{ group.title }}</h4>
+        {% if group.description %}
+            <p>{{ group.description }}</p>
+        {% endif %}
     </div>
-    {% if group.description %}
-        <div class="card">
-            <p>{{ group.description }}<p>
+    <div class="tab-content" id="group-overview">
+        <div class="tab-pane fade show active" id="group-posts" role="tabpanel" aria-labelledby="group-posts-tab">
+            {% if (group.is_closed() and is_group_user) or group.is_opened() %}
+                {% if is_group_admin or is_group_moderator %}
+                    <a class="btn btn-dark mb-2" href="#">Создать публикацию</a>
+                {% endif %}
+            {% else %}
+                <div class="card d-flex justify-content-center align-items-center">
+                    <div>
+                        <div>Это закрытая группа. Обзор публикаций недоступен.</div>
+                        <div class="d-flex justify-content-center align-items-center mt-2">
+                            {% if group.membership_alert_exists(current_user.id) %}
+                                <div class="btn btn-sm btn-dark disabled">Заявка отправлена</div>
+                            {% else %}
+                                <a class="btn btn-sm btn-dark text-white" onclick="sendGroupMembershipAlert()">Отправить заявку</a>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endif %}
         </div>
-    {% endif %}
-    {% if is_group_admin or is_group_moderator %}
-        <button type="button" class="btn btn-dark mb-2" data-toggle="collapse" data-target="#create_post" aria-expanded="false" aria-controls="createPost">
-            Создать публикацию
-        </button>
-        <div class="collapse" id="create_post">
-            <div class="card">
-                <form action="{{url_for('create_post')}}" method="post">
-                    {{ create_post_form.hidden_tag() }}
-                    <div class="form-group">
-                        {{create_post_form.text.label(class="col-form-label")}}
-                        {{create_post_form.text(class="form-control")}}
-                    </div>
-                    <div class="form-group">
-                        {{create_post_form.code(class="form-control", hidden=True)}}
-                    </div>
-                    <div class="submit-block">
-                        {{create_post_form.submit(type="submit", class="btn btn-secondary")}}
-                    </div>
-                </form>
-            </div>
-        </div>
-    {% endif %}
-    <div class="card d-flex justify-content-center align-items-center">
-        Публикаций нет
+        <div class="tab-pane fade" id="group-users" role="tabpanel" aria-labelledby="group-users-tab"></div>
+        <div class="tab-pane fade" id="group-moderators" role="tabpanel" aria-labelledby="group-moderators-tab"></div>
+        <div class="tab-pane fade" id="group-admins" role="tabpanel" aria-labelledby="group-admins-tab"></div>
+        <div class="tab-pane fade" id="group-groups" role="tabpanel" aria-labelledby="group-groups-tab"></div>
+        <div class="tab-pane fade" id="group-courses" role="tabpanel" aria-labelledby="group-courses-tab"></div>
     </div>
 {% endblock %}
 
-{% block script %}
-{{ super() }}
+{% block scripts %}
+    {% include "_script_workspace.html" %}
+    {% include "_script_utils_card.html" %}
+    <script>
+        const LABELS = {"FORBIDDEN": "Доступ к информации запрещён",
+                        "NO_ADMINS": "Никто из участников не является администратором группы",
+                        "NO_COURSES": "Подключённые курсы отсутствуют",
+                        "NO_GROUPS": "Группа не содержит подгрупп",
+                        "NO_MODERATORS": "Никто из участников не является модератором группы",
+                        "NO_POSTS": "Публикаций нет",
+                        "NO_USERS": "В группе никого нет",
+                        "SENDING_REQUEST_ERROR": "Ошибка при отправке запроса"};
+    </script>
+    <script>
+        function getGroupData(groupId, dataType, responseBlockId, labelNameEmptyResponse, category="all") {
+            let xhr = new XMLHttpRequest();
+            let xhrUrl = '/group-' + groupId + '/' + dataType + '?category=' + category;
+            xhr.open('GET', xhrUrl, true);
+            xhr.onload = function() {
+                let responseBlock = document.getElementById(responseBlockId);
+                if (xhr.status == 200) {
+                    let data = JSON.parse(xhr.responseText);
+                    data = data["data"];
+                    if (data.length == 0) {
+                        responseBlock.append(createSimpleTextCard(LABELS[labelNameEmptyResponse]));
+                    }
+                    for (let i = 0; i < data.length; i++) {
+                        data[i]["title_url"] = data[i]["profile_url"];
+                        data[i]["photo_url"] = data[i]["profile_photo_url"];
+                        data[i]["photo_className"] = "rounded-circle-2";
+                        responseBlock.append(createSimpleMediaCard(data[i]));
+                    }
+                } else if (xhr.status == 403) {
+                    responseBlock.append(createSimpleTextCard(LABELS["FORBIDDEN"]));
+                } else {
+                    responseBlock.append(createSimpleTextCard(LABELS["SENDING_REQUEST_ERROR"]));
+                }
+            }
+            xhr.send(null);
+        }
+
+        $( document ).ready(function () {
+            {% if (group.is_closed() and is_group_user) or group.is_opened() %}
+                getGroupData({{group.id}}, "posts", "group-posts", "NO_POSTS");
+            {% endif %}
+            getGroupData({{group.id}}, "users", "group-users", "NO_USERS", "users");
+            getGroupData({{group.id}}, "users", "group-moderators", "NO_MODERATORS", "moderators");
+            getGroupData({{group.id}}, "users", "group-admins", "NO_ADMINS", "admins");
+            getGroupData({{group.id}}, "groups", "group-groups", "NO_GROUPS");
+            getGroupData({{group.id}}, "courses", "group-courses", "NO_COURSES");
+        })
+    </script>
+    <script>
+        function sendGroupMembershipAlert() {
+            let xhr = new XMLHttpRequest();
+            xhr.open('POST', '{{url_for("user_alerts", user_id=current_user.id, alert_type="application_group_membership", group_id=group.id)|safe}}', true);
+            xhr.onload = function() {window.location.href=window.location.href}
+            xhr.send(null);
+        }
+    </script>
 {% endblock %}

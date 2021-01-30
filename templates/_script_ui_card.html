@@ -1,0 +1,56 @@
+<script>
+    function uiSimpleTextCard(text) {
+        let card = document.createElement('div');
+        card.className = "card d-flex justify-content-center align-items-center";
+        card.textContent = text;
+        return card;
+    }
+
+    function uiUnitGridCard(photoUrl, titleText, titleUrl, options) {
+        return;
+    }
+
+    function uiUnitListCard(photoUrl, titleText, titleUrl, options) {
+        let cardBlock = document.createElement('div');
+        cardBlock.className = "card";
+
+        let contentBlock = document.createElement('div');
+        contentBlock.className = "d-flex flex-row";
+
+        let photoBlock = document.createElement('div');
+        photoBlock.className = "mr-3";
+        let photoImage = document.createElement('img');
+        photoImage.src = photoUrl;
+        photoImage.className = "rounded-circle-5";
+        photoBlock.append(photoImage);
+
+        let infoBlock = document.createElement('div');
+        infoBlock.className = "min-w-0 w-100 d-flex flex-column justify-content-between";
+
+        let titleBlock = document.createElement('div');
+        titleBlock.className = "w-100";
+        let titleLink = document.createElement('a');
+        titleLink.href = titleUrl;
+        titleLink.className = "text-decoration-none text-dark";
+        let titleHeader = document.createElement('h5');
+        titleHeader.className = "text-truncate mw-100";
+        titleHeader.textContent = titleText;
+        titleLink.append(titleHeader);
+        titleBlock.append(titleLink);
+        infoBlock.append(titleBlock);
+
+        if (options.length != 0) {
+            let optionsBlock = document.createElement('div');
+            optionsBlock.className = "w-100 d-flex flex-row";
+            for (let i = 0; i<options.length; i++) {
+                optionsBlock.append(options[i]);
+            }
+            infoBlock.append(optionsBlock);
+        }
+        contentBlock.append(photoBlock);
+        contentBlock.append(infoBlock);
+
+        cardBlock.append(contentBlock);
+        return cardBlock;
+    }
+</script>

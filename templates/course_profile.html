@@ -2,34 +2,59 @@
 
 {% set is_course_admin = course.check_admin(current_user.id) %}
 {% set is_course_moderator = course.check_moderator(current_user.id) %}
+{% set is_course_user = course.check_user(current_user.id) %}
 
 {% block title %}
     Курс | {{ course.title }}
 {% endblock %}
 
+{% block styles %}
+    {% include "_style_workspace.html" %}
+{% endblock %}
+
 {% block secondary_block %}
     <div class="card">
-        <img src="{{course.get_profile_photo_url()}}" width="190" height="190" alt="Фото профиля курса">
-        {% if is_course_admin or is_course_moderator %}
-            <a class="btn btn-dark btn-block mt-2" href="#">Редактировать</a>
+        <img src="{{course.get_profile_photo_url()}}" class="profile-photo-primary">
+    </div>
+    <div class="card">
+        {% if is_course_admin or is_course_moderator or is_course_user %}
+            <ul class="nav nav-pills" id="course-sidebar" role="tablist" aria-orientation="vertical">
+                <li class="nav-item btn-block m-0" role="presentation">
+                    <a class="btn btn-outline-dark btn-pill btn-block active" id="course-posts-tab" data-toggle="pill" href="#course-posts" role="tab" aria-controls="course-posts" aria-selected="true">
+                        Публикации
+                    </a>
+                </li>
+                <li class="nav-item btn-block m-0" role="presentation">
+                    <a class="btn btn-outline-dark btn-pill btn-block" id="course-lessons-tab" data-toggle="pill" href="#course-lessons" role="tab" aria-controls="course-lessons" aria-selected="false">
+                        Уроки
+                    </a>
+                </li>
+                <li class="nav-item btn-block mt-4" role="presentation">
+                    <a class="btn btn-outline-dark btn-pill btn-block" id="course-students-tab" data-toggle="pill" href="#course-students" role="tab" aria-controls="course-students" aria-selected="false">
+                        Учащиеся
+                    </a>
+                </li>
+                <li class="nav-item btn-block m-0" role="presentation">
+                    <a class="btn btn-outline-dark btn-pill btn-block" id="course-teachers-tab" data-toggle="pill" href="#course-teachers" role="tab" aria-controls="course-teachers" aria-selected="false">
+                        Преподаватели
+                    </a>
+                </li>
+            </ul>
+        {% else %}
+            Для доступа к информации курса необходимо быть его пользователем
         {% endif %}
     </div>
 {% endblock %}
 
 {% block main_block %}
     <div class="card">
-        <h4 class="text-center">Курс "{{ course.title }}"</h4>
-    </div>
-    {% if course.description %}
-        <div class="card">
-            <p>{{ course.description }}<p>
-        </div>
-    {% endif %}
-    <div class="card d-flex justify-content-center align-items-center">
-        Публикаций нет
+        <h4>{{ course.title }}</h4>
+        {% if course.description %}
+            <p>{{ course.description }}</p>
+        {% endif %}
     </div>
 {% endblock %}
 
-{% block script %}
-{{ super() }}
+{% block scripts %}
+     {% include "_script_workspace.html" %}
 {% endblock %}

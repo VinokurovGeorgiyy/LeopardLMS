@@ -4,15 +4,19 @@
     Мои группы | {{ current_user.first_name }} {{ current_user.last_name }}
 {% endblock %}
 
+{% block styles %}
+    {% include "_style_workspace.html" %}
+{% endblock %}
+
 {% block main_block %}
-    <ul class="nav nav-pills mb-3 nav-justified" id="my-groups-tab" role="tablist">
+    <ul class="nav nav-pills mb-2 nav-justified" id="my-groups-tab" role="tablist">
         <li class="nav-item mr-1" role="presentation">
-            <a class="btn btn-outline-dark btn-pill btn-block active" id="all-my-groups-tab" data-toggle="pill" href="#all-my-groups" role="tab" aria-controls="all-my-groups" aria-selected="true">
+            <a class="btn btn-outline-dark btn-pill btn-block active" id="all-groups-tab" data-toggle="pill" href="#all-groups" role="tab" aria-controls="all-groups" aria-selected="true">
                 Все группы
             </a>
         </li>
         <li class="nav-item ml-1 mr-1" role="presentation">
-            <a class="btn btn-outline-dark btn-pill btn-block " id="groups-control-tab" data-toggle="pill" href="#groups-control" role="tab" aria-controls="groups-control" aria-selected="false">
+            <a class="btn btn-outline-dark btn-pill btn-block " id="groups-controlled-tab" data-toggle="pill" href="#groups-controlled" role="tab" aria-controls="groups-controlled" aria-selected="false">
                 Контроль
             </a>
         </li>
@@ -24,52 +28,12 @@
     </ul>
 
     <div class="tab-content" id="my-groups">
-        <div class="tab-pane fade show active" id="all-my-groups" role="tabpanel" aria-labelledby="all-my-groups-tab">
-            {% if my_groups|length == 0 %}
-                <div class="card d-flex justify-content-center align-items-center">
-                    Вы не состоите ни в одной группе
-                </div>
-            {% endif %}
-            {% for item in my_groups %}
-                <div class="alert card">
-                    <div class="d-flex">
-                        <div class="mr-2">
-                            <img src="{{item.get_profile_photo_url()}}" class="rounded-circle-2">
-                        </div>
-                        <div class="w-100">
-                            <a class="text-decoration-none text-dark" href="{{url_for('group_profile', group_id=item.id)}}">
-                                <h5>{{ item.title }}</h5>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            {% endfor %}
-        </div>
-        <div class="tab-pane fade" id="groups-control" role="tabpanel" aria-labelledby="groups-control-tab">
-            {% if my_groups_control|length == 0 %}
-                <div class="card d-flex justify-content-center align-items-center">
-                    Вы не являетесь администратором какой-либо группы
-                </div>
-            {% endif %}
-            {% for item in my_groups_control %}
-                <div class="alert card">
-                    <div class="d-flex">
-                        <div class="mr-2">
-                            <img src="{{item.get_profile_photo_url()}}" class="rounded-circle-2">
-                        </div>
-                        <div class="w-100">
-                            <a class="text-decoration-none text-dark" href="{{url_for('group_profile', group_id=item.id)}}">
-                                <h5>{{ item.title }}</h5>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            {% endfor %}
-        </div>
+        <div class="tab-pane fade show active" id="all-groups" role="tabpanel" aria-labelledby="all-groups-tab"></div>
+        <div class="tab-pane fade" id="groups-controlled" role="tabpanel" aria-labelledby="groups-controlled-tab"></div>
         <div class="tab-pane fade" id="create-group" role="tabpanel" aria-labelledby="create-group-tab">
             <div class="card">
                 <h4 class="text-center">Создание группы</h4>
-                <form action="{{url_for('create_group', dependency='independent')}}" autocomplete=off method="post">
+                <form action="{{url_for('user_groups', user_id=current_user.id)}}" autocomplete=off method="post">
                     {{ create_group_form.hidden_tag() }}
                     <div class="form-group">
                         {{create_group_form.title.label(class="col-form-label")}}
@@ -92,6 +56,25 @@
     </div>
 {% endblock %}
 
-{% block script %}
-{{ super() }}
+{% block scripts %}
+    {% include "_script_workspace.html" %}
+    {% include "_script_ui_card.html" %}
+    {% include "_script_ui_option.html" %}
+    {% include "_script_utils_requests.html" %}
+    {% include "_script_utils_units.html" %}
+    {% include "_script_utils_units_user.html" %}
+    <script>
+        const CURRENT_USER_ID = {{current_user.id}};
+        const LABELS = {"CLOSED_GROUP": "Закрытая группа",
+                        "NO_GROUPS": "Вы не состоите ни в одной группе",
+                        "NO_GROUPS_CONTROLLED": "Вы не являетесь администратором какой-либо группы",
+                        "OPENED_GROUP": "Открытая группа",
+                        "REQUEST_ERR": "Ошибка при отправке запроса"};
+    </script>
+    <script>
+        $( document ).ready(function () {
+            userGetGroups(CURRENT_USER_ID, "all", "all-groups", LABELS);
+            userGetGroups(CURRENT_USER_ID, "admin", "groups-controlled", LABELS);
+        })
+    </script>
 {% endblock %}

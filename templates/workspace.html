@@ -1,19 +1,14 @@
 {% extends "base.html" %}
 
-{% import "macros.html" as macros %}
+{% import "_macros.html" as macros %}
 
-{% block style %}
+{% block styles %}
     {% include "_style_workspace.html" %}
-    {% include "_style_shapes.html" %}
-    {% include "_style_buttons.html" %}
 {% endblock %}
 
 {% block header %}
     <header class="navbar navbar-dark leopard-lms-navbar">
         <div class="leopard-lms-navbar-links">
-            <a onclick="toggleUserNavbar()" id="toggle-user-navbar-link">
-                {{ macros.bi_list(fill="#fff", width="2.5rem", height="2.5rem") }}
-            </a>
             <a class="navbar-brand leopard-lms-brand" href="{{url_for('homepage')}}">
                 Leopard
             </a>
@@ -69,12 +64,20 @@
                     <div class="user-navbar-item-label">Курсы</div>
                 </div>
             </a>
-            <a href="#">
+            <a href="{{url_for('settings')}}">
                 <div class="user-navbar-item">
                     <div class="user-navbar-item-pic">
                         {{ macros.bi_gear_fill(width="2rem", height="2rem") }}
                     </div>
                     <div class="user-navbar-item-label">Настройки</div>
+                </div>
+            </a>
+            <a href="{{url_for('alerts')}}">
+                <div class="user-navbar-item">
+                    <div class="user-navbar-item-pic">
+                        {{ macros.bi_bell_fill(width="2rem", height="2rem") }}
+                    </div>
+                    <div class="user-navbar-item-label">Уведомления</div>
                 </div>
             </a>
         </div>
@@ -91,6 +94,6 @@
     </div>
 {% endblock %}
 
-{% block script %}
+{% block scripts %}
     {% include "_script_workspace.html" %}
 {% endblock %}

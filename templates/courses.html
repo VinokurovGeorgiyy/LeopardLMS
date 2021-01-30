@@ -4,6 +4,10 @@
     Курсы | {{ current_user.first_name }} {{ current_user.last_name }}
 {% endblock %}
 
+{% block styles %}
+    {% include "_style_workspace.html" %}
+{% endblock %}
+
 {% block secondary_block %}
     <div class="card">
         <a class="btn btn-outline-dark btn-pill text-nowrap" href="{{url_for('courses', selector='my_courses')}}">
@@ -18,9 +22,8 @@
     </div>
 {% endblock %}
 
-{% block main_block %}
-{% endblock %}
+{% block main_block %}{% endblock %}
 
-{% block script %}
-{{ super() }}
+{% block scripts %}
+    {% include "_script_workspace.html" %}
 {% endblock %}

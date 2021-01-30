@@ -12,12 +12,30 @@
         align-items: center;
     }
 
+    .btn-pill {
+        margin-bottom: .5rem;
+    }
+
+    .btn-pill.focus, .btn-pill:focus {
+        box-shadow: none;
+    }
+
+    .btn-pill:not(:disabled):not(.disabled).active:focus,
+    .btn-pill:not(:disabled):not(.disabled):active:focus,
+    .show>.btn-pill.dropdown-toggle:focus {
+        box-shadow: none;
+    }
+
     .card {
         width: 100%;
         padding: 12px;
         margin-bottom: .5rem;
         border: 2px solid #000;
         border-radius: .375rem;
+    }
+
+    .font-weight-600 {
+        font-weight: 600;
     }
 
     .leopard-lms-brand {
@@ -31,6 +49,54 @@
 
     .leopard-lms-navbar-links {
         display: flex;
+    }
+
+    .min-w-0 {
+        min-width: 0!important;
+    }
+
+    .profile-photo-primary {
+        width: 190px;
+        height: 190px;
+    }
+
+    .rounded-circle-1, .rounded-circle-2, .rounded-circle-3,
+    .rounded-circle-4, .rounded-circle-5, .rounded-circle-6 {
+        border-radius: 50%;
+    }
+
+    .rounded-circle-1 {
+        width: 2.5rem;
+        height: 2.5rem;
+    }
+
+    .rounded-circle-2 {
+        width: 3rem;
+        height: 3rem;
+    }
+
+    .rounded-circle-3 {
+        width: 3.5rem;
+        height: 3.5rem;
+    }
+
+    .rounded-circle-4 {
+        width: 4rem;
+        height: 4rem;
+    }
+
+    .rounded-circle-5 {
+        width: 4.5rem;
+        height: 4.5rem;
+    }
+
+    .rounded-circle-6 {
+        width: 5rem;
+        height: 5rem;
+    }
+
+    .text-black-100 {
+        color: #000!important;
     }
 
     .user-content {

@@ -4,10 +4,14 @@
     Мои курсы | {{ current_user.first_name }} {{ current_user.last_name }}
 {% endblock %}
 
+{% block styles %}
+    {% include "_style_workspace.html" %}
+{% endblock %}
+
 {% block main_block %}
-    <ul class="nav nav-pills mb-3 nav-justified" id="my-courses-tab" role="tablist">
+    <ul class="nav nav-pills mb-2 nav-justified" id="my-courses-tab" role="tablist">
         <li class="nav-item mr-1" role="presentation">
-            <a class="btn btn-outline-dark btn-pill btn-block active" id="all-my-courses-tab" data-toggle="pill" href="#all-my-courses" role="tab" aria-controls="all-my-groups" aria-selected="true">
+            <a class="btn btn-outline-dark btn-pill btn-block active" id="all-courses-tab" data-toggle="pill" href="#all-courses" role="tab" aria-controls="all-courses" aria-selected="true">
                 Все курсы
             </a>
         </li>
@@ -29,73 +33,13 @@
     </ul>
 
     <div class="tab-content" id="my-courses">
-        <div class="tab-pane fade show active" id="all-my-courses" role="tabpanel" aria-labelledby="all-my-courses-tab">
-            {% if my_courses|length == 0 %}
-                <div class="card d-flex justify-content-center align-items-center">
-                    Вы не записаны ни на одном курсе
-                </div>
-            {% endif %}
-            {% for item in my_courses %}
-                <div class="alert card" >
-                    <div class="d-flex">
-                        <div class="mr-2">
-                            <img src="{{item.get_profile_photo_url()}}" class="rounded-circle-2">
-                        </div>
-                        <div class="w-100">
-                            <a class="text-decoration-none text-dark" href="{{url_for('course_profile', course_id=item.id)}}">
-                                <h5>{{ item.title }}</h5>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            {% endfor %}
-        </div>
-        <div class="tab-pane fade" id="learning" role="tabpanel" aria-labelledby="learning-tab">
-            {% if my_courses_learning|length == 0 %}
-                <div class="card d-flex justify-content-center align-items-center">
-                    Вы не обучаетесь ни на одном курсе
-                </div>
-            {% endif %}
-            {% for item in my_courses_learning %}
-                <div class="alert card">
-                    <div class="d-flex">
-                        <div class="mr-2">
-                            <img src="{{item.get_profile_photo_url()}}" class="rounded-circle-2">
-                        </div>
-                        <div class="w-100">
-                            <a class="text-decoration-none text-dark" href="{{url_for('course_profile', course_id=item.id)}}">
-                                <h5>{{ item.title }}</h5>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            {% endfor %}
-        </div>
-        <div class="tab-pane fade" id="teaching" role="tabpanel" aria-labelledby="teaching-tab">
-            {% if my_courses_teaching|length == 0 %}
-                <div class="card d-flex justify-content-center align-items-center">
-                    Вы не являетесь преподавателем или администратором какого-либо курса
-                </div>
-            {% endif %}
-            {% for item in my_courses_teaching %}
-                <div class="alert card" >
-                    <div class="d-flex">
-                        <div class="mr-2">
-                            <img src="{{item.get_profile_photo_url()}}" class="rounded-circle-2">
-                        </div>
-                        <div class="w-100">
-                            <a class="text-decoration-none text-dark" href="{{url_for('course_profile', course_id=item.id)}}">
-                                <h5>{{ item.title }}</h5>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            {% endfor %}
-        </div>
+        <div class="tab-pane fade show active" id="all-courses" role="tabpanel" aria-labelledby="all-courses-tab"></div>
+        <div class="tab-pane fade" id="learning" role="tabpanel" aria-labelledby="learning-tab"></div>
+        <div class="tab-pane fade" id="teaching" role="tabpanel" aria-labelledby="teaching-tab"></div>
         <div class="tab-pane fade" id="create-course" role="tabpanel" aria-labelledby="create-course-tab">
             <div class="card">
                 <h4 class="text-center">Создание курса</h4>
-                <form action="{{url_for('create_course', dependency='independent')}}" autocomplete=off method="post">
+                <form action="{{url_for('user_courses', user_id=current_user.id)}}" autocomplete=off method="post">
                     {{ create_course_form.hidden_tag() }}
                     <div class="form-group">
                         {{create_course_form.title.label(class="col-form-label")}}
@@ -116,5 +60,29 @@
             </div>
         </div>
     </div>
+{% endblock %}
 
+{% block scripts %}
+    {% include "_script_workspace.html" %}
+    {% include "_script_ui_card.html" %}
+    {% include "_script_ui_option.html" %}
+    {% include "_script_utils_requests.html" %}
+    {% include "_script_utils_units.html" %}
+    {% include "_script_utils_units_user.html" %}
+    <script>
+        const CURRENT_USER_ID = {{current_user.id}};
+        const LABELS = {"CLOSED_COURSE": "Закрытый курс",
+                        "NO_COURSES": "Вы не записаны ни на одном курсе",
+                        "NO_COURSES_LEARNING": "Вы не обучаетесь ни на одном курсе",
+                        "NO_COURSES_TEACHING": "Вы не являетесь преподавателем или администратором какого-либо курса",
+                        "OPENED_COURSE": "Открытый курс",
+                        "REQUEST_ERR": "Ошибка при отправке запроса"};
+    </script>
+    <script>
+        $( document ).ready(function () {
+            userGetCourses(CURRENT_USER_ID, "all", "all-courses", LABELS);
+            userGetCourses(CURRENT_USER_ID, "user", "learning", LABELS);
+            userGetCourses(CURRENT_USER_ID, "admin|moderator", "teaching", LABELS);
+        })
+    </script>
 {% endblock %}

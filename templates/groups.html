@@ -2,6 +2,10 @@
 
 {% block title %}{% endblock %}
 
+{% block styles %}
+    {% include "_style_workspace.html" %}
+{% endblock %}
+
 {% block secondary_block %}
     <div class="card">
         <a class="btn btn-outline-dark mb-2 text-nowrap" href="{{url_for('groups', selector='my_groups')}}">
@@ -19,6 +23,6 @@
 {% block main_block %}
 {% endblock %}
 
-{% block script %}
-{{ super() }}
+{% block scripts %}
+    {% include "_script_workspace.html" %}
 {% endblock %}

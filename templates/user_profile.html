@@ -1,47 +1,36 @@
 {% extends "workspace.html" %}
 
-{% set user_friends = user.get_friends() %}
-
 {% block title %}
     {{ user.first_name }} {{ user.last_name }}
 {% endblock %}
 
+{% block styles %}
+    {% include "_style_workspace.html" %}
+{% endblock %}
+
 {% block secondary_block %}
     <div class="card">
-        <img src="{{user.get_profile_photo_url()}}" width="190" height="190" alt="Фото профиля">
+        <img src="{{user.get_profile_photo_url()}}" class="profile-photo-primary">
         {% if current_user.id != user.id %}
-            {% if user.id in current_user.get_friends(only_id=True) %}
+            {% if current_user.check_friend(user.id) %}
                 <div class="btn btn-dark disabled btn-block mt-2">В друзьях</div>
             {% else %}
-                {% if current_user.friendship_notification_exists(user.id) %}
+                {% if current_user.friendship_alert_exists(user.id) %}
                     <div class="btn btn-dark disabled btn-block mt-2">Заявка отправлена</div>
-                {% elif user.friendship_notification_exists(current_user.id) %}
+                {% elif user.friendship_alert_exists(current_user.id) %}
                     <a class="btn btn-dark btn-block text-white mt-2" onclick="addToFriends()">
                         Добавить в друзья
                     </a>
                 {% else %}
-                    <a class="btn btn-dark btn-block text-white mt-2" onclick="sendFriendshipNotification()">
+                    <a class="btn btn-dark btn-block text-white mt-2" onclick="sendFriendshipAlert()">
                         Добавить в друзья
                     </a>
                 {% endif %}
             {% endif %}
         {% else %}
-            <a class="btn btn-dark btn-block mt-2" href="#">Редактировать</a>
+            <a class="btn btn-dark btn-block mt-2" href="{{url_for('settings')}}">Редактировать</a>
         {% endif %}
     </div>
-    {% if user_friends|length != 0 %}
-        <div class="card">
-            Друзья {{user_friends|length}}
-        </div>
-    {% else %}
-        {% if current_user.id == user.id %}
-            <div class="card">
-                <a href="{{url_for('friends', selector='search')}}" class="text-decoration-none text-dark">
-                    Найти друзей
-                </a>
-            </div>
-        {% endif %}
-    {% endif %}
 {% endblock %}
 
 {% block main_block %}
@@ -49,75 +38,26 @@
         <h4>{{ user.first_name }} {{ user.last_name }}</h4>
         <div>Фамилия: {{ user.last_name }}</div>
         <div>Имя: {{ user.first_name }}</div>
-        <div>Отчество: {{ user.patronymic }}</div>
         <div>E-mail: {{ user.email }}</div>
         <div>ID: {{ user.id }}</div>
-        <div>Друзья: {{ user_friends|length }}</div>
-    </div>
-    {% if current_user.id != user.id %}
-        <button type="button" class="btn btn-dark mb-2" data-toggle="collapse" data-target="#write_message" aria-expanded="false" aria-controls="writeMessage">
-            Написать сообщение
-        </button>
-        <div class="collapse" id="write_message">
-            <div class="card">
-                <div>Кому: {{ user.last_name }} {{ user.first_name }}</div>
-                <form action="{{url_for('write_message')}}" method="post">
-                    {{ write_message_form.hidden_tag() }}
-                    <div class="form-group">
-                        {{write_message_form.user_id(class="form-control", value=user.id, hidden=True)}}
-                    </div>
-                    <div class="form-group">
-                        {{write_message_form.message.label(class="col-form-label")}}
-                        {{write_message_form.message(class="form-control")}}
-                    </div>
-                    <div class="submit-block">
-                        {{write_message_form.submit(type="submit", class="btn btn-secondary")}}
-                    </div>
-                </form>
-            </div>
-        </div>
-    {% else %}
-        <button type="button" class="btn btn-dark mb-2" data-toggle="collapse" data-target="#create_post" aria-expanded="false" aria-controls="createPost">
-            Создать публикацию
-        </button>
-        <div class="collapse" id="create_post">
-            <div class="card">
-                <form action="{{url_for('create_post')}}" method="post">
-                    {{ create_post_form.hidden_tag() }}
-                    <div class="form-group">
-                        {{create_post_form.text.label(class="col-form-label")}}
-                        {{create_post_form.text(class="form-control")}}
-                    </div>
-                    <div class="form-group">
-                        {{create_post_form.code(class="form-control", hidden=True)}}
-                    </div>
-                    <div class="submit-block">
-                        {{create_post_form.submit(type="submit", class="btn btn-secondary")}}
-                    </div>
-                </form>
-            </div>
-        </div>
-    {% endif %}
-    <div class="card d-flex justify-content-center align-items-center">
-        Публикаций нет
     </div>
 {% endblock %}
 
-{% block script %}
-{{ super() }}
-<script>
-    function addToFriends() {
-        let xhr = new XMLHttpRequest();
-        xhr.open('POST', '{{url_for("add_to_friends", user_id=user.id)}}', true);
-        xhr.onload = function() {window.location.href=window.location.href}
-        xhr.send(null);
-    }
+{% block scripts %}
+    {% include "_script_workspace.html" %}
+    <script>
+        function addToFriends() {
+            let xhr = new XMLHttpRequest();
+            xhr.open('POST', '{{url_for("user_friends", user_id=current_user.id, friend_id=user.id)|safe}}', true);
+            xhr.onload = function() {window.location.href=window.location.href}
+            xhr.send(null);
+        }
 
-    function sendFriendshipNotification() {
-        let xhr = new XMLHttpRequest();
-        xhr.open('POST', '{{url_for("create_notification", selector="friendship", to_user=user.id)|safe}}', true);
-        xhr.onload = function() {window.location.href=window.location.href}
-        xhr.send(null);
-    }
-</script>
+        function sendFriendshipAlert() {
+            let xhr = new XMLHttpRequest();
+            xhr.open('POST', '{{url_for("user_alerts", user_id=current_user.id, alert_type="application_friendship", friend_id=user.id)|safe}}', true);
+            xhr.onload = function() {window.location.href=window.location.href}
+            xhr.send(null);
+        }
+    </script>
 {% endblock %}

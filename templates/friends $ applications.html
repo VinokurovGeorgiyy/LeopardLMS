@@ -1,0 +1,53 @@
+{% extends "friends.html" %}
+
+{% block title %}
+    Заявки в друзья | {{ current_user.first_name }} {{ current_user.last_name }}
+{% endblock %}
+
+{% block styles %}
+    {% include "_style_workspace.html" %}
+{% endblock %}
+
+{% block main_block %}
+    <ul class="nav nav-pills mb-2 nav-justified" id="friendship-applications-tab" role="tablist">
+        <li class="nav-item mr-1" role="presentation">
+            <a class="btn btn-outline-dark btn-pill btn-block active" id="inbox-applications-tab" data-toggle="pill" href="#inbox-applications" role="tab" aria-controls="inbox-applications" aria-selected="true">
+                Входящие
+            </a>
+        </li>
+        <li class="nav-item ml-1" role="presentation">
+            <a class="btn btn-outline-dark btn-pill btn-block " id="outbox-applications-tab" data-toggle="pill" href="#outbox-applications" role="tab" aria-controls="outbox-applications" aria-selected="false">
+                Исходящие
+            </a>
+        </li>
+    </ul>
+
+    <div class="tab-content" id="friendship-applications">
+        <div class="tab-pane fade show active" id="inbox-applications" role="tabpanel" aria-labelledby="inbox-applications-tab"></div>
+        <div class="tab-pane fade" id="outbox-applications" role="tabpanel" aria-labelledby="outbox-applications-tab"></div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    {% include "_script_workspace.html" %}
+    {% include "_script_ui_card.html" %}
+    {% include "_script_ui_option.html" %}
+    {% include "_script_utils_requests.html" %}
+    {% include "_script_utils_units.html" %}
+    {% include "_script_utils_units_user.html" %}
+    <script>
+        const CURRENT_USER_ID = {{current_user.id}};
+        const LABELS = {"ADD_TO_FRIENDS": "Добавить в друзья",
+                        "CANCEL_APPLICATION": "Отменить заявку",
+                        "NO_INBOX": "Входящих заявок не найдено",
+                        "NO_OUTBOX": "Исходящих заявок не найдено",
+                        "REJECT_APPLICATION": "Отклонить заявку",
+                        "REQUEST_ERR": "Ошибка при отправке запроса"};
+    </script>
+    <script>
+        $( document ).ready(function () {
+            userGetFriendshipInboxAlerts(CURRENT_USER_ID, "inbox-applications", LABELS);
+            userGetFriendshipOutboxAlerts(CURRENT_USER_ID, "outbox-applications", LABELS);
+        })
+    </script>
+{% endblock %}

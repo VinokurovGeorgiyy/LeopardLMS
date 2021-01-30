@@ -1,0 +1,50 @@
+<script>
+    function createRequest() {
+        let requestObj = false;
+        if (window.XMLHttpRequest) {
+            //Gecko, Safari, Konqueror
+            requestObj = new XMLHttpRequest();
+        } else if (window.ActiveXObject) {
+            //IE
+            try {
+                requestObj = new ActiveXObject("Microsoft.XMLHTTP");
+            } catch (CatchException) {
+                requestObj = new ActiveXObject("Msxml2.XMLHTTP");
+            }
+        }
+        return requestObj;
+    }
+
+    function sendGetRequest(requestUrl, responseHandlerObj) {
+        let requestObj = createRequest();
+        if (!requestObj) {
+            return;
+        }
+        requestObj.open('GET', requestUrl, true);
+        requestObj.onload = function() {responseHandlerObj(requestObj)};
+        requestObj.send(null);
+    }
+
+    function sendPostRequest(requestUrl, requestHeader, requestHeaderValue, responseHandlerObj, data) {
+        let requestObj = createRequest();
+        if (!requestObj) {
+            return;
+        }
+        requestObj.open('POST', requestUrl, true);
+        requestObj.onload = function() {responseHandlerObj(requestObj)};
+        if (requestHeader || requestHeaderValue) {
+            requestObj.setRequestHeader(requestHeader, requestHeaderValue);
+        }
+        requestObj.send(data);
+    }
+
+    function sendDeleteRequest(requestUrl, responseHandlerObj) {
+        let requestObj = createRequest();
+        if (!requestObj) {
+            return;
+        }
+        requestObj.open('DELETE', requestUrl, true);
+        requestObj.onload = function() {responseHandlerObj(requestObj)};
+        requestObj.send(null);
+    }
+</script>
